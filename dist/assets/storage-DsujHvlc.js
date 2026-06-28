@@ -1,0 +1,1 @@
+function n(e,t=[]){try{const r=localStorage.getItem(e);return r?JSON.parse(r):t}catch{return t}}function o(e,t){localStorage.setItem(e,JSON.stringify(t))}function a(){return new Date().toISOString().slice(0,10)}export{n as g,o as s,a as t};
