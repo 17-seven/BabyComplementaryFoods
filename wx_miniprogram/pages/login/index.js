@@ -48,8 +48,10 @@ Page({
         name: 'login',
         success: (res) => {
           const openid = res.result.openid;
+          const familyRecord = res.result.familyRecord || null;
+          const businessData = res.result.businessData || {};
           console.log("微信云端成功换取到真实、稳定唯一的微信 OpenID：" + openid);
-          that.proceedLoginWithOpenid(openid);
+          that.proceedLoginWithOpenid(openid, familyRecord, businessData);
         },
         fail: (err) => {
           wx.hideLoading();
@@ -70,88 +72,84 @@ Page({
     }
   },
 
-  // 使用换取的稳定唯一 OpenID 开展老用户家庭组检索与数据重构
-  proceedLoginWithOpenid: function (openid) {
+  // 使用云函数已返回的 familyRecord 直接恢复数据，彻底规避客户端查库权限问题
+  proceedLoginWithOpenid: function (openid, familyRecord, businessData) {
     const app = getApp();
     if (app) {
       app.globalData.openid = openid;
     }
     wx.setStorageSync('user_openid', openid);
 
-    if (wx.cloud) {
-      try {
-        const db = wx.cloud.database();
-        db.collection('families').where({
-          members: openid
-        }).limit(1).get({
-          success: (queryRes) => {
-            if (queryRes.data && queryRes.data.length > 0) {
-              const familyRec = queryRes.data[0];
-              // 如果云端保存过创建者昵称，说明是老用户清除了本地缓存，直接无感恢复
-              if (familyRec.creator_nickname) {
-                const userInfo = {
-                  nickName: familyRec.creator_nickname,
-                  avatarUrl: familyRec.creator_avatar || '/assets/avatar_default.png'
-                };
-                setStorage('user_info', userInfo);
-                wx.setStorageSync('user_is_logged_in', true);
-                
-                // 顺带恢复宝宝基础档案、头像、相册数据
-                wx.setStorageSync('user_family_id', familyRec._id);
-                const babyProfile = {
-                  name: familyRec.baby_name || '宝宝',
-                  birthDate: familyRec.birth_date || '',
-                  isPremature: !!familyRec.due_date,
-                  dueDate: familyRec.due_date || '',
-                  prematureDays: familyRec.premature_days || 0,
-                  prematureDesc: familyRec.premature_desc || ''
-                };
-                wx.setStorageSync('baby_profile_info', babyProfile);
-                if (familyRec.baby_avatar) {
-                  wx.setStorageSync('baby_custom_avatar', familyRec.baby_avatar);
-                }
-                if (familyRec.album_photos) {
-                  wx.setStorageSync('baby_album_photos', familyRec.album_photos);
-                }
+    if (familyRecord && familyRecord.creator_nickname) {
+      // 老用户：云端家庭组有完整记录，直接恢复所有基础数据
+      const userInfo = {
+        nickName: familyRecord.creator_nickname,
+        avatarUrl: familyRecord.creator_avatar || '/assets/avatar_default.png'
+      };
+      setStorage('user_info', userInfo);
+      wx.setStorageSync('user_is_logged_in', true);
+      wx.setStorageSync('user_family_id', familyRecord._id);
 
-                if (app) {
-                  app.globalData.userInfo = userInfo;
-                }
-
-                // 后台静默从云端拉取所有业务数据，恢复本地缓存
-                this.restoreCloudDataToLocal(familyRec._id);
-
-                wx.hideLoading();
-                wx.showToast({
-                  title: '欢迎回来',
-                  icon: 'success',
-                  duration: 1500,
-                  success: () => {
-                    setTimeout(() => {
-                      wx.navigateBack({
-                        fail: () => {
-                          wx.switchTab({ url: '/pages/dashboard/index' });
-                        }
-                      });
-                    }, 1500);
-                  }
-                });
-                return;
-              }
-            }
-
-            // 没找到云端数据，或者云端没填昵称，则走本地缓存校验
-            this.localUserInfoCheck(openid);
-          },
-          fail: (err) => {
-            console.warn("查询云端 families 失败，退回本地缓存检测：", err);
-            this.localUserInfoCheck(openid);
-          }
-        });
-      } catch (e) {
-        this.localUserInfoCheck(openid);
+      const babyProfile = {
+        name: familyRecord.baby_name || '宝宝',
+        birthDate: familyRecord.birth_date || '',
+        isPremature: !!familyRecord.due_date,
+        dueDate: familyRecord.due_date || '',
+        prematureDays: familyRecord.premature_days || 0,
+        prematureDesc: familyRecord.premature_desc || ''
+      };
+      wx.setStorageSync('baby_profile_info', babyProfile);
+      if (familyRecord.baby_avatar) {
+        wx.setStorageSync('baby_custom_avatar', familyRecord.baby_avatar);
       }
+      if (familyRecord.album_photos) {
+        wx.setStorageSync('baby_album_photos', familyRecord.album_photos);
+      }
+
+      // 把云函数一次性返回的业务数据直接写入本地 Storage
+      const CLOUD_TO_LOCAL = {
+        'timeline_events':    'baby_timeline_events',
+        'vaccines':           'baby_vaccines_list',
+        'healthcares':        'baby_healthcares',
+        'assessments':        'baby_assessments',
+        'clinical_logs':      'baby_clinical_logs',
+        'safe_foods':         'mp_safe_foods_list',
+        'risk_foods':         'mp_risk_foods_list',
+        'meal_plans':         'baby_week_plans',
+        'bowel_records':      'bowel_records',
+        'milk_water_records': 'milk_water_records',
+        'eyepatch_records':   'eyepatch_records'
+      };
+      Object.entries(CLOUD_TO_LOCAL).forEach(function(entry) {
+        const collName = entry[0], localKey = entry[1];
+        if (businessData[collName] && businessData[collName].length > 0) {
+          wx.setStorageSync(localKey, businessData[collName]);
+          console.log('[数据恢复]', collName, businessData[collName].length, '条 ->', localKey);
+        }
+      });
+
+      if (app) {
+        app.globalData.userInfo = userInfo;
+      }
+
+      wx.hideLoading();
+      wx.showToast({
+        title: '欢迎回来',
+        icon: 'success',
+        duration: 1500,
+        success: () => {
+          setTimeout(() => {
+            wx.navigateBack({
+              fail: () => {
+                wx.switchTab({ url: '/pages/dashboard/index' });
+              }
+            });
+          }, 1500);
+        }
+      });
     } else {
+      // 新用户或云端无昵称记录：走本地缓存兜底，最终弹填资料抽屉
+      wx.hideLoading();
       this.localUserInfoCheck(openid);
     }
   },
@@ -284,40 +282,10 @@ Page({
   },
 
   /**
-   * 清缓存重新登录后，把云端各业务集合数据拉回本地 Storage
-   * 采用 fire-and-forget 模式，不阻塞页面跳转
+   * 数据已由 login 云函数在登录时一并返回并写入 Storage，此方法保留备用
    */
   restoreCloudDataToLocal: function (familyId) {
-    if (!wx.cloud || !familyId) return;
-    const db = wx.cloud.database();
-
-    const CLOUD_TO_LOCAL = {
-      'timeline_events':  'baby_timeline_events',
-      'vaccines':         'baby_vaccines_list',
-      'healthcares':      'baby_healthcares',
-      'assessments':      'baby_assessments',
-      'clinical_logs':    'baby_clinical_logs',
-      'safe_foods':       'mp_safe_foods_list',
-      'risk_foods':       'mp_risk_foods_list',
-      'meal_plans':       'baby_week_plans',
-      'bowel_records':    'bowel_records',
-      'milk_water_records': 'milk_water_records',
-      'eyepatch_records': 'eyepatch_records'
-    };
-
-    Object.entries(CLOUD_TO_LOCAL).forEach(([collName, localKey]) => {
-      db.collection(collName).where({ family_id: familyId }).limit(100).get({
-        success: (res) => {
-          if (res.data && res.data.length > 0) {
-            wx.setStorageSync(localKey, res.data);
-            console.log('[云端恢复]', collName, res.data.length, '条 →', localKey);
-          }
-        },
-        fail: (err) => {
-          console.warn('[云端恢复失败]', collName, err);
-        }
-      });
-    });
+    console.log('[restoreCloudDataToLocal] 数据已由云函数完成恢复, familyId =', familyId);
   },
 
   // 关闭半屏抽屉面板
