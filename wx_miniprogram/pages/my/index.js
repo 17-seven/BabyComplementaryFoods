@@ -121,118 +121,151 @@ Page({
     });
   },
 
-  // 恢复出厂设置/清空缓存
-  clearAppData: function () {
-    wx.showModal({
-      title: '清空本地数据',
-      content: '确定要清除所有本地打卡与日志记录并恢复默认种子数据吗？该操作不可撤销。',
-      confirmColor: '#e53e3e',
-      success: (res) => {
-        if (res.confirm) {
-          wx.clearStorageSync();
-          wx.showToast({
-            title: '缓存已清空',
-            icon: 'success',
-            success: () => {
-              setTimeout(() => {
-                wx.reLaunch({
-                  url: '/pages/dashboard/index'
-                });
-              }, 1000);
-            }
-          });
-        }
-      }
-    });
+  // ===== 开发者隐藏入口：版本号连点10次解锁 =====
+  _versionTapCount: 0,       // 点击计数器
+  _versionTapTimer: null,    // 超时重置定时器
+
+  // 版本号点击事件
+  onVersionTap: function () {
+    this._versionTapCount++;
+
+    // 3秒内未凑够10次则重置
+    if (this._versionTapTimer) clearTimeout(this._versionTapTimer);
+    this._versionTapTimer = setTimeout(() => {
+      this._versionTapCount = 0;
+    }, 3000);
+
+    // 到达第7次时给予提示
+    if (this._versionTapCount === 7) {
+      wx.showToast({ title: '再点3次...', icon: 'none', duration: 1000 });
+    }
+
+    // 到达10次，解锁开发者面板
+    if (this._versionTapCount >= 10) {
+      this._versionTapCount = 0;
+      clearTimeout(this._versionTapTimer);
+      wx.vibrateShort({ type: 'heavy' }); // 触觉反馈
+      this.setData({
+        showDevPanel: true,
+        importLogs: []
+      });
+      wx.showToast({ title: '🔓 开发者模式', icon: 'none' });
+    }
   },
 
-  // 一键同步本地缓存数据至微信云开发数据库
-  syncLocalDataToCloud: function () {
+  // 关闭开发者面板
+  closeDevPanel: function () {
+    this.setData({ showDevPanel: false, importLogs: [] });
+  },
+
+  // 选取JSON文件并批量导入云数据库
+  selectAndImportJsonFiles: function () {
     const app = getApp();
     if (!app.globalData.openid) {
       wx.showModal({
-        title: '未登录授权',
-        content: '同步数据需要先进行微信授权登录以确认用户身份。请先点击顶部授权登录。',
+        title: '未登录',
+        content: '导入数据需要先完成微信授权登录。',
         showCancel: false
       });
       return;
     }
 
-    wx.showLoading({ title: '正在同步云端...' });
+    const that = this;
 
-    try {
-      const db = wx.cloud.database();
-      
-      // 读取要同步的本地缓存列表
-      const timelineEvents = wx.getStorageSync('baby_timeline_events') || [];
-      const vaccines = wx.getStorageSync('baby_vaccines_list') || [];
-      const healthcares = wx.getStorageSync('baby_healthcares') || [];
-      const clinicalLogs = wx.getStorageSync('baby_clinical_logs') || [];
-      const bowelRecords = wx.getStorageSync('bowel_records') || [];
-      const milkWaterRecords = wx.getStorageSync('milk_water_records') || [];
-      const eyepatchRecords = wx.getStorageSync('eyepatch_records') || [];
+    // 文件名 → 云数据库集合名的映射表
+    const FILE_COLLECTION_MAP = {
+      'timeline_events': 'timeline_events',
+      'vaccines': 'vaccines',
+      'healthcares': 'healthcares',
+      'assessments': 'assessments',
+      'clinical_logs': 'clinical_logs',
+      'safe_foods': 'safe_foods',
+      'risk_foods': 'risk_foods',
+      'meal_plans': 'meal_plans'
+    };
 
-      // 准备批量同步任务 (为了避免触发端单次add限制，此处仅做当前表数据覆盖或按行添加)
-      // 注意：真实云开发需在小程序端开通云数据库并建立相应的集合，同时设置好可写读写权限。
-      const tasks = [];
-      
-      // 大事记备份同步任务
-      if (timelineEvents.length > 0) {
-        timelineEvents.forEach(item => {
-          tasks.push(
-            db.collection('timeline_events').add({
-              data: {
-                ...item,
-                baby_id: app.globalData.babyId,
-                sync_time: new Date()
-              }
-            })
-          );
-        });
-      }
+    // 微信文件管理器选取文件（支持多选）
+    wx.chooseMessageFile({
+      count: 20, // 最多选20个文件
+      type: 'file',
+      extension: ['json'],
+      success: async (res) => {
+        const files = res.tempFiles;
+        if (!files || files.length === 0) return;
 
-      // 疫苗清单同步任务
-      if (vaccines.length > 0) {
-        vaccines.forEach(item => {
-          tasks.push(
-            db.collection('vaccines').add({
-              data: {
-                ...item,
-                baby_id: app.globalData.babyId,
-                sync_time: new Date()
-              }
-            })
-          );
-        });
-      }
+        that.setData({ importLogs: [] });
+        const logs = [];
+        const db = wx.cloud.database();
+        let totalRecords = 0;
+        let successFiles = 0;
 
-      // 执行同步
-      Promise.all(tasks).then(() => {
+        wx.showLoading({ title: '正在导入...', mask: true });
+
+        for (const file of files) {
+          // 从文件名中提取集合名（去掉扩展名）
+          const rawName = file.name.replace(/\.json$/i, '');
+          const collectionName = FILE_COLLECTION_MAP[rawName];
+
+          if (!collectionName) {
+            logs.push({ success: false, text: `⚠️ ${file.name} - 无法识别的文件名，跳过` });
+            that.setData({ importLogs: logs.slice() });
+            continue;
+          }
+
+          try {
+            // 读取文件内容
+            const fs = wx.getFileSystemManager();
+            const fileContent = fs.readFileSync(file.path, 'utf-8');
+            const dataArray = JSON.parse(fileContent);
+
+            if (!Array.isArray(dataArray)) {
+              logs.push({ success: false, text: `❌ ${file.name} - JSON内容不是数组格式` });
+              that.setData({ importLogs: logs.slice() });
+              continue;
+            }
+
+            // 逐条写入云数据库（每批最多20条并发，避免超限）
+            const BATCH_SIZE = 20;
+            let imported = 0;
+
+            for (let i = 0; i < dataArray.length; i += BATCH_SIZE) {
+              const batch = dataArray.slice(i, i + BATCH_SIZE);
+              const tasks = batch.map(item => {
+                return db.collection(collectionName).add({
+                  data: {
+                    ...item,
+                    baby_id: app.globalData.babyId || 'default_baby_id',
+                    _import_time: new Date()
+                  }
+                });
+              });
+
+              await Promise.all(tasks);
+              imported += batch.length;
+            }
+
+            totalRecords += imported;
+            successFiles++;
+            logs.push({ success: true, text: `✅ ${file.name} → ${collectionName}（${imported} 条记录）` });
+          } catch (err) {
+            console.error(`导入 ${file.name} 失败：`, err);
+            logs.push({ success: false, text: `❌ ${file.name} - ${err.message || '写入失败'}` });
+          }
+
+          // 实时更新日志到界面
+          that.setData({ importLogs: logs.slice() });
+        }
+
         wx.hideLoading();
         wx.showModal({
-          title: '同步成功',
-          content: '您的本地打卡、大事记、就诊及疫苗规划数据已成功同步并备份至微信云开发数据库中！',
+          title: '导入完成',
+          content: `共处理 ${files.length} 个文件，成功 ${successFiles} 个，累计写入 ${totalRecords} 条记录。`,
           showCancel: false
         });
-      }).catch(err => {
-        wx.hideLoading();
-        console.error("写入云数据库失败", err);
-        // 如果是因为微信云开发未初始化或集合不存在导致报错，进行兜底友好提示
-        wx.showModal({
-          title: '云端同步提示',
-          content: '已成功联通微信云开发并校验登录态。因当前环境尚未在微信控制台中建立相应的 timeline_events / vaccines 数据库集合，导致同步动作被拦截。请确认微信云环境和集合已创建！',
-          showCancel: false
-        });
-      });
-
-    } catch (e) {
-      wx.hideLoading();
-      console.error("微信云能力未开启", e);
-      wx.showModal({
-        title: '同步失败',
-        content: '未能检测到可用的微信云开发初始化环境。请确保您的小程序已在微信开发者工具中开通云开发服务，并填写了正确的环境ID。',
-        showCancel: false
-      });
-    }
+      },
+      fail: () => {
+        // 用户取消选择，不做处理
+      }
+    });
   }
 });

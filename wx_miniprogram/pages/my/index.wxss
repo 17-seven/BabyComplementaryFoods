@@ -180,3 +180,72 @@
   color: #a0aec0;
 }
 
+/* 底部版本号 */
+.version-footer {
+  text-align: center;
+  padding: 40rpx 0 20rpx;
+}
+.version-text {
+  font-size: 22rpx;
+  color: #cbd5e0;
+  user-select: none;
+}
+
+/* 开发者数据导入面板 */
+.dev-panel {
+  margin-top: 24rpx;
+  padding: 28rpx;
+  background-color: #fffbeb;
+  border: 1rpx solid #f6e05e;
+}
+.dev-panel .section-title {
+  font-size: 28rpx;
+  color: #744210;
+  margin-bottom: 12rpx;
+}
+.dev-hint {
+  font-size: 22rpx;
+  color: #975a16;
+  line-height: 1.6;
+  display: block;
+  margin-bottom: 16rpx;
+}
+.dev-mapping-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+  background-color: rgba(255,255,255,0.6);
+  padding: 16rpx 20rpx;
+  border-radius: 12rpx;
+}
+.dev-mapping-item {
+  font-size: 22rpx;
+  color: #553c07;
+  font-family: monospace;
+}
+
+/* 导入日志 */
+.dev-log {
+  margin-top: 16rpx;
+  background-color: #1a202c;
+  border-radius: 12rpx;
+  padding: 16rpx 20rpx;
+  max-height: 400rpx;
+  overflow-y: auto;
+}
+.dev-log-item {
+  margin-bottom: 8rpx;
+}
+.dev-log-item:last-child {
+  margin-bottom: 0;
+}
+.log-success {
+  font-size: 22rpx;
+  color: #68d391;
+  font-family: monospace;
+}
+.log-error {
+  font-size: 22rpx;
+  color: #fc8181;
+  font-family: monospace;
+}

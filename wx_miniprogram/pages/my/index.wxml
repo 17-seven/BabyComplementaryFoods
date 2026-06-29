@@ -87,20 +87,46 @@
     </view>
   </view>
 
-  <!-- 3. 设置面板 -->
-  <view class="section-title">⚙️ 系统维护</view>
-  <view class="card menu-card-list">
-    <view class="menu-item" bindtap="syncLocalDataToCloud">
-      <view class="menu-icon">☁️</view>
-      <view class="menu-body">
-        <text class="menu-title">同步/备份数据至云数据库</text>
-        <text class="menu-desc">将本地大便、饮水、疫苗、大事记同步写入微信云端数据库集合中</text>
-      </view>
-      <view class="menu-arrow">➔</view>
-    </view>
+
+  <!-- 3. 底部版本号（连续点击10次解锁开发者模式） -->
+  <view class="version-footer" bindtap="onVersionTap">
+    <text class="version-text">珑珑成长助手 v1.0.0</text>
   </view>
 
-  <!-- 4. 微信登录授权信息补充弹窗 -->
+  <!-- 4. 开发者数据导入面板（隐藏入口，点击版本号10次后展示） -->
+  <view class="card dev-panel" wx:if="{{ showDevPanel }}">
+    <view class="section-title">🔧 开发者数据导入</view>
+    <text class="dev-hint">从手机中选取 JSON 种子文件，批量导入到微信云数据库。每个文件将根据文件名自动匹配对应的云数据库集合。</text>
+
+    <!-- 集合名称与文件名映射说明 -->
+    <view class="dev-mapping-list">
+      <text class="dev-mapping-item">📜 timeline_events.json → timeline_events</text>
+      <text class="dev-mapping-item">💉 vaccines.json → vaccines</text>
+      <text class="dev-mapping-item">🏥 healthcares.json → healthcares</text>
+      <text class="dev-mapping-item">📊 assessments.json → assessments</text>
+      <text class="dev-mapping-item">🩺 clinical_logs.json → clinical_logs</text>
+      <text class="dev-mapping-item">🥦 safe_foods.json → safe_foods</text>
+      <text class="dev-mapping-item">🍊 risk_foods.json → risk_foods</text>
+      <text class="dev-mapping-item">🍽️ meal_plans.json → meal_plans</text>
+    </view>
+
+    <button class="btn btn-primary btn-block" style="margin-top: 20rpx;" bindtap="selectAndImportJsonFiles">
+      📂 选取 JSON 文件并导入云数据库
+    </button>
+
+    <!-- 导入进度日志 -->
+    <view class="dev-log" wx:if="{{ importLogs.length > 0 }}">
+      <view class="dev-log-item" wx:for="{{ importLogs }}" wx:key="index">
+        <text class="{{ item.success ? 'log-success' : 'log-error' }}">{{ item.text }}</text>
+      </view>
+    </view>
+
+    <button class="btn btn-outline-secondary btn-block" style="margin-top: 16rpx;" bindtap="closeDevPanel">
+      关闭开发者面板
+    </button>
+  </view>
+
+  <!-- 5. 微信登录授权信息补充弹窗 -->
   <view class="modal-overlay" wx:if="{{ showLoginModal }}">
     <view class="modal-card">
       <view class="modal-header">
@@ -127,3 +153,4 @@
   </view>
 
 </view>
+
