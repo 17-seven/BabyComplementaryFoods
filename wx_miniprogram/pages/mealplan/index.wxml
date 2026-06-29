@@ -86,4 +86,11 @@
     </view>
   </block>
 
+  <!-- 4. 底部创建下周计划操作 -->
+  <view class="fixed-bottom-action" style="padding: 20rpx 0 60rpx;">
+    <button class="btn btn-outline-primary btn-block" bindtap="addNewWeek">
+      ➕ 新增并规划下周辅食菜单
+    </button>
+  </view>
+
 </view>

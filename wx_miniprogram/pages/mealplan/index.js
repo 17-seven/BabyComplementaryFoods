@@ -208,5 +208,64 @@ Page({
         }
       }
     });
+  },
+
+  // 动态创建下周辅食食谱
+  addNewWeek: function () {
+    const list = [...this.data.weekPlans];
+    const lastWeek = list[list.length - 1];
+    
+    let lastDateStr = '2026-07-12'; // 默认底线日期
+    if (lastWeek && lastWeek.days && lastWeek.days.length > 0) {
+      lastDateStr = lastWeek.days[lastWeek.days.length - 1].date;
+    }
+
+    const lastDate = new Date(lastDateStr);
+    const nextDays = [];
+    const weekDaysNames = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+    
+    for (let i = 1; i <= 7; i++) {
+      const nextDate = new Date(lastDate.getTime() + i * 24 * 60 * 60 * 1000);
+      const y = nextDate.getFullYear();
+      let m = nextDate.getMonth() + 1;
+      let d = nextDate.getDate();
+      if (m < 10) m = '0' + m;
+      if (d < 10) d = '0' + d;
+      
+      const dateStr = `${y}-${m}-${d}`;
+      nextDays.push({
+        date: dateStr,
+        dayName: weekDaysNames[i - 1],
+        eggTarget: 1,
+        meals: [
+          { type: '午餐', name: '' },
+          { type: '晚餐', name: '' }
+        ]
+      });
+    }
+
+    const nextWeekNum = list.length + 1;
+    const startPeriod = nextDays[0].date.slice(5).replace('-', '.');
+    const endPeriod = nextDays[6].date.slice(5).replace('-', '.');
+    
+    const newWeekObj = {
+      week: `第 ${nextWeekNum} 周辅食计划`,
+      period: `${startPeriod}-${endPeriod}`,
+      days: nextDays
+    };
+
+    list.push(newWeekObj);
+    
+    // 写回缓存并触发静默同步
+    setStorage('baby_week_plans', list);
+
+    this.setData({
+      weekPlans: list,
+      currentWeekIndex: list.length - 1,
+      currentWeek: newWeekObj
+    }, () => {
+      this.validateRules();
+      wx.showToast({ title: '已开通下周食谱', icon: 'success' });
+    });
   }
 });
