@@ -22,3 +22,6 @@
    * 包含符合导入格式的精选 JSON 数组块及 app.js 首次运行自检 Seeding JS 代码。
 5. **[网站与小程序项目共存指南 (project_coexistence.md)](project_coexistence.md)**：
    * 详细说明了如何使用“同库子项目结构”将 Vue 3 网站项目和小程序原生项目独立隔离共存，共享一份 Git 仓库和开发文档而不产生依赖冲突。
+6. **[家庭多看护人协同记账共享方案 (family_sharing.md)](family_sharing.md)**：
+   * 详细阐述了针对多用户共享、夫妻协同记账的需求，如何配置微信云开发的安全规则（Security Rules）、实现家庭绑定云函数，以及小程序端如何通过家庭同步码动态刷新获取共同的宝宝数据。
+
