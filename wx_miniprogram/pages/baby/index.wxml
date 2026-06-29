@@ -1,0 +1,59 @@
+<!--pages/baby/index.wxml-->
+<view class="container">
+
+  <!-- 顶部提示语 -->
+  <view class="tip-banner">
+    📝 请录入您家宝宝的真实姓名和出生日期。如果宝宝是早产儿，系统会自动进行月龄校正，并依此精准滚动生成疫苗接种及体检的规划排班日程。
+  </view>
+
+  <view class="card form-card">
+    
+    <!-- 宝宝姓名 -->
+    <view class="form-item">
+      <text class="lbl">👶 宝宝姓名</text>
+      <input type="text" placeholder="请输入宝宝姓名" value="{{ name }}" bindinput="onFieldInput" data-field="name" />
+    </view>
+
+    <!-- 出生日期 -->
+    <view class="form-item" style="margin-top: 24rpx;">
+      <text class="lbl">📅 出生日期 (公历/实际生日)</text>
+      <picker mode="date" value="{{ birthDate }}" start="2020-01-01" end="2030-12-31" bindchange="onDateChange">
+        <view class="date-picker-btn">{{ birthDate }}</view>
+      </picker>
+    </view>
+
+    <!-- 早产开关 -->
+    <view class="form-item-row" style="margin-top: 36rpx;">
+      <view class="row-left">
+        <text class="lbl">⚠️ 是否为早产宝宝</text>
+        <text class="sub-lbl">早产宝宝将按矫正胎龄智能规避不规范接种风险</text>
+      </view>
+      <switch checked="{{ isPremature }}" color="#38a169" bindchange="onPrematureChange" />
+    </view>
+
+    <!-- 早产细节 (早产时展示) -->
+    <block wx:if="{{ isPremature }}">
+      
+      <!-- 早产纠正天数 -->
+      <view class="form-item" style="margin-top: 24rpx;">
+        <text class="lbl">⏳ 早产纠正天数 (偏移天数)</text>
+        <input type="number" placeholder="例如：71" value="{{ prematureDays }}" bindinput="onFieldInput" data-field="prematureDays" />
+        <text class="hint-lbl">计算规则：若 40 周为足月，早产天数 = 280天 - 实际孕周天数（如 29w+6 约为偏离 71 天）。</text>
+      </view>
+
+      <!-- 早产描述 -->
+      <view class="form-item" style="margin-top: 24rpx;">
+        <text class="lbl">📝 胎龄阶段说明</text>
+        <input type="text" placeholder="例如：29w+6 早产" value="{{ prematureDesc }}" bindinput="onFieldInput" data-field="prematureDesc" />
+      </view>
+
+    </block>
+
+  </view>
+
+  <!-- 底部保存按钮 -->
+  <button class="btn btn-primary btn-block" style="margin-top: 40rpx;" bindtap="saveProfile">
+    💾 保存宝宝档案
+  </button>
+
+</view>

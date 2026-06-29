@@ -37,8 +37,18 @@ Page({
   loadBabyStatus: function () {
     const todayStr = today();
     
+    // 读取宝宝的本地档案设置
+    const defaultProfile = {
+      name: '王珑初',
+      birthDate: '2025-02-18',
+      isPremature: true,
+      prematureDays: 71,
+      prematureDesc: '29w+6 早产'
+    };
+    const profile = getStorage('baby_profile_info', defaultProfile);
+
     // 1. 计算月龄
-    const ageInfo = calculateBabyAge(this.data.babyInfo.birthDate, 71);
+    const ageInfo = calculateBabyAge(profile.birthDate, profile.prematureDays);
     
     // 2. 饮奶与饮水统计
     const milkRecords = getStorage('milk_water_records', []);
@@ -122,6 +132,11 @@ Page({
     const avatar = getStorage('baby_custom_avatar', '/assets/avatar_default.png');
 
     this.setData({
+      babyInfo: {
+        name: profile.name,
+        birthDate: profile.birthDate,
+        desc: profile.prematureDesc
+      },
       actualAge: ageInfo.actualAge,
       correctedAge: ageInfo.correctedAge,
       milkVal: todayMilk,

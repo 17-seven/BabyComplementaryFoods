@@ -23,6 +23,15 @@
   <view class="section-title">🛠️ 宝宝日常照护快捷记账</view>
   
   <view class="card menu-card-list">
+    <view class="menu-item" bindtap="navigateToPage" data-page="baby">
+      <view class="menu-icon">👶</view>
+      <view class="menu-body">
+        <text class="menu-title">宝宝档案设置</text>
+        <text class="menu-desc">修改宝宝姓名、公历生日、早产纠正偏移天数</text>
+      </view>
+      <view class="menu-arrow">➔</view>
+    </view>
+
     <view class="menu-item" bindtap="navigateToPage" data-page="bowel">
       <view class="menu-icon">💩</view>
       <view class="menu-body">
