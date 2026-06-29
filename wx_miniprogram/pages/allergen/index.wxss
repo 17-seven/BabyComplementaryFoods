@@ -1,1 +1,110 @@
 /* pages/allergen/index.wxss */
+
+/* 顶部 Tab 导航栏 */
+.tab-navbar {
+  display: flex;
+  background-color: #ffffff;
+  border-radius: 20rpx;
+  padding: 8rpx;
+  margin-bottom: 24rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.02);
+  border: 1rpx solid #edf2f7;
+  box-sizing: border-box;
+}
+.tab-nav-btn {
+  flex: 1;
+  text-align: center;
+  padding: 18rpx 0;
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #718096;
+  border-radius: 12rpx;
+  transition: all 0.15s ease;
+}
+.tab-nav-btn.active {
+  background-color: var(--primary-color);
+  color: #ffffff;
+  box-shadow: 0 4rpx 12rpx rgba(56, 161, 105, 0.2);
+}
+
+/* 顶部提示语 */
+.tip-banner {
+  background-color: #ebf8ff;
+  color: #2b6cb0;
+  font-size: 22rpx;
+  padding: 16rpx 24rpx;
+  border-radius: 12rpx;
+  margin-bottom: 24rpx;
+  font-weight: 500;
+  line-height: 1.4;
+}
+.tip-banner.error-banner {
+  background-color: #fff5f5;
+  color: #c53030;
+}
+
+/* 标签列表 */
+.tags-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  margin-top: 10rpx;
+}
+.food-tag {
+  font-size: 26rpx;
+  padding: 10rpx 28rpx;
+  border-radius: 30rpx;
+  font-weight: 600;
+  box-shadow: 0 2rpx 6rpx rgba(0,0,0,0.02);
+  cursor: pointer;
+}
+.tag-green-bg {
+  background-color: #e6fffa;
+  color: #319795;
+  border: 1rpx solid #b2f5ea;
+}
+.tag-green-bg:active {
+  background-color: #fed7d7;
+  color: #c53030;
+  border-color: #feb2b2;
+}
+.tag-red-bg {
+  background-color: #fff5f5;
+  color: #e53e3e;
+  border: 1rpx solid #fed7d7;
+}
+.tag-red-bg:active {
+  background-color: #e6fffa;
+  color: #319795;
+  border-color: #b2f5ea;
+}
+
+/* 行表单 */
+.inline-form {
+  display: flex;
+  gap: 16rpx;
+  align-items: center;
+}
+.inline-form input {
+  flex: 1;
+  background-color: #f7f9fc;
+  border: 1rpx solid #edf2f7;
+  border-radius: 12rpx;
+  padding: 16rpx;
+  font-size: 26rpx;
+}
+.cat-sel-btn {
+  font-size: 26rpx;
+  background-color: #edf2f7;
+  border-radius: 12rpx;
+  padding: 16rpx 24rpx;
+  color: #4a5568;
+  font-weight: 700;
+}
+.text-sm {
+  font-size: 24rpx;
+  color: #4a5568;
+}
+.cat-section-card {
+  margin-bottom: 20rpx;
+}

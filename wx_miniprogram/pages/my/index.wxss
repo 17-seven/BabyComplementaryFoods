@@ -1,1 +1,78 @@
 /* pages/my/index.wxss */
+
+/* 个人信息头 */
+.my-profile-header {
+  display: flex;
+  align-items: center;
+  background-color: #ffffff;
+  border-radius: 20rpx;
+  padding: 36rpx;
+  margin-bottom: 30rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.02);
+  border: 1rpx solid #edf2f7;
+}
+.avatar-box {
+  width: 100rpx;
+  height: 100rpx;
+  background-color: #e6fffa;
+  border-radius: 50%;
+  font-size: 52rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 24rpx;
+}
+.baby-info-box {
+  display: flex;
+  flex-direction: column;
+}
+.baby-name {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #2d3748;
+}
+.baby-age {
+  font-size: 22rpx;
+  color: #718096;
+  margin-top: 8rpx;
+}
+
+/* 菜单列表 */
+.menu-card-list {
+  padding: 0rpx;
+}
+.menu-item {
+  display: flex;
+  align-items: center;
+  padding: 30rpx 24rpx;
+  border-bottom: 1rpx solid #f7f9fc;
+}
+.menu-item:last-child {
+  border-bottom: none;
+}
+.menu-icon {
+  font-size: 40rpx;
+  margin-right: 24rpx;
+}
+.menu-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.menu-title {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #2d3748;
+}
+.menu-desc {
+  font-size: 20rpx;
+  color: #a0aec0;
+  margin-top: 6rpx;
+}
+.menu-arrow {
+  font-size: 24rpx;
+  color: #cbd5e0;
+}
+.menu-item:active {
+  background-color: #f7f9fc;
+}

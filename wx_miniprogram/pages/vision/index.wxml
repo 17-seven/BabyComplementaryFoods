@@ -1,4 +1,55 @@
 <!--pages/vision/index.wxml-->
 <view class="container">
-  <text>视力矫正遮盖眼罩页面开发中...</text>
+  
+  <!-- 1. 计时环形卡片 -->
+  <view class="card timer-dashboard">
+    <view class="circle-progress">
+      <view class="progress-info">
+        <text class="hours-val">{{ todayDurationMins / 60 }}</text>
+        <text class="hours-lbl">今日已戴 (小时)</text>
+      </view>
+    </view>
+    
+    <view class="target-lbl">每日训练目标：4 小时 (240分钟)</view>
+    <view class="progress-bar-container">
+      <view class="progress-bar" style="width: {{ progressPercent }}%"></view>
+    </view>
+    <text class="progress-text">目标进度：{{ progressPercent }}%</text>
+  </view>
+
+  <!-- 2. 戴上/摘下大按钮 -->
+  <view class="btn-container">
+    <button class="timer-action-btn {{ isWearing ? 'active-orange' : 'active-green' }}" bindtap="toggleWearing">
+      {{ isWearing ? '🔴 摘下眼罩并结算' : '🟢 戴上眼罩开始计时' }}
+    </button>
+    <text class="status-tip" wx:if="{{ isWearing }}">计时中：眼罩已戴戴好，请坚持！</text>
+    <text class="status-tip" wx:else>未在计时状态：摘下后将为您自动保存时间。</text>
+  </view>
+
+  <!-- 3. 手动录入记录 -->
+  <view class="card">
+    <view class="section-title">⏱️ 补录遮盖时长</view>
+    <view class="input-group">
+      <input type="number" placeholder="输入戴镜时间 (分钟)" value="{{ manualMins }}" bindinput="onMinsInput" />
+      <button class="btn btn-primary" bindtap="addManualRecord">保存补录</button>
+    </view>
+  </view>
+
+  <!-- 4. 历史记录台账 -->
+  <view class="section-title">📜 遮盖时间记录</view>
+  <view class="history-list">
+    <block wx:for="{{ historyLogs }}" wx:key="id">
+      <view class="card log-card">
+        <view class="log-info">
+          <text class="log-date">{{ item.date }}</text>
+          <text class="log-mins">{{ item.durationMinutes }} 分钟 ({{ item.durationMinutes / 60 }}小时)</text>
+        </view>
+        <view class="log-footer">
+          <text class="log-remark">{{ item.remark }}</text>
+          <text class="delete-link" bindtap="deleteLog" data-id="{{ item.id }}">删除</text>
+        </view>
+      </view>
+    </block>
+  </view>
+
 </view>

@@ -41,13 +41,20 @@
     "minifyWXML": true,
     "showES6CompileOption": false,
     "useCompilerPlugins": false,
-    "ignoreUploadUnusedFiles": true
+    "ignoreUploadUnusedFiles": true,
+    "compileWorklet": false,
+    "localPlugins": false,
+    "condition": false,
+    "swc": false,
+    "disableSWC": true
   },
   "compileType": "miniprogram",
   "libVersion": "3.3.4",
-  "appid": "touristappid",
+  "appid": "wxb3b17b0076ffd2ee",
   "projectname": "baby-assistant-mp",
   "cloudfunctionRoot": "cloudfunctions/",
   "condition": {},
-  "srcMiniprogramRoot": "./"
+  "srcMiniprogramRoot": "./",
+  "simulatorPluginLibVersion": {},
+  "editorSetting": {}
 }

@@ -1,4 +1,93 @@
 <!--pages/nutrition/index.wxml-->
 <view class="container">
-  <text>饮奶与饮水记录页面开发中...</text>
+  
+  <!-- 1. 指标看板 Card -->
+  <view class="card progress-summary-card">
+    <view class="tracker-row">
+      <view class="tracker-item">
+        <text class="lbl">🍼 今日总饮奶量</text>
+        <view class="val-box">
+          <text class="val text-green">{{ todayMilk }}</text>
+          <text class="unit">ml / 500ml</text>
+        </view>
+        <view class="progress-bar-container">
+          <view class="progress-bar bg-green" style="width: {{ milkProgressPercent }}%"></view>
+        </view>
+        <text class="warn-tip" wx:if="{{ todayMilk > 500 }}">⚠️ 已超出医嘱限制 500ml 限量！</text>
+      </view>
+
+      <view class="tracker-item">
+        <text class="lbl">💧 今日总饮水量</text>
+        <view class="val-box">
+          <text class="val text-blue">{{ todayWater }}</text>
+          <text class="unit">ml</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 2. 快捷加量打卡 -->
+  <view class="section-title">⚡ 快捷记账</view>
+  
+  <view class="card">
+    <view class="section-title text-sm">🍼 饮奶快速打卡</view>
+    <view class="quick-btn-grid">
+      <button class="btn btn-primary" bindtap="quickAdd" data-type="milk" data-amount="50">+50ml</button>
+      <button class="btn btn-primary" bindtap="quickAdd" data-type="milk" data-amount="100">+100ml</button>
+      <button class="btn btn-primary" bindtap="quickAdd" data-type="milk" data-amount="150">+150ml</button>
+    </view>
+
+    <view class="section-title text-sm" style="margin-top:24rpx">💧 饮水快速打卡</view>
+    <view class="quick-btn-grid">
+      <button class="btn btn-blue" bindtap="quickAdd" data-type="water" data-amount="20">+20ml</button>
+      <button class="btn btn-blue" bindtap="quickAdd" data-type="water" data-amount="30">+30ml</button>
+      <button class="btn btn-blue" bindtap="quickAdd" data-type="water" data-amount="50">+50ml</button>
+    </view>
+  </view>
+
+  <!-- 3. 手动录入记录表单 -->
+  <view class="card form-card">
+    <view class="section-title">➕ 补录数值</view>
+    
+    <view class="form-item switch-row">
+      <text class="lbl">类型：{{ selectedType === 'milk' ? '🍼 饮奶' : '💧 饮水' }}</text>
+      <switch bindchange="onTypeChange" color="#3182ce" />
+    </view>
+
+    <view class="form-grid" style="margin-top: 16rpx;">
+      <view class="form-item">
+        <text class="lbl">记录日期</text>
+        <picker mode="date" value="{{ logDate }}" bindchange="onDateChange">
+          <view class="date-picker-btn">{{ logDate }}</view>
+        </picker>
+      </view>
+
+      <view class="form-item">
+        <text class="lbl">容量 (ml)</text>
+        <input type="number" placeholder="如 120" value="{{ amountVal }}" bindinput="onAmountInput" />
+      </view>
+    </view>
+
+    <button class="btn btn-primary btn-block" style="margin-top: 24rpx;" bindtap="saveRecord">保存记录</button>
+  </view>
+
+  <!-- 4. 历史记录台账 -->
+  <view class="section-title">📜 历史饮水饮奶记录</view>
+  <view class="history-list">
+    <block wx:for="{{ historyLogs }}" wx:key="id">
+      <view class="card log-card">
+        <view class="log-info">
+          <text class="log-date">{{ item.date }}</text>
+          <text class="log-amt {{ item.type === 'milk' ? 'text-green' : 'text-blue' }}">
+            {{ item.type === 'milk' ? '🍼 奶量：' : '💧 水量：' }}{{ item.amount }}ml
+          </text>
+        </view>
+        <view class="log-footer">
+          <text class="log-remark">{{ item.remark || '无备注' }}</text>
+          <text class="delete-link" bindtap="deleteLog" data-id="{{ item.id }}">删除</text>
+        </view>
+      </view>
+    </block>
+  </view>
+
 </view>

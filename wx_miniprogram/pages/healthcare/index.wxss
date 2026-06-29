@@ -1,1 +1,361 @@
 /* pages/healthcare/index.wxss */
+
+/* 顶部 Tab 导航栏 */
+.tab-navbar {
+  display: flex;
+  background-color: #ffffff;
+  border-radius: 20rpx;
+  padding: 8rpx;
+  margin-bottom: 24rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.02);
+  border: 1rpx solid #edf2f7;
+  box-sizing: border-box;
+}
+.tab-nav-btn {
+  flex: 1;
+  text-align: center;
+  padding: 18rpx 0;
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #718096;
+  border-radius: 12rpx;
+  transition: all 0.15s ease;
+}
+.tab-nav-btn.active {
+  background-color: var(--primary-color);
+  color: #ffffff;
+  box-shadow: 0 4rpx 12rpx rgba(56, 161, 105, 0.2);
+}
+
+/* 提醒卡片样式 */
+.timer-card {
+  border-radius: 20rpx;
+  padding: 24rpx 32rpx;
+  margin-bottom: 24rpx;
+}
+.timer-card.bg-orange {
+  background: linear-gradient(135deg, #fffbf0 0%, #fff7e6 100%);
+  border: 1rpx solid #ffe8cc;
+}
+.timer-card.bg-yellow {
+  background: linear-gradient(135deg, #fffdf5 0%, #fffbf0 100%);
+  border: 1rpx solid #fef3c7;
+}
+.timer-body {
+  display: flex;
+  flex-direction: column;
+}
+.timer-lbl {
+  font-size: 24rpx;
+  font-weight: 700;
+  color: #7b341e;
+}
+.timer-val {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10rpx;
+}
+.timer-val .date {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #2d3748;
+}
+.timer-val .countdown {
+  font-size: 26rpx;
+}
+.timer-val .highlight {
+  font-weight: 700;
+  color: #e53e3e;
+}
+
+/* 疫苗配置 */
+.setting-card {
+  border-left: 8rpx solid #4299e1;
+}
+.form-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16rpx;
+  font-size: 26rpx;
+}
+.form-row .label {
+  color: #4a5568;
+  font-weight: 600;
+}
+.date-picker-btn {
+  background-color: #f7f9fc;
+  border: 1rpx solid #edf2f7;
+  padding: 12rpx 28rpx;
+  border-radius: 12rpx;
+  font-weight: 700;
+  color: #2d3748;
+}
+.hint {
+  font-size: 20rpx;
+  color: #a0aec0;
+  display: block;
+}
+
+/* 待接种排班卡 */
+.schedule-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+.schedule-item {
+  display: flex;
+  align-items: center;
+  background-color: #f7f9fc;
+  border-radius: 16rpx;
+  padding: 16rpx 20rpx;
+  border: 1rpx solid #edf2f7;
+}
+.schedule-num {
+  width: 44rpx;
+  height: 44rpx;
+  background-color: #ebf8ff;
+  color: #2b6cb0;
+  border-radius: 50%;
+  font-size: 24rpx;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 20rpx;
+}
+.schedule-body {
+  flex: 1;
+}
+.sched-title {
+  font-size: 26rpx;
+  font-weight: 700;
+}
+.sched-date {
+  font-size: 22rpx;
+  color: #718096;
+  margin-top: 4rpx;
+}
+.sched-date .highlight {
+  color: #e53e3e;
+  font-weight: 700;
+}
+.btn-sm {
+  font-size: 22rpx;
+  padding: 10rpx 20rpx;
+  border-radius: 30rpx;
+}
+
+/* 全量清单行 */
+.vaccine-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #f7f9fc;
+}
+.vaccine-row:last-child {
+  border-bottom: none;
+}
+.vacc-name {
+  display: flex;
+  flex-direction: column;
+}
+.vacc-name .name {
+  font-size: 26rpx;
+  font-weight: 700;
+}
+.vacc-name .dose {
+  font-size: 20rpx;
+  color: #a0aec0;
+  margin-top: 4rpx;
+}
+.vacc-status {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6rpx;
+}
+.vacc-status .date-text {
+  font-size: 20rpx;
+  color: #a0aec0;
+}
+
+/* 儿保录入表单 */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20rpx;
+}
+.form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+.form-row.full-width {
+  grid-column: 1 / -1;
+}
+.form-row .label {
+  font-size: 22rpx;
+  color: #718096;
+  font-weight: 600;
+}
+.form-row input, .form-row textarea {
+  background-color: #f7f9fc;
+  border: 1rpx solid #edf2f7;
+  border-radius: 12rpx;
+  padding: 16rpx;
+  font-size: 26rpx;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* 历史卡片 */
+.history-card {
+  padding: 28rpx;
+}
+.hist-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1rpx solid #f7f9fc;
+  padding-bottom: 12rpx;
+  margin-bottom: 16rpx;
+}
+.hist-date {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #2d3748;
+}
+.btn-delete-lbl {
+  font-size: 24rpx;
+  color: #a0aec0;
+}
+.btn-delete-lbl:hover {
+  color: #e53e3e;
+}
+.hist-metrics {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 16rpx;
+}
+.met-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.met-box .val {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: var(--primary-color);
+}
+.met-box .unit {
+  font-size: 18rpx;
+  color: #a0aec0;
+  margin-top: 4rpx;
+}
+.hist-desc {
+  font-size: 24rpx;
+  color: #718096;
+  background-color: #f7f9fc;
+  padding: 12rpx 16rpx;
+  border-radius: 8rpx;
+}
+
+/* 发育评估 */
+.asm-card {
+  border-left: 8rpx solid #805ad5;
+}
+.asm-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1rpx solid #f7f9fc;
+  padding-bottom: 12rpx;
+  margin-bottom: 16rpx;
+}
+.asm-name {
+  font-size: 26rpx;
+  font-weight: 700;
+}
+.asm-row {
+  display: flex;
+  font-size: 24rpx;
+  margin-bottom: 10rpx;
+}
+.asm-row .lbl {
+  font-weight: 700;
+  color: #4a5568;
+  white-space: nowrap;
+}
+.asm-row .val {
+  color: #718096;
+}
+.asm-row .val.desc {
+  line-height: 1.6;
+}
+.highlight-box {
+  background-color: #fff5f5;
+  border-radius: 8rpx;
+  padding: 12rpx;
+  margin-top: 16rpx;
+}
+.red-text {
+  color: #e53e3e;
+}
+
+/* 临床就诊 */
+.cli-card {
+  border-left: 8rpx solid var(--primary-color);
+}
+.cli-card.status-uncompleted {
+  border-left-color: var(--status-red);
+}
+.cli-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1rpx solid #f7f9fc;
+  padding-bottom: 12rpx;
+  margin-bottom: 16rpx;
+}
+.cli-title-box {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+.cli-name {
+  font-size: 26rpx;
+  font-weight: 700;
+}
+.cli-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+  font-size: 24rpx;
+  color: #718096;
+  margin-bottom: 16rpx;
+}
+.cli-info-line {
+  display: flex;
+}
+.cli-info-line .lbl {
+  font-weight: 700;
+  color: #4a5568;
+  white-space: nowrap;
+}
+.cli-info-line.result {
+  background-color: #f7f9fc;
+  padding: 12rpx;
+  border-radius: 8rpx;
+  color: #2d3748;
+}
+.btn-toggle {
+  font-size: 24rpx;
+  padding: 12rpx 0;
+  text-align: center;
+  border-radius: 8rpx;
+  background-color: #ebf8ff;
+  color: #2b6cb0;
+  font-weight: 700;
+}

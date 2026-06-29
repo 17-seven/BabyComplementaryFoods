@@ -1,4 +1,91 @@
 <!--pages/timeline/index.wxml-->
 <view class="container">
-  <text>大事记时间轴页面开发中...</text>
+  
+  <!-- 1. 搜索栏 -->
+  <view class="search-bar">
+    <icon type="search" size="16" class="search-icon" />
+    <input type="text" placeholder="搜索大事记、用药、康复、大运动..." value="{{ searchKeyword }}" bindinput="onSearchInput" />
+  </view>
+
+  <!-- 2. 分类标签滚动条 -->
+  <scroll-view class="cat-scroll" scroll-x="true">
+    <block wx:for="{{ categories }}" wx:key="*this">
+      <view class="cat-pill {{ activeCategory === item ? 'active' : '' }}" bindtap="selectCategory" data-cat="{{ item }}">
+        {{ item }}
+      </view>
+    </block>
+  </scroll-view>
+
+  <!-- 3. 时间线瀑布流列表 -->
+  <view class="timeline-wrapper" wx:if="{{ filteredEvents.length > 0 }}">
+    <!-- 垂直连接线 -->
+    <view class="timeline-line"></view>
+    
+    <block wx:for="{{ filteredEvents }}" wx:key="id">
+      <view class="timeline-node-item">
+        <!-- 侧边小圆圈 -->
+        <view class="node-bullet {{ item.category === '大运动/发育' ? 'bullet-green' : (item.category === '辅食/便秘' ? 'bullet-orange' : (item.category === '评估/康复' ? 'bullet-purple' : (item.category === '疾病用药' ? 'bullet-red' : 'bullet-blue'))) }}"></view>
+        
+        <!-- 大卡片 -->
+        <view class="node-card card">
+          <view class="node-header">
+            <text class="node-date">{{ item.date }}</text>
+            <text class="node-cat-lbl">{{ item.category }}</text>
+            <text class="delete-btn" bindtap="deleteEvent" data-id="{{ item.id }}">✕</text>
+          </view>
+          <view class="node-body">
+            <text class="node-title">{{ item.title }}</text>
+            <text class="node-desc">{{ item.content }}</text>
+          </view>
+        </view>
+      </view>
+    </block>
+  </view>
+  <view class="empty-placeholder" wx:else>未匹配到相关大事记 🍃</view>
+
+  <!-- 4. 悬浮增加按钮 -->
+  <view class="floating-btn" bindtap="openAddModal">＋</view>
+
+  <!-- 5. 录入遮罩层弹窗 -->
+  <view class="modal-overlay" wx:if="{{ showModal }}">
+    <view class="modal-card">
+      <view class="modal-header">
+        <text class="modal-title">记录小宝贝重要大时刻</text>
+        <text class="modal-close" bindtap="closeAddModal">✕</text>
+      </view>
+      
+      <view class="modal-body">
+        <view class="form-item">
+          <text class="lbl">日期</text>
+          <picker mode="date" value="{{ evtDate }}" bindchange="onEvtInput" data-field="evtDate">
+            <view class="date-picker-btn">{{ evtDate }}</view>
+          </picker>
+        </view>
+
+        <view class="form-item">
+          <text class="lbl">分类</text>
+          <picker mode="selector" range="{{ categories }}" value="1" bindchange="onEvtInput" data-field="evtCategory">
+            <view class="date-picker-btn">
+              {{ evtCategory || '选择类别' }}
+            </view>
+          </picker>
+        </view>
+
+        <view class="form-item">
+          <text class="lbl">大事记标题</text>
+          <input type="text" placeholder="如 会翻身了、第一次吃米粉" value="{{ evtTitle }}" bindinput="onEvtInput" data-field="evtTitle" />
+        </view>
+
+        <view class="form-item">
+          <text class="lbl">描述/备注详情</text>
+          <textarea placeholder="填入发生了什么有趣的事、或者医生的结论..." value="{{ evtContent }}" bindinput="onEvtInput" data-field="evtContent" auto-height />
+        </view>
+      </view>
+
+      <view class="modal-footer">
+        <button class="btn btn-primary btn-block" bindtap="saveEvent">保存记录</button>
+      </view>
+    </view>
+  </view>
+
 </view>

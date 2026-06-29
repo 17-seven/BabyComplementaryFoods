@@ -1,4 +1,67 @@
 <!--pages/my/index.wxml-->
 <view class="container">
-  <text>个人设置与我的页面开发中...</text>
+  
+  <!-- 1. 顶部小名片 -->
+  <view class="my-profile-header">
+    <view class="avatar-box">👶</view>
+    <view class="baby-info-box">
+      <text class="baby-name">{{ babyInfo.name }}</text>
+      <text class="baby-age">实际月龄：{{ actualAge }} | 纠正：{{ correctedAge }}</text>
+    </view>
+  </view>
+
+  <!-- 2. 二级功能菜单导航流 -->
+  <view class="section-title">🛠️ 宝宝日常照护快捷记账</view>
+  
+  <view class="card menu-card-list">
+    <view class="menu-item" bindtap="navigateToPage" data-page="bowel">
+      <view class="menu-icon">💩</view>
+      <view class="menu-body">
+        <text class="menu-title">排便与肠胃记录</text>
+        <text class="menu-desc">记录每天大便次数、颜色、有无出血</text>
+      </view>
+      <view class="menu-arrow">➔</view>
+    </view>
+
+    <view class="menu-item" bindtap="navigateToPage" data-page="nutrition">
+      <view class="menu-icon">🍼</view>
+      <view class="menu-body">
+        <text class="menu-title">饮奶与饮水记录</text>
+        <text class="menu-desc">管理每日奶量限制、补充水分打卡</text>
+      </view>
+      <view class="menu-arrow">➔</view>
+    </view>
+
+    <view class="menu-item" bindtap="navigateToPage" data-page="vision">
+      <view class="menu-icon">👁️</view>
+      <view class="menu-body">
+        <text class="menu-title">视力遮盖戴镜计时</text>
+        <text class="menu-desc">记录眼罩遮盖时长，每日4小时目标打卡</text>
+      </view>
+      <view class="menu-arrow">➔</view>
+    </view>
+
+    <view class="menu-item" bindtap="navigateToPage" data-page="allergen">
+      <view class="menu-icon">🥦</view>
+      <view class="menu-body">
+        <text class="menu-title">排敏食材管理</text>
+        <text class="menu-desc">维护已排敏安全食品，监控未排敏风险食材</text>
+      </view>
+      <view class="menu-arrow">➔</view>
+    </view>
+  </view>
+
+  <!-- 3. 设置面板 -->
+  <view class="section-title">⚙️ 系统维护</view>
+  <view class="card menu-card-list">
+    <view class="menu-item" bindtap="clearAppData">
+      <view class="menu-icon">🗑️</view>
+      <view class="menu-body">
+        <text class="menu-title" style="color: #e53e3e;">清空本地所有打卡缓存</text>
+        <text class="menu-desc">删除本地记录并重置加载默认数据</text>
+      </view>
+      <view class="menu-arrow">➔</view>
+    </view>
+  </view>
+
 </view>

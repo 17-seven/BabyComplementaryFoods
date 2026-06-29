@@ -1,4 +1,89 @@
 <!--pages/mealplan/index.wxml-->
 <view class="container">
-  <text>辅食计划页面开发中...</text>
+  
+  <!-- 1. 顶部切换栏 -->
+  <view class="week-header">
+    <view class="arrow-btn" bindtap="switchWeek" data-dir="prev">◀</view>
+    <view class="week-title">
+      <text class="week-name">{{ currentWeek.week }}</text>
+      <text class="week-date">{{ currentWeek.period }}</text>
+    </view>
+    <view class="arrow-btn" bindtap="switchWeek" data-dir="next">▶</view>
+  </view>
+
+  <!-- 2. 营养校验 Card -->
+  <view class="card validation-card">
+    <view class="section-title">
+      <text>📊 本周营养校验合规报告</text>
+    </view>
+    
+    <view class="rule-list">
+      <view class="rule-item">
+        <view class="rule-status {{ rules.meatPassed ? 'status-ok' : 'status-err' }}"></view>
+        <text class="rule-text">红肉摄入 (猪/牛 ≥5次)：{{ rules.meatCount }} 次</text>
+      </view>
+
+      <view class="rule-item">
+        <view class="rule-status {{ rules.fishShrimpLiverPassed ? 'status-ok' : 'status-err' }}"></view>
+        <text class="rule-text">鱼/虾/鹅肝交替 (2-3次)：{{ rules.fishShrimpLiverCount }} 次</text>
+      </view>
+
+      <view class="rule-item">
+        <view class="rule-status {{ rules.grainPassed ? 'status-ok' : 'status-warn' }}"></view>
+        <text class="rule-text">粗粮占比 (建议不超过30%)：已占 {{ rules.grainPercent }}%</text>
+      </view>
+
+      <view class="rule-item">
+        <view class="rule-status {{ rules.eggPassed ? 'status-ok' : 'status-err' }}"></view>
+        <text class="rule-text">每日吃蛋天数：{{ rules.eggDays }} 天</text>
+      </view>
+
+      <view class="rule-item">
+        <view class="rule-status {{ rules.namingPassed ? 'status-ok' : 'status-err' }}"></view>
+        <text class="rule-text">菜品命名规范度：{{ rules.namingPassed ? '合规' : '不合规 (禁止使用 + 拼接)' }}</text>
+      </view>
+
+      <view class="rule-item">
+        <view class="rule-status {{ rules.allergenPassed ? 'status-ok' : 'status-err' }}"></view>
+        <text class="rule-text">未排敏食材防护：{{ rules.allergenPassed ? '未发现违规食材' : '检测到未排敏食物' }}</text>
+      </view>
+    </view>
+
+    <!-- 违禁食品警示 -->
+    <view class="allergen-warn-box" wx:if="{{ !rules.allergenPassed }}">
+      <view class="warn-title">⚠️ 警告：检测到未排敏食材引入</view>
+      <block wx:for="{{ rules.allergenLogs }}" wx:key="index">
+        <view class="warn-log">{{ item }}</view>
+      </block>
+    </view>
+  </view>
+
+  <!-- 3. 周历食谱卡片流 -->
+  <view class="section-title">
+    <text>📅 周日计划食谱</text>
+  </view>
+
+  <block wx:for="{{ currentWeek.days }}" wx:key="date">
+    <view class="card day-card">
+      <view class="day-side">
+        <text class="day-name">{{ item.dayName }}</text>
+        <text class="day-date">{{ item.date }}</text>
+      </view>
+      
+      <view class="meals-side">
+        <block wx:for="{{ item.meals }}" wx:for-item="meal" wx:key="type">
+          <view class="meal-row">
+            <text class="meal-label">{{ meal.type }}</text>
+            <text class="meal-name">{{ meal.name }}</text>
+          </view>
+        </block>
+        
+        <!-- 每日鸡蛋目标提示 -->
+        <view class="egg-target-hint">
+          🥚 今日鸡蛋配额：<text class="highlight">{{ item.eggTarget }} 个</text>
+        </view>
+      </view>
+    </view>
+  </block>
+
 </view>

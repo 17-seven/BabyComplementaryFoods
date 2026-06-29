@@ -1,1 +1,218 @@
 /* pages/timeline/index.wxss */
+
+/* 搜索栏 */
+.search-bar {
+  display: flex;
+  align-items: center;
+  background-color: #ffffff;
+  border-radius: 20rpx;
+  padding: 16rpx 24rpx;
+  border: 1rpx solid #edf2f7;
+  margin-bottom: 24rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.02);
+}
+.search-icon {
+  margin-right: 16rpx;
+}
+.search-bar input {
+  flex: 1;
+  font-size: 26rpx;
+}
+
+/* 分类标签横向滑动栏 */
+.cat-scroll {
+  white-space: nowrap;
+  width: 100%;
+  margin-bottom: 28rpx;
+  box-sizing: border-box;
+}
+.cat-pill {
+  display: inline-block;
+  padding: 12rpx 32rpx;
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #718096;
+  background-color: #ffffff;
+  border-radius: 40rpx;
+  margin-right: 16rpx;
+  border: 1rpx solid #edf2f7;
+}
+.cat-pill.active {
+  background-color: var(--primary-color);
+  color: #ffffff;
+  border-color: var(--primary-color);
+  box-shadow: 0 4rpx 10rpx rgba(56, 161, 105, 0.2);
+}
+
+/* 时间轴瀑布流 */
+.timeline-wrapper {
+  position: relative;
+  padding-left: 44rpx;
+  margin-top: 10rpx;
+}
+.timeline-line {
+  position: absolute;
+  left: 12rpx;
+  top: 10rpx;
+  bottom: 10rpx;
+  width: 4rpx;
+  background-color: #edf2f7;
+}
+.timeline-node-item {
+  position: relative;
+  margin-bottom: 20rpx;
+}
+.node-bullet {
+  position: absolute;
+  left: -44rpx;
+  top: 32rpx;
+  width: 24rpx;
+  height: 24rpx;
+  border-radius: 50%;
+  border: 4rpx solid #ffffff;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.1);
+  z-index: 10;
+}
+
+/* 子颜色代表 */
+.bullet-green { background-color: var(--primary-color); }
+.bullet-orange { background-color: var(--accent-orange); }
+.bullet-purple { background-color: #805ad5; }
+.bullet-red { background-color: #e53e3e; }
+.bullet-blue { background-color: #3182ce; }
+
+.node-card {
+  padding: 24rpx;
+  position: relative;
+}
+.node-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12rpx;
+  border-bottom: 1rpx dashed #edf2f7;
+  padding-bottom: 8rpx;
+  gap: 16rpx;
+}
+.node-date {
+  font-size: 26rpx;
+  font-weight: 700;
+  color: #2d3748;
+}
+.node-cat-lbl {
+  font-size: 18rpx;
+  background-color: #edf2f7;
+  color: #4a5568;
+  padding: 4rpx 12rpx;
+  border-radius: 6rpx;
+  font-weight: 600;
+}
+.delete-btn {
+  font-size: 24rpx;
+  color: #a0aec0;
+  margin-left: auto;
+  cursor: pointer;
+}
+.delete-btn:hover {
+  color: #e53e3e;
+}
+.node-body {
+  display: flex;
+  flex-direction: column;
+}
+.node-title {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #2d3748;
+}
+.node-desc {
+  font-size: 24rpx;
+  color: #718096;
+  margin-top: 8rpx;
+  line-height: 1.6;
+}
+
+/* 悬浮球 */
+.floating-btn {
+  position: fixed;
+  right: 36rpx;
+  bottom: 48rpx;
+  width: 100rpx;
+  height: 100rpx;
+  background-color: var(--accent-orange);
+  color: #ffffff;
+  border-radius: 50%;
+  font-size: 52rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 20rpx rgba(255, 112, 67, 0.35);
+  z-index: 99;
+}
+
+/* 弹窗遮罩 */
+.modal-overlay {
+  position: fixed;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal-card {
+  width: 85%;
+  background-color: #ffffff;
+  border-radius: 24rpx;
+  overflow: hidden;
+  box-shadow: 0 10rpx 30rpx rgba(0,0,0,0.15);
+}
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 28rpx 32rpx;
+  border-bottom: 1rpx solid #edf2f7;
+}
+.modal-title {
+  font-size: 30rpx;
+  font-weight: 700;
+}
+.modal-close {
+  font-size: 28rpx;
+  color: #a0aec0;
+}
+.modal-body {
+  padding: 32rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+.form-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+.form-item .lbl {
+  font-size: 22rpx;
+  color: #718096;
+  font-weight: 600;
+}
+.form-item input, .form-item textarea {
+  background-color: #f7f9fc;
+  border: 1rpx solid #edf2f7;
+  border-radius: 12rpx;
+  padding: 16rpx;
+  font-size: 26rpx;
+  width: 100%;
+  box-sizing: border-box;
+}
+.modal-footer {
+  padding: 24rpx 32rpx;
+  border-top: 1rpx solid #edf2f7;
+}
+.btn-block {
+  width: 100%;
+}

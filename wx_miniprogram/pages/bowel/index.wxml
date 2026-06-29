@@ -1,4 +1,86 @@
 <!--pages/bowel/index.wxml-->
 <view class="container">
-  <text>排便记录页面开发中...</text>
+  
+  <!-- 1. 今日统计 Card -->
+  <view class="card summary-card">
+    <text class="summary-lbl">💩 今日累计排便次数</text>
+    <view class="summary-val">
+      <text class="count">{{ todayCount }}</text>
+      <text class="unit">次</text>
+    </view>
+  </view>
+
+  <!-- 2. 便便记录表单 -->
+  <view class="card form-card">
+    <view class="section-title">📝 录入排便状况</view>
+    
+    <view class="form-item">
+      <text class="lbl">排便日期</text>
+      <picker mode="date" value="{{ bowelDate }}" bindchange="onDateChange">
+        <view class="date-picker-btn">{{ bowelDate }} 📅</view>
+      </picker>
+    </view>
+
+    <view class="form-grid" style="margin-top: 20rpx;">
+      <view class="form-item">
+        <text class="lbl">便便性状</text>
+        <picker mode="selector" range="{{ statusList }}" bindchange="onStatusChange">
+          <view class="date-picker-btn">{{ selectedStatus }}</view>
+        </picker>
+      </view>
+
+      <view class="form-item">
+        <text class="lbl">便便颜色</text>
+        <picker mode="selector" range="{{ colorList }}" bindchange="onColorChange">
+          <view class="date-picker-btn">{{ selectedColor }}</view>
+        </picker>
+      </view>
+
+      <view class="form-item">
+        <text class="lbl">干稀软硬</text>
+        <picker mode="selector" range="{{ drynessList }}" bindchange="onDrynessChange">
+          <view class="date-picker-btn">{{ selectedDryness }}</view>
+        </picker>
+      </view>
+
+      <view class="form-item switch-item">
+        <text class="lbl">有无粘液/血丝</text>
+        <switch checked="{{ hasBlood }}" color="#e53e3e" bindchange="onBloodToggle" />
+      </view>
+    </view>
+
+    <view class="form-item" style="margin-top: 20rpx;">
+      <text class="lbl">补充说明 (如 憋得满头大汗、粑粑带血等)</text>
+      <textarea placeholder="描述宝宝排便时的状态或便便细节..." value="{{ remark }}" bindinput="onRemarkInput" auto-height />
+    </view>
+
+    <button class="btn btn-primary btn-block" style="margin-top: 24rpx;" bindtap="saveBowel">保存便便日志</button>
+  </view>
+
+  <!-- 3. 历史记录明细 -->
+  <view class="section-title">📜 历史便便台账</view>
+  <view class="history-list">
+    <block wx:for="{{ historyLogs }}" wx:key="id">
+      <view class="card log-card">
+        <view class="log-header">
+          <text class="log-date">{{ item.date }}</text>
+          <view class="badges-row">
+            <text class="tag tag-red" wx:if="{{ item.hasBlood }}">⚠️ 见血/黏液</text>
+            <text class="tag tag-orange">{{ item.status }}</text>
+            <text class="tag tag-green">{{ item.color }}</text>
+            <text class="tag tag-gray">{{ item.dryness }}</text>
+          </view>
+        </view>
+        
+        <view class="log-body" wx:if="{{ item.remark }}">
+          <text class="log-remark">说明：{{ item.remark }}</text>
+        </view>
+        
+        <view class="log-action">
+          <text class="delete-link" bindtap="deleteLog" data-id="{{ item.id }}">删除记录</text>
+        </view>
+      </view>
+    </block>
+  </view>
+
 </view>

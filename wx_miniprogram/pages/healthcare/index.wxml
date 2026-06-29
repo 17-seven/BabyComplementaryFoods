@@ -1,4 +1,208 @@
 <!--pages/healthcare/index.wxml-->
 <view class="container">
-  <text>医疗儿保页面开发中...</text>
+  
+  <!-- 1. 顶部分类导航栏 -->
+  <view class="tab-navbar">
+    <view class="tab-nav-btn {{ activeTab === 'vaccine' ? 'active' : '' }}" bindtap="switchTab" data-tab="vaccine">疫苗接种</view>
+    <view class="tab-nav-btn {{ activeTab === 'checkup' ? 'active' : '' }}" bindtap="switchTab" data-tab="checkup">季度儿保</view>
+    <view class="tab-nav-btn {{ activeTab === 'assessment' ? 'active' : '' }}" bindtap="switchTab" data-tab="assessment">发育评估</view>
+    <view class="tab-nav-btn {{ activeTab === 'clinical' ? 'active' : '' }}" bindtap="switchTab" data-tab="clinical">就诊记录</view>
+  </view>
+
+  <!-- ==================== Tab 1: 疫苗接种面板 ==================== -->
+  <view wx:if="{{ activeTab === 'vaccine' }}">
+    <!-- 补种起点配置 -->
+    <view class="card setting-card">
+      <view class="section-title">⚙️ 补种计划配置</view>
+      <view class="form-row">
+        <text class="label">补种起跑日期：</text>
+        <picker mode="date" value="{{ catchUpStartDate }}" bindchange="onCatchUpDateChange">
+          <view class="date-picker-btn">{{ catchUpStartDate }} 📅</view>
+        </picker>
+      </view>
+      <text class="hint">配置今日起开始进行补种的出发时间，排班表会基于此日期每半个月自动滚动。</text>
+    </view>
+
+    <!-- 补种接种日程表 -->
+    <view class="card">
+      <view class="section-title">🗓️ 待补种疫苗日程排班 (15天/针)</view>
+      <view class="schedule-list" wx:if="{{ catchUpSchedule.length > 0 }}">
+        <block wx:for="{{ catchUpSchedule }}" wx:key="index">
+          <view class="schedule-item">
+            <view class="schedule-num">{{ index + 1 }}</view>
+            <view class="schedule-body">
+              <view class="sched-title">{{ item.name }} ({{ item.dose }})</view>
+              <view class="sched-date">预计接种：{{ item.plannedDate }} (还有 <text class="highlight">{{ item.daysLeft }}</text> 天)</view>
+            </view>
+            <button class="btn btn-sm btn-primary" bindtap="vaccineCheckIn" data-index="{{ index }}">接种打卡</button>
+          </view>
+        </block>
+      </view>
+      <view class="empty-placeholder" wx:else>所有需要补种的疫苗均已接种完毕 🎉</view>
+    </view>
+
+    <!-- 全量查证清单 -->
+    <view class="card">
+      <view class="section-title">📋 疫苗查证历史明细 (24针)</view>
+      <block wx:for="{{ vaccineList }}" wx:key="index">
+        <view class="vaccine-row" bindtap="toggleListStatus" data-index="{{ index }}">
+          <view class="vacc-name">
+            <text class="name">{{ item.name }}</text>
+            <text class="dose">{{ item.dose }}</text>
+          </view>
+          <view class="vacc-status">
+            <text class="tag {{ item.status === '已接种' ? 'tag-green' : (item.status === '需补种' ? 'tag-red' : (item.status === '推荐接种' ? 'tag-orange' : 'tag-gray')) }}">{{ item.status }}</text>
+            <text class="date-text" wx:if="{{ item.actualDate }}">{{ item.actualDate }}</text>
+          </view>
+        </view>
+      </block>
+    </view>
+  </view>
+
+  <!-- ==================== Tab 2: 季度儿保面板 ==================== -->
+  <view wx:if="{{ activeTab === 'checkup' }}">
+    <!-- 下次儿保倒计时 -->
+    <view class="card timer-card bg-orange" wx:if="{{ nextCheckupDate }}">
+      <view class="timer-body">
+        <text class="timer-lbl">🩺 下一次推荐季度儿保时间：</text>
+        <view class="timer-val">
+          <text class="date">{{ nextCheckupDate }}</text>
+          <text class="countdown">（还有 <text class="highlight">{{ nextCheckupDays }}</text> 天）</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 添加指标表单 -->
+    <view class="card form-card">
+      <view class="section-title">➕ 录入儿保测量指标</view>
+      <view class="form-grid">
+        <view class="form-row">
+          <text class="label">日期</text>
+          <picker mode="date" value="{{ hcDate }}" bindchange="onHcInput" data-field="hcDate">
+            <view class="date-picker-btn">{{ hcDate }}</view>
+          </picker>
+        </view>
+        <view class="form-row">
+          <text class="label">身高 (cm)</text>
+          <input type="digit" placeholder="如 78.0" value="{{ hcHeight }}" bindinput="onHcInput" data-field="hcHeight" />
+        </view>
+        <view class="form-row">
+          <text class="label">体重 (kg)</text>
+          <input type="digit" placeholder="如 9.85" value="{{ hcWeight }}" bindinput="onHcInput" data-field="hcWeight" />
+        </view>
+        <view class="form-row">
+          <text class="label">头围 (cm)</text>
+          <input type="digit" placeholder="如 45.5" value="{{ hcHead }}" bindinput="onHcInput" data-field="hcHead" />
+        </view>
+        <view class="form-row full-width">
+          <text class="label">反馈与医生叮嘱</text>
+          <textarea placeholder="输入儿保反馈意见..." value="{{ hcFeedback }}" bindinput="onHcInput" data-field="hcFeedback" auto-height />
+        </view>
+      </view>
+      <button class="btn btn-primary" style="margin-top:20rpx" bindtap="addHealthcare">保存指标</button>
+    </view>
+
+    <!-- 历史儿保记录 -->
+    <view class="section-title">📜 历史季度测量轨迹</view>
+    <block wx:for="{{ healthcares }}" wx:key="id">
+      <view class="card history-card">
+        <view class="hist-header">
+          <text class="hist-date">{{ item.date }}</text>
+          <text class="btn-delete-lbl" bindtap="deleteHealthcare" data-id="{{ item.id }}">删除</text>
+        </view>
+        <view class="hist-metrics">
+          <view class="met-box"><text class="val">{{ item.height }}</text><text class="unit">身长(cm)</text></view>
+          <view class="met-box"><text class="val">{{ item.weight }}</text><text class="unit">体重(kg)</text></view>
+          <view class="met-box"><text class="val">{{ item.headCircumference }}</text><text class="unit">头围(cm)</text></view>
+        </view>
+        <view class="hist-desc" wx:if="{{ item.feedback }}">叮嘱：{{ item.feedback }}</view>
+      </view>
+    </block>
+  </view>
+
+  <!-- ==================== Tab 3: 发育评估面板 ==================== -->
+  <view wx:if="{{ activeTab === 'assessment' }}">
+    <block wx:for="{{ assessments }}" wx:key="id">
+      <view class="card asm-card">
+        <view class="asm-header">
+          <text class="asm-name">{{ item.name }}</text>
+          <text class="tag tag-purple">{{ item.date }}</text>
+        </view>
+        <view class="asm-row"><text class="lbl">主测医生：</text><text class="val">{{ item.doctor }}</text></view>
+        <view class="asm-row"><text class="lbl">诊断结果：</text><text class="val desc">{{ item.result }}</text></view>
+        <view class="asm-row highlight-box" wx:if="{{ item.intervention }}">
+          <text class="lbl red-text">干预意见：</text>
+          <text class="val desc">{{ item.intervention }}</text>
+        </view>
+      </view>
+    </block>
+  </view>
+
+  <!-- ==================== Tab 4: 临床就诊面板 ==================== -->
+  <view wx:if="{{ activeTab === 'clinical' }}">
+    <!-- 即将进行的门诊 -->
+    <view class="card timer-card bg-yellow" wx:if="{{ nextClinical }}">
+      <view class="timer-body">
+        <text class="timer-lbl" style="color:#7b341e">📅 下一次就诊检查预约提醒：</text>
+        <view class="timer-val" style="color:#c05621">
+          <text class="date">{{ nextClinical.name }}：{{ nextClinical.date }}</text>
+          <text class="countdown">（还有 <text class="highlight">{{ nextClinical.daysLeft }}</text> 天）</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 录入检查记录表单 -->
+    <view class="card form-card">
+      <view class="section-title">➕ 录入就诊与检查预约</view>
+      <view class="form-grid">
+        <view class="form-row">
+          <text class="label">项目名称</text>
+          <input type="text" placeholder="如 眼睛复查、核磁共振" value="{{ cliName }}" bindinput="onCliInput" data-field="cliName" />
+        </view>
+        <view class="form-row">
+          <text class="label">日期</text>
+          <picker mode="date" value="{{ cliDate }}" bindchange="onCliInput" data-field="cliDate">
+            <view class="date-picker-btn">{{ cliDate }}</view>
+          </picker>
+        </view>
+        <view class="form-row">
+          <text class="label">医生/科室</text>
+          <input type="text" placeholder="如 崔丽红、新生儿科" value="{{ cliDesc1 }}" bindinput="onCliInput" data-field="cliDesc1" />
+        </view>
+        <view class="form-row">
+          <text class="label">就诊提示/准备</text>
+          <input type="text" placeholder="如 需要喂镇静药、剃头" value="{{ cliDesc2 }}" bindinput="onCliInput" data-field="cliDesc2" />
+        </view>
+        <view class="form-row full-width">
+          <text class="label">检查报告结果/随访诊断</text>
+          <textarea placeholder="填入检查结论..." value="{{ cliResult }}" bindinput="onCliInput" data-field="cliResult" auto-height />
+        </view>
+      </view>
+      <button class="btn btn-primary" style="margin-top:20rpx" bindtap="addClinicalLog">保存记录</button>
+    </view>
+
+    <!-- 就诊卡列表 -->
+    <view class="section-title">📋 历史门诊病历台账</view>
+    <block wx:for="{{ clinicalLogs }}" wx:key="id">
+      <view class="card cli-card {{ item.status === '已完成' ? '' : 'status-uncompleted' }}">
+        <view class="cli-header">
+          <view class="cli-title-box">
+            <text class="cli-name">{{ item.name }}</text>
+            <text class="tag {{ item.status === '已完成' ? 'tag-green' : 'tag-red' }}">{{ item.status }}</text>
+          </view>
+          <text class="btn-delete-lbl" bindtap="deleteClinicalLog" data-id="{{ item.id }}">删除</text>
+        </view>
+        <view class="cli-body">
+          <view class="cli-info-line"><text class="lbl">时间：</text><text class="val">{{ item.date }}</text></view>
+          <view class="cli-info-line" wx:if="{{ item.desc1 }}"><text class="lbl">就诊：</text><text class="val">{{ item.desc1 }}</text></view>
+          <view class="cli-info-line" wx:if="{{ item.desc2 }}"><text class="lbl">提示：</text><text class="val">{{ item.desc2 }}</text></view>
+          <view class="cli-info-line result" wx:if="{{ item.result }}"><text class="lbl">结论：</text><text class="val">{{ item.result }}</text></view>
+        </view>
+        <button class="btn btn-sm btn-toggle" bindtap="toggleClinicalStatus" data-id="{{ item.id }}">
+          {{ item.status === '已完成' ? '撤销完成' : '已接诊完成' }}
+        </button>
+      </view>
+    </block>
+  </view>
+
 </view>

@@ -1,4 +1,58 @@
 <!--pages/allergen/index.wxml-->
 <view class="container">
-  <text>排敏食材管理页面开发中...</text>
+  
+  <!-- 1. 顶部分类 Tab -->
+  <view class="tab-navbar">
+    <view class="tab-nav-btn {{ activeTab === 'safe' ? 'active' : '' }}" bindtap="switchTab" data-tab="safe">已排敏食材 (安全 ✅)</view>
+    <view class="tab-nav-btn {{ activeTab === 'banned' ? 'active' : '' }}" bindtap="switchTab" data-tab="banned">待排敏食材 (风险 ❌)</view>
+  </view>
+
+  <!-- 2. 食材新增栏 -->
+  <view class="card add-food-card">
+    <view class="section-title">➕ 录入新食材</view>
+    <view class="form-row inline-form">
+      <input type="text" placeholder="输入食材名称 (如 芝麻、芦笋)" value="{{ newFoodName }}" bindinput="onFoodInput" data-field="newFoodName" />
+      
+      <picker mode="selector" range="{{ catOptions }}" bindchange="onFoodInput" data-field="newFoodCat" wx:if="{{ activeTab === 'safe' }}">
+        <view class="date-picker-btn cat-sel-btn">{{ newFoodCat }}</view>
+      </picker>
+      
+      <button class="btn btn-primary" bindtap="addNewFood">添加</button>
+    </view>
+  </view>
+
+  <!-- ==================== Tab 1: 安全库 ==================== -->
+  <view class="safe-panel" wx:if="{{ activeTab === 'safe' }}">
+    <view class="tip-banner">💡 点击下方安全食材标签，可将其快速撤回至风险禁忌库中进行重排敏观察。</view>
+    
+    <block wx:for="{{ safeFoods }}" wx:for-index="catName" wx:for-item="foodList" wx:key="*this">
+      <view class="card cat-section-card" wx:if="{{ foodList.length > 0 }}">
+        <view class="section-title text-sm">📍 {{ catName }}</view>
+        <view class="tags-grid">
+          <block wx:for="{{ foodList }}" wx:for-item="food" wx:key="*this">
+            <view class="food-tag tag-green-bg" bindtap="markAsBanned" data-food="{{ food }}" data-cat="{{ catName }}">
+              {{ food }}
+            </view>
+          </block>
+        </view>
+      </view>
+    </block>
+  </view>
+
+  <!-- ==================== Tab 2: 禁忌/未排敏库 ==================== -->
+  <view class="banned-panel" wx:if="{{ activeTab === 'banned' }}">
+    <view class="tip-banner error-banner">⚠️ 点击下方食材标签，可将其移入“已排敏安全库”中并选择对应的营养大类归档。</view>
+    
+    <view class="card">
+      <view class="tags-grid">
+        <block wx:for="{{ bannedFoods }}" wx:key="*this">
+          <view class="food-tag tag-red-bg" bindtap="markAsSafe" data-food="{{ item }}">
+            {{ item }}
+          </view>
+        </block>
+      </view>
+      <view class="empty-placeholder" wx:if="{{ bannedFoods.length === 0 }}">太棒了，所有已知食材均已安全通关排敏 🥦</view>
+    </view>
+  </view>
+
 </view>
