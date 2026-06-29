@@ -7,6 +7,7 @@ Page({
     weekPlans: [],
     currentWeekIndex: 0,
     currentWeek: null,
+    notes: {}, // 每日食谱大备注存储对象
     
     // 规则校验结果
     rules: {
@@ -36,7 +37,8 @@ Page({
 
     this.setData({
       weekPlans: list,
-      currentWeek: currentWeek
+      currentWeek: currentWeek,
+      notes: getStorage('meal_day_notes', {})
     }, () => {
       this.validateRules();
     });
@@ -74,14 +76,21 @@ Page({
     let allergenPassed = true;
     let allergenLogs = [];
 
-    // 获取未排敏食材池
-    const defaultBanned = [
-      '芋头','芦笋','白萝卜','紫薯','芹菜','紫甘蓝','卷心菜','菜花','冬瓜','丝瓜',
-      '苦瓜','梨','蓝莓','桃','杏','草莓','芒果','猕猴桃','柑橘','橙子','柚子',
-      '西梅','菠萝','三文鱼','龙利鱼','鲈鱼','带鱼','黄花鱼','基围虾','螃蟹',
-      '豆腐','奶酪','酸奶','芝麻'
+    // 获取当前最新的未排敏食材池，实现与排敏食材管理页面数据的实时打通
+    const defaultRiskFoods = [
+      { name: '燕麦米' }, { name: '低筋面粉' }, { name: '芋头' }, { name: '芦笋' },
+      { name: '白萝卜' }, { name: '紫薯' }, { name: '芹菜' }, { name: '紫甘蓝' },
+      { name: '卷心菜' }, { name: '菜花' }, { name: '冬瓜' }, { name: '丝瓜' },
+      { name: '苦瓜' }, { name: '梨' }, { name: '蓝莓' }, { name: '桃' },
+      { name: '杏' }, { name: '草莓' }, { name: '芒果' }, { name: '猕猴桃' },
+      { name: '柑橘' }, { name: '橙子' }, { name: '柚子' }, { name: '西梅' },
+      { name: '菠萝' }, { name: '蛋黄' }, { name: '蛋清' }, { name: '鹅肝' },
+      { name: '三文鱼' }, { name: '龙利鱼' }, { name: '鲈鱼' }, { name: '带鱼' },
+      { name: '黄花鱼' }, { name: '基围虾' }, { name: '螃蟹' }, { name: '豆腐' },
+      { name: '奶酪' }, { name: '酸奶' }, { name: '芝麻' }
     ];
-    const bannedFoods = getStorage('baby_banned_foods', defaultBanned);
+    const riskList = getStorage('mp_risk_foods_list', defaultRiskFoods);
+    const bannedFoods = riskList.map(f => f.name);
 
     week.days.forEach(day => {
       let dayHasEgg = false;
@@ -155,6 +164,16 @@ Page({
 
     notes[`${date}_${mealtype}`] = val;
     setStorage('meal_notes', notes);
+  },
+
+  // 更新并保存每日大备注
+  updateDayNote: function (e) {
+    const date = e.currentTarget.dataset.date;
+    const val = e.detail.value;
+    const notes = { ...this.data.notes };
+    notes[date] = val;
+    this.setData({ notes });
+    setStorage('meal_day_notes', notes);
   },
 
   // 就地修改特定辅食食谱菜品

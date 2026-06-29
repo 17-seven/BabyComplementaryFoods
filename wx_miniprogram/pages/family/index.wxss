@@ -68,10 +68,11 @@
   font-weight: 700;
 }
 .code-val {
-  font-size: 36rpx;
+  font-size: 32rpx;
   font-weight: 800;
   color: #2d3748;
   letter-spacing: 2rpx;
+  word-break: break-all; /* 解决超长哈希家庭同步码溢出戳破右侧边框的Bug */
 }
 .hint-msg {
   font-size: 20rpx;

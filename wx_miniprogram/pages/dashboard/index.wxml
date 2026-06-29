@@ -1,10 +1,10 @@
 <!--pages/dashboard/index.wxml-->
-<view class="container">
+<view class="container page-transition">
   
   <!-- 1. 宝宝名片 Card -->
   <view class="baby-card">
     <view class="baby-header">
-      <image class="avatar" src="{{ avatarUrl }}" mode="aspectFill" />
+      <image class="avatar" src="{{ avatarUrl }}" mode="aspectFill" bindtap="onAvatarTap" />
       <view class="baby-meta">
         <view class="name-row">
           <text class="name">{{ babyInfo.name }}</text>

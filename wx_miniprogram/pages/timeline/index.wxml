@@ -1,5 +1,5 @@
 <!--pages/timeline/index.wxml-->
-<view class="container">
+<view class="container page-transition">
   
   <!-- 1. 搜索栏 -->
   <view class="search-bar">

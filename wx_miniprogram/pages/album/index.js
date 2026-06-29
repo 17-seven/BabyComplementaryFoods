@@ -65,6 +65,8 @@ Page({
 
             that.setData({ photos: updatedList }, () => {
               setStorage('baby_album_photos', updatedList);
+              // 同步云端相册列表
+              that._syncCloudAlbum(updatedList);
               wx.showToast({ title: '已成功上传云端', icon: 'success' });
             });
           },
@@ -109,6 +111,22 @@ Page({
           // 设为头像
           setStorage('baby_custom_avatar', url);
           that.setData({ avatarUrl: url });
+
+          // 同步宝宝头像至云端数据库 families 记录里
+          const familyId = getStorage('user_family_id', '');
+          if (familyId && wx.cloud) {
+            try {
+              const db = wx.cloud.database();
+              db.collection('families').doc(familyId).update({
+                data: {
+                  baby_avatar: url
+                },
+                success: () => {
+                  console.log("宝宝头像云端同步成功！");
+                }
+              });
+            } catch(e) {}
+          }
           wx.showToast({ title: '已成功设置为宝宝头像', icon: 'success' });
         } else if (idx === 2) {
           // 删除图片
@@ -122,10 +140,26 @@ Page({
                 that.setData({ photos: list }, () => {
                   setStorage('baby_album_photos', list);
                   
+                  // 同步照片删除至云端数据库
+                  that._syncCloudAlbum(list);
+
                   // 如果被删除的图片恰好是头像，恢复为默认头像
                   if (that.data.avatarUrl === url) {
                     setStorage('baby_custom_avatar', '/assets/avatar_default.png');
                     that.setData({ avatarUrl: '/assets/avatar_default.png' });
+
+                    // 同步修改云端头像为默认头像
+                    const familyId = getStorage('user_family_id', '');
+                    if (familyId && wx.cloud) {
+                      try {
+                        const db = wx.cloud.database();
+                        db.collection('families').doc(familyId).update({
+                          data: {
+                            baby_avatar: '/assets/avatar_default.png'
+                          }
+                        });
+                      } catch(e) {}
+                    }
                   }
                   wx.showToast({ title: '删除成功' });
                 });
@@ -135,5 +169,28 @@ Page({
         }
       }
     });
+  },
+
+  // 内部辅助方法：同步相册数组至云数据库
+  _syncCloudAlbum: function (photosList) {
+    const familyId = getStorage('user_family_id', '');
+    if (familyId && wx.cloud) {
+      try {
+        const db = wx.cloud.database();
+        db.collection('families').doc(familyId).update({
+          data: {
+            album_photos: photosList
+          },
+          success: () => {
+            console.log("云端相册照片同步更新成功！");
+          },
+          fail: (err) => {
+            console.warn("同步云端相册照片失败：", err);
+          }
+        });
+      } catch (e) {
+        console.warn("微信云数据库调用异常：", e);
+      }
+    }
   }
 });

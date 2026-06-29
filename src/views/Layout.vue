@@ -35,7 +35,11 @@
         <span class="date-display">{{ todayStr }}</span>
       </header>
       <div class="content">
-        <router-view />
+        <router-view v-slot="{ Component }">
+          <transition name="fade-transform" mode="out-in">
+            <component :is="Component" />
+          </transition>
+        </router-view>
       </div>
     </div>
   </div>
@@ -64,6 +68,7 @@ const navItems = [
   { path: '/vision',         icon: '👁️', label: '视力矫正' },
   { path: '/timeline',       icon: '⏳', label: '大事记' },
   { path: '/healthcare',     icon: '🩺', label: '医疗儿保' },
+  { path: '/sync',           icon: '🔄', label: '小程序同步' },
 ]
 
 const currentTitle = computed(() => navItems.find(n => route.path.startsWith(n.path))?.label || '')
@@ -176,5 +181,21 @@ function handleNavClick() {
   .content {
     padding: 16px;
   }
+}
+
+/* 路由页面切换过渡动画 */
+.fade-transform-enter-active,
+.fade-transform-leave-active {
+  transition: all 0.22s ease-out;
+}
+
+.fade-transform-enter-from {
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+.fade-transform-leave-to {
+  opacity: 0;
+  transform: translateY(-12px);
 }
 </style>

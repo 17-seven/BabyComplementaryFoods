@@ -1,5 +1,5 @@
 <!--pages/mealplan/index.wxml-->
-<view class="container">
+<view class="container page-transition">
   
   <!-- 1. 顶部切换栏 -->
   <view class="week-header">
@@ -81,6 +81,12 @@
         <!-- 每日鸡蛋目标提示 -->
         <view class="egg-target-hint">
           🥚 今日鸡蛋配额：<text class="highlight">{{ item.eggTarget }} 个</text>
+        </view>
+
+        <!-- 每日大备注栏 -->
+        <view class="day-note-row">
+          <text class="note-label">📝 备注：</text>
+          <input class="note-input" type="text" placeholder="记录今日喂养状态、便便情况等..." value="{{ notes[item.date] || '' }}" bindinput="updateDayNote" data-date="{{ item.date }}" placeholder-class="note-placeholder" />
         </view>
       </view>
     </view>

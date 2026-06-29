@@ -150,3 +150,29 @@
   color: var(--accent-orange);
   font-weight: 700;
 }
+
+/* 每日大备注 */
+.day-note-row {
+  display: flex;
+  align-items: center;
+  margin-top: 10rpx;
+  padding-top: 10rpx;
+  border-top: 1rpx dashed #edf2f7;
+  font-size: 22rpx;
+}
+.note-label {
+  color: #718096;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.note-input {
+  flex: 1;
+  color: #4a5568;
+  font-size: 22rpx;
+  height: 36rpx;
+  min-height: 36rpx;
+}
+.note-placeholder {
+  color: #cbd5e0;
+  font-size: 20rpx;
+}

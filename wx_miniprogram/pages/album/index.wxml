@@ -6,7 +6,7 @@
     <view class="avatar-display">
       <image class="avatar-large" src="{{ avatarUrl }}" mode="aspectFill" />
       <view class="avatar-meta">
-        <text class="baby-title">王玧初 (宝宝头像)</text>
+        <text class="baby-title">{{ babyName }} (宝宝头像)</text>
         <text class="avatar-desc">从下方相册点击任意照片，可将其快捷设为当前宝宝头像。</text>
       </view>
     </view>

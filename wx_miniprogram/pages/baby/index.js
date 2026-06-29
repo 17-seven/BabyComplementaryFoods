@@ -135,28 +135,63 @@ Page({
     // A. 写入本地缓存
     setStorage('baby_profile_info', profile);
 
-    // B. 若绑定了云端家庭组，同步至云端
+    // B. 同步至微信云数据库中保存备份
+    const app = getApp();
+    const openid = app.globalData.openid || wx.getStorageSync('user_openid');
     const familyId = getStorage('user_family_id', '');
-    if (familyId) {
+    const babyAvatar = getStorage('baby_custom_avatar', '/assets/avatar_default.png');
+    const userInfo = getStorage('user_info', null);
+
+    if (openid && wx.cloud) {
       try {
         const db = wx.cloud.database();
-        db.collection('families').doc(familyId).update({
-          data: {
-            baby_name: profile.name,
-            birth_date: profile.birthDate,
-            due_date: profile.dueDate,
-            premature_days: profile.prematureDays,
-            premature_desc: profile.prematureDesc
-          },
-          success: () => {
-            console.log("云端宝宝档案同步更新成功！");
-          },
-          fail: (err) => {
-            console.warn("同步云端宝宝档案失败", err);
-          }
-        });
+        if (familyId) {
+          // 1. 如果已有家庭ID，执行更新该条云端记录
+          db.collection('families').doc(familyId).update({
+            data: {
+              baby_name: profile.name,
+              birth_date: profile.birthDate,
+              due_date: profile.dueDate,
+              premature_days: profile.prematureDays,
+              premature_desc: profile.prematureDesc,
+              baby_avatar: babyAvatar,
+              creator_nickname: userInfo ? userInfo.nickName : '',
+              creator_avatar: userInfo ? userInfo.avatarUrl : '/assets/avatar_default.png'
+            },
+            success: () => {
+              console.log("云端宝宝档案更新成功！");
+            },
+            fail: (err) => {
+              console.warn("更新云端宝宝档案失败：", err);
+            }
+          });
+        } else {
+          // 2. 如果是首次保存且尚未创建过家庭ID，自动在 families 集合中开辟一条新纪录
+          db.collection('families').add({
+            data: {
+              baby_name: profile.name,
+              birth_date: profile.birthDate,
+              due_date: profile.dueDate,
+              premature_days: profile.prematureDays,
+              premature_desc: profile.prematureDesc,
+              baby_avatar: babyAvatar,
+              creator_nickname: userInfo ? userInfo.nickName : '',
+              creator_avatar: userInfo ? userInfo.avatarUrl : '/assets/avatar_default.png',
+              members: [openid],
+              create_time: new Date()
+            },
+            success: (res) => {
+              const newFamilyId = res._id;
+              setStorage('user_family_id', newFamilyId);
+              console.log("首次在云端初始化并保存宝宝档案成功，已同步分配家庭组ID：" + newFamilyId);
+            },
+            fail: (err) => {
+              console.warn("首次同步宝宝档案至云数据库失败：", err);
+            }
+          });
+        }
       } catch (e) {
-        console.warn("云数据库未初始化，忽略云同步");
+        console.warn("微信云数据库未初始化或调用失败，已降级为本地离线保存：", e);
       }
     }
 

@@ -11,7 +11,8 @@
     "pages/my/index",
     "pages/album/index",
     "pages/family/index",
-    "pages/baby/index"
+    "pages/baby/index",
+    "pages/login/index"
   ],
   "window": {
     "backgroundColor": "#F7F9FC",

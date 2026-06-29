@@ -19,6 +19,7 @@ const routes = [
       { path: 'vision',        component: () => import('../views/Vision.vue') },
       { path: 'timeline',      component: () => import('../views/Timeline.vue') },
       { path: 'healthcare',    component: () => import('../views/Healthcare.vue') },
+      { path: 'sync',          component: () => import('../views/Sync.vue') },
     ]
   },
   { path: '/:pathMatch(.*)*', redirect: '/dashboard' }

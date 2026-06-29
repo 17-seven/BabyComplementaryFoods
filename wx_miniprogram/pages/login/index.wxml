@@ -1,0 +1,67 @@
+<!--pages/login/index.wxml-->
+<view class="login-page">
+  <!-- 底层精美背景图铺满 -->
+  <image class="bg-image" src="/assets/loginBg.jpg" mode="aspectFill" />
+
+  <!-- 绝对定位的内容操作区（恰好覆盖在底图白色卡片位置之上） -->
+  <view class="content-container page-transition">
+    <view class="login-card">
+      
+      <!-- 欢迎回来标题与绿叶 -->
+      <view class="welcome-row">
+        <text class="welcome-title">欢迎回来</text>
+        <text class="leaf-emoji">🍃</text>
+      </view>
+      <text class="welcome-subtitle">一键登录，轻松守护宝宝健康</text>
+
+      <!-- 微信一键登录圆角按钮（使用本地 wxicon.svg 图标） -->
+      <button class="btn-wechat" bindtap="handleWechatLogin">
+        <image class="wechat-svg-icon" src="/assets/wxicon.svg" mode="aspectFit" />
+        <text class="btn-text">微信一键登录</text>
+      </button>
+
+      <!-- 隐私协议勾选框 -->
+      <view class="agreement-row" bindtap="toggleAgreement">
+        <checkbox class="agreement-checkbox" checked="{{ agreementChecked }}" color="#76b852" style="pointer-events: none;" />
+        <view class="agreement-text">
+          我已阅读并同意<text class="link-text" catchtap="openAgreement">《用户协议》</text>和<text class="link-text" catchtap="openPrivacy">《隐私政策》</text>
+        </view>
+      </view>
+
+    </view>
+  </view>
+
+  <!-- 底部完善信息半屏抽屉（仅限新看护人未授权头像昵称时触发） -->
+  <view class="half-screen-drawer {{ showProfileDrawer ? 'show' : '' }}">
+    <view class="drawer-mask" bindtap="closeProfileDrawer"></view>
+    <view class="drawer-content">
+      <view class="drawer-header">
+        <text class="drawer-title">完善看护人资料</text>
+        <text class="drawer-close" bindtap="closeProfileDrawer">✕</text>
+      </view>
+      <view class="drawer-body">
+        <text class="drawer-hint">为保障您的小程序数据备份、同步和协同，请设置以下信息：</text>
+        
+        <view class="form-panel">
+          <!-- 授权头像 -->
+          <view class="form-item avatar-item">
+            <text class="field-label" style="margin-bottom:16rpx;">授权头像</text>
+            <button class="avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
+              <image class="avatar-img" src="{{ tempAvatarUrl || '/assets/avatar_default.png' }}" mode="aspectFill"></image>
+            </button>
+            <text class="avatar-tip">点击圆框可获取微信头像</text>
+          </view>
+
+          <!-- 授权昵称 -->
+          <view class="form-item">
+            <text class="field-label">看护人昵称</text>
+            <input class="nickname-input" type="nickname" placeholder="请选择或输入微信昵称" value="{{ inputNickname }}" bindinput="onNicknameInput" bindblur="onNicknameInput" />
+          </view>
+        </view>
+
+        <button class="btn-submit" bindtap="submitProfile">完成并进入小程序</button>
+      </view>
+    </view>
+  </view>
+
+</view>

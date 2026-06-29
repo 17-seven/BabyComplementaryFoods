@@ -22,6 +22,15 @@ page {
   --status-orange: #ed8936;      /* 状态：待接种/推荐 */
 }
 
+/* 全局所有输入框高度与垂直居中校正，解决扁窄、提示字不居中的真机缺陷 */
+input {
+  height: 88rpx !important;
+  min-height: 88rpx !important;
+  line-height: 88rpx !important;
+  padding: 0 24rpx !important;
+  box-sizing: border-box !important;
+}
+
 /* 通用容器样式 */
 .container {
   padding: 24rpx;
@@ -110,4 +119,21 @@ page {
   padding: 80rpx 0;
   color: #a0aec0;
   font-size: 26rpx;
+}
+
+/* 全局页面切换淡入上浮过渡动效 */
+.page-transition {
+  animation: pageFadeInUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: transform, opacity;
+}
+
+@keyframes pageFadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(24rpx);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

@@ -33,18 +33,19 @@
     <!-- 分类入口清单 -->
     <view class="card category-list-card">
       <block wx:for="{{ categories }}" wx:key="*this">
-        <view class="category-item" bindtap="switchViewState" data-state="safe_list">
+        <view class="category-item" bindtap="switchViewState" data-state="safe_list" data-tag="{{ item }}">
           <view class="cat-icon-box">
             <text class="icon" wx:if="{{ item === '主食' }}">🍚</text>
             <text class="icon" wx:elif="{{ item === '蔬菜' }}">🥬</text>
             <text class="icon" wx:elif="{{ item === '水果' }}">🍎</text>
             <text class="icon" wx:elif="{{ item === '动物蛋白' }}">🍖</text>
             <text class="icon" wx:elif="{{ item === '豆类及坚果' }}">🥜</text>
+            <text class="icon" wx:elif="{{ item === '籽类' }}">⚫</text>
             <text class="icon" wx:else>🥑</text>
           </view>
           <text class="cat-name">{{ item }}</text>
           <view class="cat-info">
-            <text class="cat-count">{{ categoryCounts[item].safe + categoryCounts[item].risk }} 种</text>
+            <text class="cat-count">已排 {{ categoryCounts[item].safe }} / 共 {{ categoryCounts[item].safe + categoryCounts[item].risk }} 种</text>
             <text class="arrow">➔</text>
           </view>
         </view>

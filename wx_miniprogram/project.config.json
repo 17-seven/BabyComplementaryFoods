@@ -49,7 +49,7 @@
     "disableSWC": true
   },
   "compileType": "miniprogram",
-  "libVersion": "3.3.4",
+  "libVersion": "3.16.1",
   "appid": "wxb3b17b0076ffd2ee",
   "projectname": "baby-assistant-mp",
   "cloudfunctionRoot": "cloudfunctions/",

@@ -1,9 +1,16 @@
 <template>
   <div>
     <div class="page-header flex-header">
-      <div>
+      <div style="display: flex; flex-direction: column; gap: 4px;">
         <h2>辅食计划</h2>
-        <p>2026-W27（06/29 - 07/05）｜{{ plan.note }}</p>
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 4px;">
+          <select v-model="currentWeekIndex" class="week-select">
+            <option v-for="(wp, idx) in allWeekPlans" :key="wp.week" :value="idx">
+              {{ wp.week }} ({{ wp.period }})
+            </option>
+          </select>
+          <button class="btn btn-secondary btn-sm" @click="addNewWeek" style="padding: 6px 12px;">➕ 新增下周计划</button>
+        </div>
       </div>
       <button class="btn btn-secondary toggle-view-btn" @click="viewMode = viewMode === 'daily' ? 'weekly' : 'daily'">
         {{ viewMode === 'daily' ? '📅 切换竖排周视图' : '🎯 切换单日视图' }}
@@ -122,13 +129,21 @@
         <div v-for="meal in selectedDay.meals" :key="meal.type" class="meal-card card">
           <div class="meal-header">
             <span class="meal-badge">{{ meal.type }}</span>
-            <button class="btn btn-secondary btn-sm" @click="openNote(selectedDate, meal.type)">
-              {{ noteMap[`${selectedDate}_${meal.type}`] ? '✏️ 编辑备注' : '+ 添加备注' }}
-            </button>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn btn-primary btn-sm" @click="openEditMeal(selectedDate, meal.type, meal.items, selectedDay.eggTarget)">
+                ✏️ 编辑菜品
+              </button>
+              <button class="btn btn-secondary btn-sm" @click="openNote(selectedDate, meal.type)">
+                {{ noteMap[`${selectedDate}_${meal.type}`] ? '✏️ 编辑备注' : '+ 添加备注' }}
+              </button>
+            </div>
           </div>
 
           <div class="items-list">
-            <span v-for="item in meal.items" :key="item" class="food-chip">{{ item }}</span>
+            <template v-if="meal.items && meal.items.length > 0">
+              <span v-for="item in meal.items" :key="item" class="food-chip">{{ item }}</span>
+            </template>
+            <span v-else style="color:#a0aec0;font-size:13px;">暂无菜品食材，点击编辑菜品录入</span>
           </div>
 
           <div v-if="noteMap[`${selectedDate}_${meal.type}`]" class="meal-note-display">
@@ -151,16 +166,22 @@
             <div v-for="meal in day.meals" :key="meal.type" class="weekly-meal-row">
               <span class="weekly-badge weekly-meal-badge">{{ meal.type }}</span>
               <div class="weekly-meal-content">
-                <div class="weekly-food-chips">
+                <div class="weekly-food-chips" v-if="meal.items && meal.items.length > 0">
                   <span v-for="item in meal.items" :key="item" class="weekly-food-chip">{{ item }}</span>
                 </div>
+                <div v-else style="color:#a0aec0;font-size:12px;">暂无菜品食材</div>
                 <div v-if="noteMap[`${day.date}_${meal.type}`]" class="weekly-meal-note">
                   📌 {{ noteMap[`${day.date}_${meal.type}`] }}
                 </div>
               </div>
-              <button class="btn btn-secondary btn-sm edit-note-btn" @click="openNote(day.date, meal.type)">
-                {{ noteMap[`${day.date}_${meal.type}`] ? '✏️' : '+' }}
-              </button>
+              <div style="display: flex; gap: 4px; align-items: center; flex-shrink: 0;">
+                <button class="btn btn-primary btn-sm edit-note-btn" @click="openEditMeal(day.date, meal.type, meal.items, day.eggTarget)" title="编辑菜品">
+                  ✏️
+                </button>
+                <button class="btn btn-secondary btn-sm edit-note-btn" @click="openNote(day.date, meal.type)" title="编辑备注">
+                  {{ noteMap[`${day.date}_${meal.type}`] ? '💬' : '+' }}
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -181,6 +202,33 @@
         </div>
       </div>
     </div>
+
+    <!-- 编辑菜品弹窗 -->
+    <div v-if="mealDialog.show" class="modal-mask" @click.self="mealDialog.show = false">
+      <div class="modal-box card">
+        <h3>编辑 {{ mealDialog.date }} ({{ mealDialog.mealType }})</h3>
+        
+        <div class="form-row" style="margin-top:14px;">
+          <label>鸡蛋目标 (当天)</label>
+          <select v-model="mealDialog.eggTarget" style="width: 100%;">
+            <option :value="0">0 个</option>
+            <option :value="1">1 个</option>
+            <option :value="2">2 个</option>
+            <option :value="3">3 个</option>
+          </select>
+        </div>
+
+        <div class="form-row">
+          <label>包含食材（使用顿号、逗号、空格或换行分隔，如：猪肉、青菜、小米粥）</label>
+          <textarea v-model="mealDialog.itemsText" rows="4" placeholder="输入食材，例如：鳕鱼、南瓜、米饭" />
+        </div>
+
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px;">
+          <button class="btn btn-secondary" @click="mealDialog.show = false">取消</button>
+          <button class="btn btn-primary" @click="saveMeal">保存</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -189,10 +237,14 @@ import { ref, computed, reactive } from 'vue'
 import { weekPlans } from '../data/mealPlan.js'
 import { getStorage, setStorage, today } from '../utils/storage.js'
 
-const plan = weekPlans[0]
-const selectedDate = ref(today() >= plan.days[0].date && today() <= plan.days[6].date ? today() : plan.days[0].date)
+// 从 LocalStorage 读取全部周计划数据，若不存在则使用 weekPlans 初始化
+const allWeekPlans = ref(getStorage('baby_week_plans', weekPlans))
+const currentWeekIndex = ref(0)
+const plan = computed(() => allWeekPlans.value[currentWeekIndex.value] || allWeekPlans.value[0])
 
-const selectedDay = computed(() => plan.days.find(d => d.date === selectedDate.value))
+const selectedDate = ref(today() >= plan.value.days[0].date && today() <= plan.value.days[6].date ? today() : plan.value.days[0].date)
+
+const selectedDay = computed(() => plan.value.days.find(d => d.date === selectedDate.value))
 
 const noteMap = reactive(getStorage('meal_notes', {}))
 
@@ -201,13 +253,106 @@ const viewMode = ref('daily')
 
 const noteDialog = reactive({ show: false, date: '', mealType: '', text: '' })
 
+// 编辑菜品弹窗状态
+const mealDialog = reactive({ show: false, date: '', mealType: '', itemsText: '', eggTarget: 1 })
+
+function saveToStorage() {
+  setStorage('baby_week_plans', allWeekPlans.value)
+}
+
+function openEditMeal(date, mealType, currentItems, eggTarget) {
+  mealDialog.date = date
+  mealDialog.mealType = mealType
+  mealDialog.itemsText = currentItems ? currentItems.join('、') : ''
+  mealDialog.eggTarget = eggTarget !== undefined ? eggTarget : 1
+  mealDialog.show = true
+}
+
+function saveMeal() {
+  const targetPlan = allWeekPlans.value[currentWeekIndex.value]
+  if (!targetPlan) return
+
+  const dayObj = targetPlan.days.find(d => d.date === mealDialog.date)
+  if (dayObj) {
+    dayObj.eggTarget = parseInt(mealDialog.eggTarget) || 0
+    let mealObj = dayObj.meals.find(m => m.type === mealDialog.mealType)
+    
+    // 以中文顿号、逗号、空格或换行为分隔符
+    const items = mealDialog.itemsText
+      .replace(/[,，\s、\n]+/g, '、')
+      .split('、')
+      .map(i => i.trim())
+      .filter(i => i.length > 0)
+    
+    if (mealObj) {
+      mealObj.items = items
+    } else {
+      mealObj = { type: mealDialog.mealType, items }
+      dayObj.meals.push(mealObj)
+    }
+  }
+  saveToStorage()
+  mealDialog.show = false
+}
+
+// 动态创建下周辅食计划
+function addNewWeek() {
+  const list = allWeekPlans.value
+  const lastWeek = list[list.length - 1]
+  
+  let lastDateStr = '2026-07-05' // 默认底线日期
+  if (lastWeek && lastWeek.days && lastWeek.days.length > 0) {
+    lastDateStr = lastWeek.days[lastWeek.days.length - 1].date
+  }
+
+  const lastDate = new Date(lastDateStr)
+  const nextDays = []
+  const weekDaysNames = ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
+  
+  for (let i = 1; i <= 7; i++) {
+    const nextDate = new Date(lastDate.getTime() + i * 24 * 60 * 60 * 1000)
+    const y = nextDate.getFullYear()
+    let m = nextDate.getMonth() + 1
+    let d = nextDate.getDate()
+    if (m < 10) m = '0' + m
+    if (d < 10) d = '0' + d
+    
+    const dateStr = `${y}-${m}-${d}`
+    nextDays.push({
+      date: dateStr,
+      dayName: weekDaysNames[i - 1],
+      eggTarget: 1,
+      meals: [
+        { type: '午餐', items: [] },
+        { type: '晚餐', items: [] }
+      ]
+    })
+  }
+
+  const nextWeekNum = list.length + 1
+  const startPeriod = nextDays[0].date.slice(5).replace('-', '.')
+  const endPeriod = nextDays[6].date.slice(5).replace('-', '.')
+  
+  const newWeekObj = {
+    week: `第 ${nextWeekNum} 周辅食计划`,
+    period: `${startPeriod} - ${endPeriod}`,
+    note: '待填写备忘',
+    days: nextDays
+  }
+
+  list.push(newWeekObj)
+  saveToStorage()
+  currentWeekIndex.value = list.length - 1
+  selectedDate.value = nextDays[0].date
+}
+
 // 规则校验：鱼类频次
 const fishCount = computed(() => {
   let count = 0
   const list = []
-  plan.days.forEach(d => {
+  plan.value.days.forEach(d => {
     d.meals.forEach(m => {
-      if (m.items.some(item => item.includes('鱼'))) {
+      if (m.items && m.items.some(item => item.includes('鱼'))) {
         count++
         list.push(`${d.dayName}${m.type === '午餐' ? '午' : '晚'}`)
       }
@@ -220,9 +365,9 @@ const fishCount = computed(() => {
 const shrimpCount = computed(() => {
   let count = 0
   const list = []
-  plan.days.forEach(d => {
+  plan.value.days.forEach(d => {
     d.meals.forEach(m => {
-      if (m.items.some(item => item.includes('虾'))) {
+      if (m.items && m.items.some(item => item.includes('虾'))) {
         count++
         list.push(`${d.dayName}${m.type === '午餐' ? '午' : '晚'}`)
       }
@@ -235,9 +380,9 @@ const shrimpCount = computed(() => {
 const liverCount = computed(() => {
   let count = 0
   const list = []
-  plan.days.forEach(d => {
+  plan.value.days.forEach(d => {
     d.meals.forEach(m => {
-      if (m.items.some(item => item.includes('鹅肝'))) {
+      if (m.items && m.items.some(item => item.includes('鹅肝'))) {
         count++
         list.push(`${d.dayName}${m.type === '午餐' ? '午' : '晚'}`)
       }
@@ -250,9 +395,9 @@ const liverCount = computed(() => {
 const porridgeCount = computed(() => {
   let count = 0
   const list = []
-  plan.days.forEach(d => {
+  plan.value.days.forEach(d => {
     d.meals.forEach(m => {
-      if (m.items.some(item => item.includes('粥'))) {
+      if (m.items && m.items.some(item => item.includes('粥'))) {
         count++
         list.push(`${d.dayName}${m.type === '午餐' ? '午' : '晚'}`)
       }
@@ -265,9 +410,9 @@ const porridgeCount = computed(() => {
 const noodleCount = computed(() => {
   let count = 0
   const list = []
-  plan.days.forEach(d => {
+  plan.value.days.forEach(d => {
     d.meals.forEach(m => {
-      if (m.items.some(item => item.includes('面'))) {
+      if (m.items && m.items.some(item => item.includes('面'))) {
         count++
         list.push(`${d.dayName}${m.type === '午餐' ? '午' : '晚'}`)
       }
@@ -278,7 +423,7 @@ const noodleCount = computed(() => {
 
 // 规则校验：每日鸡蛋限制
 const eggValidation = computed(() => {
-  const status = plan.days.every(d => d.eggTarget >= 1 && d.eggTarget <= 2)
+  const status = plan.value.days.every(d => d.eggTarget >= 1 && d.eggTarget <= 2)
   return { status, text: status ? '全 7 天均满足' : '有天数不满足' }
 })
 
@@ -286,10 +431,10 @@ const eggValidation = computed(() => {
 const greenVegCount = computed(() => {
   let okCount = 0
   let totalMeals = 0
-  plan.days.forEach(d => {
+  plan.value.days.forEach(d => {
     d.meals.forEach(m => {
       totalMeals++
-      if (m.items.some(item => item.includes('青菜') || item.includes('绿叶菜') || item.includes('菠菜') || item.includes('西兰花') || item.includes('小白菜') || item.includes('油菜'))) {
+      if (m.items && m.items.some(item => item.includes('青菜') || item.includes('绿叶菜') || item.includes('菠菜') || item.includes('西兰花') || item.includes('小白菜') || item.includes('油菜'))) {
         okCount++
       }
     })
@@ -299,22 +444,24 @@ const greenVegCount = computed(() => {
 
 // 周统计数据
 const weeklyStats = computed(() => {
-  let eggs = plan.days.reduce((s, d) => s + d.eggTarget, 0)
+  let eggs = plan.value.days.reduce((s, d) => s + d.eggTarget, 0)
   let fish = 0
   let shrimp = 0
   let liver = 0
   let pork = 0
   let beef = 0
   
-  plan.days.forEach(d => {
+  plan.value.days.forEach(d => {
     d.meals.forEach(m => {
-      m.items.forEach(item => {
-        if (item.includes('鱼')) fish++
-        if (item.includes('虾')) shrimp++
-        if (item.includes('鹅肝') || item.includes('猪肝')) liver++
-        if (item.includes('猪肉')) pork++
-        if (item.includes('牛肉')) beef++
-      })
+      if (m.items) {
+        m.items.forEach(item => {
+          if (item.includes('鱼')) fish++
+          if (item.includes('虾')) shrimp++
+          if (item.includes('鹅肝') || item.includes('猪肝')) liver++
+          if (item.includes('猪肉')) pork++
+          if (item.includes('牛肉')) beef++
+        })
+      }
     })
   })
   
@@ -586,4 +733,20 @@ function saveNote() {
 }
 .modal-box { width: 420px; max-width: 90vw; }
 .modal-box h3 { font-size: 16px; font-weight: 600; }
+
+.week-select {
+  padding: 6px 12px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 13px;
+  outline: none;
+  background: #fff;
+  cursor: pointer;
+  font-weight: 500;
+  color: #2d3748;
+  transition: border-color 0.2s;
+}
+.week-select:focus {
+  border-color: #ff7043;
+}
 </style>

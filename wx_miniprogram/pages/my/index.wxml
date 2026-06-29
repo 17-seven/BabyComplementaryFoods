@@ -1,12 +1,15 @@
 <!--pages/my/index.wxml-->
-<view class="container">
+<view class="container page-transition">
   
   <!-- 1. 顶部小名片 -->
   <view class="my-profile-header">
     <block wx:if="{{ isLoggedIn }}">
       <image class="avatar-img" src="{{ userInfo.avatarUrl }}" mode="aspectFill"></image>
       <view class="baby-info-box">
-        <text class="baby-name">{{ userInfo.nickName }} (看护人)</text>
+        <view class="profile-name-row">
+          <text class="baby-name">{{ userInfo.nickName }} (看护人)</text>
+          <text class="logout-link" bindtap="handleLogout">退出登录</text>
+        </view>
         <text class="baby-age" wx:if="{{ babyInfo }}">实际月龄：{{ actualAge }} | 纠正：{{ correctedAge }}</text>
         <text class="baby-age" wx:else style="color: #e53e3e;">⚠️ 请先在下方设置宝宝档案</text>
       </view>
@@ -125,32 +128,6 @@
     <button class="btn btn-outline-secondary btn-block" style="margin-top: 16rpx;" bindtap="closeDevPanel">
       关闭开发者面板
     </button>
-  </view>
-
-  <!-- 5. 微信登录授权信息补充弹窗 -->
-  <view class="modal-overlay" wx:if="{{ showLoginModal }}">
-    <view class="modal-card">
-      <view class="modal-header">
-        <text class="modal-title">完善看护人信息</text>
-        <text class="modal-close" bindtap="closeLoginModal">✕</text>
-      </view>
-      <view class="modal-body">
-        <view class="form-item avatar-select-item">
-          <text class="lbl">授权头像</text>
-          <button class="avatar-wrapper" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
-            <image class="avatar-preview" src="{{ tempAvatarUrl || '/assets/avatar_default.png' }}"></image>
-          </button>
-          <text class="hint" style="text-align: center;margin-top: 8rpx;">点击圆圈可直接获取微信头像</text>
-        </view>
-        <view class="form-item" style="margin-top:20rpx">
-          <text class="lbl">授权昵称</text>
-          <input type="nickname" placeholder="请选择或输入微信昵称" value="{{ inputNickname }}" bindinput="onNicknameInput" bindblur="onNicknameInput" />
-        </view>
-      </view>
-      <view class="modal-footer">
-        <button class="btn btn-primary btn-block" bindtap="submitLoginProfile">确认登录</button>
-      </view>
-    </view>
   </view>
 
 </view>

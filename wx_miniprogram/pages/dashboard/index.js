@@ -39,11 +39,11 @@ Page({
     
     // 读取宝宝的本地档案设置
     const defaultProfile = {
-      name: '王玧初',
-      birthDate: '2025-02-18',
+      name: '',
+      birthDate: '',
       isPremature: true,
-      prematureDays: 71,
-      prematureDesc: '29w+6 早产'
+      prematureDays: 0,
+      prematureDesc: ''
     };
     const profile = getStorage('baby_profile_info', defaultProfile);
 

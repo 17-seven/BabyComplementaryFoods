@@ -31,6 +31,23 @@
   font-weight: 700;
   color: #2d3748;
 }
+.profile-name-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+.logout-link {
+  font-size: 20rpx;
+  color: #a0aec0;
+  background-color: #f7f9fc;
+  padding: 4rpx 14rpx;
+  border-radius: 20rpx;
+  font-weight: 500;
+  border: 1rpx solid #edf2f7;
+}
+.logout-link:active {
+  background-color: #edf2f7;
+}
 .baby-age {
   font-size: 22rpx;
   color: #718096;

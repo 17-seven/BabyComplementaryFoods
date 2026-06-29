@@ -1,5 +1,5 @@
 <!--pages/healthcare/index.wxml-->
-<view class="container">
+<view class="container page-transition">
   
   <!-- 1. 顶部分类导航栏 -->
   <view class="tab-navbar">

@@ -5,7 +5,7 @@
  * @param {string} birthDateStr 生日 (格式 "2025-02-18")
  * @param {number} prematureDays 早产天数 (王玧初为 71 天)
  */
-function calculateBabyAge(birthDateStr = "2025-02-18", prematureDays = 71) {
+function calculateBabyAge(birthDateStr, prematureDays) {
   const birth = new Date(birthDateStr);
   const now = new Date();
   

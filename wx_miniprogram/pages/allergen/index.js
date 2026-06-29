@@ -79,7 +79,8 @@ Page({
     groupedRisk: {},
 
     // 各大分类统计与收起状态
-    categories: ['主食', '蔬菜', '水果', '动物蛋白', '豆类及坚果', '油脂与调味'],
+    categories: ['主食', '蔬菜', '水果', '动物蛋白', '豆类及坚果', '油脂与调味', '籽类'],
+    catOptions: ['主食', '蔬菜', '水果', '动物蛋白', '豆类及坚果', '油脂与调味', '籽类'],
     categoryCounts: {}, // { '主食': { safe: 5, risk: 2 } }
     collapsedCategories: {}, // { '主食': false }
 
@@ -160,9 +161,10 @@ Page({
   // 切换视图状态
   switchViewState: function (e) {
     const state = e.currentTarget.dataset.state;
+    const tag = e.currentTarget.dataset.tag || '全部';
     this.setData({
       viewState: state,
-      activeFilterTag: '全部',
+      activeFilterTag: tag,
       searchKeyword: ''
     }, () => {
       this.rebuildGroupedData();
@@ -402,7 +404,7 @@ Page({
 
     const emojis = {
       '主食': '🍚', '蔬菜': '🥬', '水果': '🍎',
-      '动物蛋白': '🥩', '豆类及坚果': '🥜', '油脂与调味': '🥑'
+      '动物蛋白': '🥩', '豆类及坚果': '🥜', '油脂与调味': '🥑', '籽类': '⚫'
     };
 
     const newItem = {
