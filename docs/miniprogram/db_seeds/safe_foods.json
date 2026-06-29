@@ -1,0 +1,23 @@
+[
+  { "name": "高铁米粉", "category": "主食", "icon": "🥣" },
+  { "name": "胚芽米", "category": "主食", "icon": "🌾" },
+  { "name": "碎碎面", "category": "主食", "icon": "🍜" },
+  { "name": "疙瘩汤 (面粉)", "category": "主食", "icon": "🍲" },
+  { "name": "蒸糕", "category": "主食", "icon": "🍰" },
+  { "name": "胡萝卜", "category": "蔬菜", "icon": "🥕" },
+  { "name": "山药", "category": "蔬菜", "icon": "🍠" },
+  { "name": "土豆", "category": "蔬菜", "icon": "🥔" },
+  { "name": "西葫芦", "category": "蔬菜", "icon": "🥒" },
+  { "name": "黄瓜", "category": "蔬菜", "icon": "🥒" },
+  { "name": "南瓜", "category": "蔬菜", "icon": "🎃" },
+  { "name": "苹果", "category": "水果", "icon": "🍎" },
+  { "name": "香蕉", "category": "水果", "icon": "🍌" },
+  { "name": "牛油果", "category": "水果", "icon": "🥑" },
+  { "name": "红心火龙果", "category": "水果", "icon": "🍉" },
+  { "name": "鸡肉", "category": "动物蛋白", "icon": "🍗" },
+  { "name": "猪肉", "category": "动物蛋白", "icon": "🥩" },
+  { "name": "牛肉", "category": "动物蛋白", "icon": "🍖" },
+  { "name": "红豆", "category": "豆类及坚果", "icon": "🥜" },
+  { "name": "核桃油", "category": "油脂与调味", "icon": "🍾" },
+  { "name": "猪油", "category": "油脂与调味", "icon": "🧈" }
+]
