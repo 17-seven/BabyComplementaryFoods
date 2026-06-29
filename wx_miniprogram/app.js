@@ -11,9 +11,14 @@ App({
       });
     }
 
+    // 从本地缓存预载用户登录身份
+    const userInfo = wx.getStorageSync('user_info') || null;
+    const openid = wx.getStorageSync('user_openid') || '';
+
     this.globalData = {
       babyId: 'default_baby_id',
-      openid: ''
+      openid: openid,
+      userInfo: userInfo
     };
   }
 });

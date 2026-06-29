@@ -76,3 +76,107 @@
 .menu-item:active {
   background-color: #f7f9fc;
 }
+
+/* 微信头像与文本超链接 */
+.avatar-img {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+  margin-right: 24rpx;
+  border: 4rpx solid #e6fffa;
+}
+.text-link {
+  color: var(--primary-color);
+  text-decoration: underline;
+}
+
+/* 弹窗遮罩 */
+.modal-overlay {
+  position: fixed;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal-card {
+  width: 80%;
+  background-color: #ffffff;
+  border-radius: 24rpx;
+  overflow: hidden;
+  box-shadow: 0 10rpx 30rpx rgba(0,0,0,0.15);
+}
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 28rpx 32rpx;
+  border-bottom: 1rpx solid #edf2f7;
+}
+.modal-title {
+  font-size: 30rpx;
+  font-weight: 700;
+}
+.modal-close {
+  font-size: 28rpx;
+  color: #a0aec0;
+}
+.modal-body {
+  padding: 32rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+.form-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+.form-item .lbl {
+  font-size: 22rpx;
+  color: #718096;
+  font-weight: 600;
+  margin-bottom: 8rpx;
+}
+.form-item input {
+  background-color: #f7f9fc;
+  border: 1rpx solid #edf2f7;
+  border-radius: 12rpx;
+  padding: 18rpx;
+  font-size: 26rpx;
+  box-sizing: border-box;
+  width: 100%;
+}
+.avatar-select-item {
+  align-items: center;
+}
+.avatar-wrapper {
+  padding: 0;
+  width: 130rpx !important;
+  height: 130rpx !important;
+  border-radius: 50%;
+  background-color: #f7f9fc;
+  border: 2rpx dashed #cbd5e0;
+  margin-top: 10rpx;
+}
+.avatar-preview {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+.modal-footer {
+  padding: 24rpx 32rpx;
+  border-top: 1rpx solid #edf2f7;
+}
+.btn-block {
+  width: 100%;
+}
+.hint {
+  font-size: 20rpx;
+  color: #a0aec0;
+}
+
