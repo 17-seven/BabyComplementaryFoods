@@ -97,7 +97,7 @@ module.exports = {
 ## 三、 核心业务逻辑算法移植
 
 ### 1. 纠正月龄与实际月龄计算器
-根据王珑初宝宝出生日（`2025-02-18`，早产 `29w+6`，即提前了 **71 天** 出生），在小程序中进行月龄换算：
+根据王玧初宝宝出生日（`2025-02-18`，早产 `29w+6`，即提前了 **71 天** 出生），在小程序中进行月龄换算：
 
 ```javascript
 // utils/babyHelper.js
@@ -105,7 +105,7 @@ module.exports = {
 /**
  * 计算实际与纠正月龄
  * @param {string} birthDateStr 生日 (格式 "2025-02-18")
- * @param {number} prematureDays 早产天数 (王珑初为 71 天)
+ * @param {number} prematureDays 早产天数 (王玧初为 71 天)
  */
 function calculateBabyAge(birthDateStr = "2025-02-18", prematureDays = 71) {
   const birth = new Date(birthDateStr);

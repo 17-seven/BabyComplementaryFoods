@@ -3,7 +3,7 @@
 /**
  * 计算实际与纠正月龄
  * @param {string} birthDateStr 生日 (格式 "2025-02-18")
- * @param {number} prematureDays 早产天数 (王珑初为 71 天)
+ * @param {number} prematureDays 早产天数 (王玧初为 71 天)
  */
 function calculateBabyAge(birthDateStr = "2025-02-18", prematureDays = 71) {
   const birth = new Date(birthDateStr);

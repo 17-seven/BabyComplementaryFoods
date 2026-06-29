@@ -3,11 +3,11 @@ const { getStorage, setStorage } = require('../../utils/storage.js');
 
 Page({
   data: {
-    name: '王珑初',
-    birthDate: '2025-02-18',
-    isPremature: true,
-    prematureDays: 71,
-    prematureDesc: '29w+6 早产'
+    name: '',
+    birthDate: '',
+    isPremature: false,
+    prematureDays: 0,
+    prematureDesc: ''
   },
 
   onLoad: function () {
@@ -15,23 +15,19 @@ Page({
   },
 
   loadBabyProfile: function () {
-    // 读取宝宝的本地档案设置
-    const defaultProfile = {
-      name: '王珑初',
-      birthDate: '2025-02-18',
-      isPremature: true,
-      prematureDays: 71,
-      prematureDesc: '29w+6 早产'
-    };
+    // 读取宝宝的本地档案设置，新用户默认为空
+    const profile = getStorage('baby_profile_info', null);
 
-    const profile = getStorage('baby_profile_info', defaultProfile);
-    this.setData({
-      name: profile.name,
-      birthDate: profile.birthDate,
-      isPremature: profile.isPremature !== undefined ? profile.isPremature : true,
-      prematureDays: profile.prematureDays !== undefined ? profile.prematureDays : 71,
-      prematureDesc: profile.prematureDesc || '29w+6 早产'
-    });
+    if (profile) {
+      this.setData({
+        name: profile.name || '',
+        birthDate: profile.birthDate || '',
+        isPremature: profile.isPremature || false,
+        prematureDays: profile.prematureDays || 0,
+        prematureDesc: profile.prematureDesc || ''
+      });
+    }
+    // 如果 profile 为 null，说明新用户，保持默认空值
   },
 
   // 1. 输入框字段修改监听
@@ -45,7 +41,7 @@ Page({
     const val = e.detail.value;
     this.setData({
       isPremature: val,
-      prematureDays: val ? 71 : 0
+      prematureDays: val ? this.data.prematureDays : 0
     });
   },
 
@@ -59,7 +55,12 @@ Page({
     const { name, birthDate, isPremature, prematureDays, prematureDesc } = this.data;
 
     if (!name.trim()) {
-      wx.showToast({ title: '姓名不能为空', icon: 'none' });
+      wx.showToast({ title: '请输入宝宝姓名', icon: 'none' });
+      return;
+    }
+
+    if (!birthDate) {
+      wx.showToast({ title: '请选择出生日期', icon: 'none' });
       return;
     }
 
@@ -68,7 +69,7 @@ Page({
       birthDate,
       isPremature,
       prematureDays: isPremature ? parseInt(prematureDays) || 0 : 0,
-      prematureDesc: isPremature ? prematureDesc.trim() : '无早产'
+      prematureDesc: isPremature ? prematureDesc.trim() : ''
     };
 
     // A. 写入本地缓存

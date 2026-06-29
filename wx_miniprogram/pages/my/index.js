@@ -1,13 +1,10 @@
 // pages/my/index.js
 const { calculateBabyAge } = require('../../utils/babyHelper.js');
+const { getStorage } = require('../../utils/storage.js');
 
 Page({
   data: {
-    babyInfo: {
-      name: "小宝贝",
-      birthDate: "2025-02-18",
-      desc: "29w+6 早产"
-    },
+    babyInfo: null,       // 宝宝档案，null表示未设置
     actualAge: "",
     correctedAge: "",
     
@@ -20,15 +17,29 @@ Page({
   },
 
   onShow: function () {
-    const ageInfo = calculateBabyAge(this.data.babyInfo.birthDate, 71);
     const app = getApp();
-    
-    this.setData({
-      actualAge: ageInfo.actualAge,
-      correctedAge: ageInfo.correctedAge,
-      isLoggedIn: !!app.globalData.openid,
-      userInfo: app.globalData.userInfo
-    });
+    // 从本地缓存读取宝宝档案
+    const profile = getStorage('baby_profile_info', null);
+
+    if (profile && profile.birthDate) {
+      const prematureDays = profile.prematureDays || 0;
+      const ageInfo = calculateBabyAge(profile.birthDate, prematureDays);
+      this.setData({
+        babyInfo: profile,
+        actualAge: ageInfo.actualAge,
+        correctedAge: ageInfo.correctedAge,
+        isLoggedIn: !!app.globalData.openid,
+        userInfo: app.globalData.userInfo
+      });
+    } else {
+      this.setData({
+        babyInfo: null,
+        actualAge: '',
+        correctedAge: '',
+        isLoggedIn: !!app.globalData.openid,
+        userInfo: app.globalData.userInfo
+      });
+    }
   },
 
   // 触发授权登录

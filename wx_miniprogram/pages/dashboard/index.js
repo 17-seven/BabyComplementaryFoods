@@ -39,7 +39,7 @@ Page({
     
     // 读取宝宝的本地档案设置
     const defaultProfile = {
-      name: '王珑初',
+      name: '王玧初',
       birthDate: '2025-02-18',
       isPremature: true,
       prematureDays: 71,

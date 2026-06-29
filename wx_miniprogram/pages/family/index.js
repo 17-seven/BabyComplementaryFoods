@@ -43,14 +43,15 @@ Page({
         });
       },
       fail: (err) => {
-        console.warn("未能拉取云端家庭组详情，可能环境尚未部署完毕，采用本地虚拟数据渲染", err);
-        // 本地调试兜底虚拟数据
+        console.warn("未能拉取云端家庭组详情，可能环境尚未部署完毕，采用本地缓存渲染", err);
+        // 从本地宝宝档案读取，不再硬编码
+        const profile = getStorage('baby_profile_info', null);
         that.setData({
-          familyDetails: {
-            baby_name: '王珑初',
-            birth_date: '2025-02-18',
-            premature_days: 71
-          },
+          familyDetails: profile ? {
+            baby_name: profile.name,
+            birth_date: profile.birthDate,
+            premature_days: profile.prematureDays || 0
+          } : null,
           membersList: [getApp().globalData.openid || '您自己']
         });
       }
@@ -69,6 +70,22 @@ Page({
       return;
     }
 
+    // 检查宝宝基础档案是否已设置
+    const babyProfile = getStorage('baby_profile_info', null);
+    if (!babyProfile || !babyProfile.name || !babyProfile.birthDate) {
+      wx.showModal({
+        title: '请先设置宝宝档案',
+        content: '创建家庭共享前，需要先完善宝宝的基础信息（姓名、出生日期等），这样共享人才能看到宝宝的正确资料。',
+        confirmText: '去设置',
+        success: (res) => {
+          if (res.confirm) {
+            wx.navigateTo({ url: '/pages/baby/index' });
+          }
+        }
+      });
+      return;
+    }
+
     const db = wx.cloud.database();
     const that = this;
     
@@ -76,9 +93,9 @@ Page({
     
     db.collection('families').add({
       data: {
-        baby_name: '小宝贝',
-        birth_date: '2025-02-18',
-        premature_days: 71,
+        baby_name: babyProfile.name,
+        birth_date: babyProfile.birthDate,
+        premature_days: babyProfile.prematureDays || 0,
         members: [app.globalData.openid],
         create_time: new Date()
       },

@@ -7,7 +7,8 @@
       <image class="avatar-img" src="{{ userInfo.avatarUrl }}" mode="aspectFill"></image>
       <view class="baby-info-box">
         <text class="baby-name">{{ userInfo.nickName }} (看护人)</text>
-        <text class="baby-age">实际月龄：{{ actualAge }} | 纠正：{{ correctedAge }}</text>
+        <text class="baby-age" wx:if="{{ babyInfo }}">实际月龄：{{ actualAge }} | 纠正：{{ correctedAge }}</text>
+        <text class="baby-age" wx:else style="color: #e53e3e;">⚠️ 请先在下方设置宝宝档案</text>
       </view>
     </block>
     <block wx:else>

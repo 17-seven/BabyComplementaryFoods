@@ -23,7 +23,7 @@
 {
   "_id": "family_xyz123",            // 家庭唯一ID (也作为 baby_id 绑定主键)
   "creator_openid": "oXXXXX_husband",// 创建人 (如丈夫的) OpenID
-  "baby_name": "王珑初",              // 宝宝名字
+  "baby_name": "王玧初",              // 宝宝名字
   "birth_date": "2025-02-18",        // 宝宝生日
   "premature_days": 71,              // 早产天数
   "members": [                       // 授权可协同记账的家庭成员 OpenID 列表
