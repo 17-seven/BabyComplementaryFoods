@@ -1,57 +1,269 @@
 <!--pages/allergen/index.wxml-->
 <view class="container">
-  
-  <!-- 1. 顶部分类 Tab -->
-  <view class="tab-navbar">
-    <view class="tab-nav-btn {{ activeTab === 'safe' ? 'active' : '' }}" bindtap="switchTab" data-tab="safe">已排敏食材 (安全 ✅)</view>
-    <view class="tab-nav-btn {{ activeTab === 'banned' ? 'active' : '' }}" bindtap="switchTab" data-tab="banned">待排敏食材 (风险 ❌)</view>
-  </view>
 
-  <!-- 2. 食材新增栏 -->
-  <view class="card add-food-card">
-    <view class="section-title">➕ 录入新食材</view>
-    <view class="form-row inline-form">
-      <input type="text" placeholder="输入食材名称 (如 芝麻、芦笋)" value="{{ newFoodName }}" bindinput="onFoodInput" data-field="newFoodName" />
-      
-      <picker mode="selector" range="{{ catOptions }}" bindchange="onFoodInput" data-field="newFoodCat" wx:if="{{ activeTab === 'safe' }}">
-        <view class="date-picker-btn cat-sel-btn">{{ newFoodCat }}</view>
-      </picker>
-      
-      <button class="btn btn-primary" bindtap="addNewFood">添加</button>
+  <!-- ==================== 1. 食材排敏管理 (Overview View) ==================== -->
+  <view class="view-panel" wx:if="{{ viewState === 'overview' }}">
+    <!-- 顶栏侧边统计卡 -->
+    <view class="stats-row">
+      <view class="stat-card card-safe" bindtap="switchViewState" data-state="safe_list">
+        <text class="title">✅ 已排敏食材</text>
+        <view class="num-row">
+          <text class="num">{{ safeFoods.length }}</text>
+          <text class="unit">种</text>
+        </view>
+        <text class="tip">可放心食用</text>
+      </view>
+
+      <view class="stat-card card-risk" bindtap="switchViewState" data-state="risk_list">
+        <text class="title">🍊 未排敏食材</text>
+        <view class="num-row">
+          <text class="num">{{ riskFoods.length }}</text>
+          <text class="unit">种</text>
+        </view>
+        <text class="tip">需排敏后食用</text>
+      </view>
     </view>
+
+    <!-- 搜索过滤 -->
+    <view class="search-bar">
+      <icon type="search" size="16" class="search-icon" />
+      <input type="text" placeholder="搜索食材名称" value="{{ searchKeyword }}" bindinput="onSearchInput" />
+    </view>
+
+    <!-- 分类入口清单 -->
+    <view class="card category-list-card">
+      <block wx:for="{{ categories }}" wx:key="*this">
+        <view class="category-item" bindtap="switchViewState" data-state="safe_list">
+          <view class="cat-icon-box">
+            <text class="icon" wx:if="{{ item === '主食' }}">🍚</text>
+            <text class="icon" wx:elif="{{ item === '蔬菜' }}">🥬</text>
+            <text class="icon" wx:elif="{{ item === '水果' }}">🍎</text>
+            <text class="icon" wx:elif="{{ item === '动物蛋白' }}">🍖</text>
+            <text class="icon" wx:elif="{{ item === '豆类及坚果' }}">🥜</text>
+            <text class="icon" wx:else>🥑</text>
+          </view>
+          <text class="cat-name">{{ item }}</text>
+          <view class="cat-info">
+            <text class="cat-count">{{ categoryCounts[item].safe + categoryCounts[item].risk }} 种</text>
+            <text class="arrow">➔</text>
+          </view>
+        </view>
+      </block>
+    </view>
+
+    <!-- 底部添加按钮 -->
+    <button class="btn btn-outline-primary btn-block" bindtap="openAddDialog" data-type="safe">
+      ➕ 添加自定义食材
+    </button>
   </view>
 
-  <!-- ==================== Tab 1: 安全库 ==================== -->
-  <view class="safe-panel" wx:if="{{ activeTab === 'safe' }}">
-    <view class="tip-banner">💡 点击下方安全食材标签，可将其快速撤回至风险禁忌库中进行重排敏观察。</view>
-    
-    <block wx:for="{{ safeFoods }}" wx:for-index="catName" wx:for-item="foodList" wx:key="*this">
-      <view class="card cat-section-card" wx:if="{{ foodList.length > 0 }}">
-        <view class="section-title text-sm">📍 {{ catName }}</view>
-        <view class="tags-grid">
-          <block wx:for="{{ foodList }}" wx:for-item="food" wx:key="*this">
-            <view class="food-tag tag-green-bg" bindtap="markAsBanned" data-food="{{ food }}" data-cat="{{ catName }}">
-              {{ food }}
+
+  <!-- ==================== 2. 已排敏食材列表 (Safe List View) ==================== -->
+  <view class="view-panel" wx:if="{{ viewState === 'safe_list' }}">
+    <!-- 返回头部 -->
+    <view class="header-back-row">
+      <text class="back-arrow" bindtap="switchViewState" data-state="overview">◀ 返回</text>
+      <text class="header-title">已排敏食材</text>
+    </view>
+
+    <!-- 分类标签过滤器 -->
+    <scroll-view class="cat-scroll" scroll-x="true">
+      <view class="cat-pill {{ activeFilterTag === '全部' ? 'active' : '' }}" bindtap="selectFilterTag" data-tag="全部">全部</view>
+      <block wx:for="{{ categories }}" wx:key="*this">
+        <view class="cat-pill {{ activeFilterTag === item ? 'active' : '' }}" bindtap="selectFilterTag" data-tag="{{ item }}">
+          {{ item }}
+        </view>
+      </block>
+    </scroll-view>
+
+    <!-- 列表数据统计 -->
+    <view class="list-subheader">
+      <text class="lbl">共 {{ safeFoods.length }} 种已排敏食材</text>
+      <text class="action-btn-lbl" bindtap="openAddDialog" data-type="safe">添加食材</text>
+    </view>
+
+    <!-- 手风琴大类列表 -->
+    <block wx:for="{{ categories }}" wx:for-item="cat" wx:key="*this">
+      <view class="accordion-card" wx:if="{{ groupedSafe[cat].length > 0 && (activeFilterTag === '全部' || activeFilterTag === cat) }}">
+        <!-- 手风琴折叠头部 -->
+        <view class="accordion-header" bindtap="toggleCollapse" data-cat="{{ cat }}">
+          <text class="accordion-title">{{ cat }} ({{ groupedSafe[cat].length }})</text>
+          <view class="accordion-right">
+            <text class="add-icon" catchtap="openAddDialog" data-type="safe" data-cat="{{ cat }}">＋</text>
+            <text class="collapse-indicator">{{ collapsedCategories[cat] ? '▼' : '▲' }}</text>
+          </view>
+        </view>
+
+        <!-- 手风琴展开食物项 -->
+        <view class="accordion-body" wx:if="{{ !collapsedCategories[cat] }}">
+          <block wx:for="{{ groupedSafe[cat] }}" wx:key="name">
+            <view class="food-item-row" bindtap="showFoodDetail" data-name="{{ item.name }}" data-type="safe">
+              <view class="food-avatar">{{ item.icon }}</view>
+              <view class="food-info">
+                <text class="food-name">{{ item.name }}</text>
+                <text class="tag tag-green">已排敏</text>
+              </view>
+              <!-- 垃圾箱图标：点击后直接撤回至未排敏 -->
+              <view class="trash-btn" catchtap="markAsRiskQuick" data-name="{{ item.name }}">🗑️</view>
             </view>
           </block>
         </view>
       </view>
     </block>
+
+    <!-- 底部添加食材按钮 -->
+    <button class="btn btn-primary btn-block fixed-bottom-btn" bindtap="openAddDialog" data-type="safe">
+      ➕ 添加已排敏食材
+    </button>
   </view>
 
-  <!-- ==================== Tab 2: 禁忌/未排敏库 ==================== -->
-  <view class="banned-panel" wx:if="{{ activeTab === 'banned' }}">
-    <view class="tip-banner error-banner">⚠️ 点击下方食材标签，可将其移入“已排敏安全库”中并选择对应的营养大类归档。</view>
-    
-    <view class="card">
-      <view class="tags-grid">
-        <block wx:for="{{ bannedFoods }}" wx:key="*this">
-          <view class="food-tag tag-red-bg" bindtap="markAsSafe" data-food="{{ item }}">
-            {{ item }}
+
+  <!-- ==================== 3. 未排敏食材列表 (Risk List View) ==================== -->
+  <view class="view-panel" wx:if="{{ viewState === 'risk_list' }}">
+    <!-- 返回头部 -->
+    <view class="header-back-row">
+      <text class="back-arrow" bindtap="switchViewState" data-state="overview">◀ 返回</text>
+      <text class="header-title">未排敏食材</text>
+    </view>
+
+    <!-- 分类标签过滤器 -->
+    <scroll-view class="cat-scroll" scroll-x="true">
+      <view class="cat-pill {{ activeFilterTag === '全部' ? 'active' : '' }}" bindtap="selectFilterTag" data-tag="全部">全部</view>
+      <block wx:for="{{ categories }}" wx:key="*this">
+        <view class="cat-pill {{ activeFilterTag === item ? 'active' : '' }}" bindtap="selectFilterTag" data-tag="{{ item }}">
+          {{ item }}
+        </view>
+      </block>
+    </scroll-view>
+
+    <!-- 列表数据统计 -->
+    <view class="list-subheader">
+      <text class="lbl">共 {{ riskFoods.length }} 种待排敏食材</text>
+      <text class="action-btn-lbl" bindtap="openAddDialog" data-type="risk">添加食材</text>
+    </view>
+
+    <!-- 手风琴大类列表 -->
+    <block wx:for="{{ categories }}" wx:for-item="cat" wx:key="*this">
+      <view class="accordion-card" wx:if="{{ groupedRisk[cat].length > 0 && (activeFilterTag === '全部' || activeFilterTag === cat) }}">
+        <!-- 折叠头部 -->
+        <view class="accordion-header" bindtap="toggleCollapse" data-cat="{{ cat }}">
+          <text class="accordion-title">{{ cat }} ({{ groupedRisk[cat].length }})</text>
+          <view class="accordion-right">
+            <text class="add-icon" catchtap="openAddDialog" data-type="risk" data-cat="{{ cat }}">＋</text>
+            <text class="collapse-indicator">{{ collapsedCategories[cat] ? '▼' : '▲' }}</text>
           </view>
-        </block>
+        </view>
+
+        <!-- 展开食物项 -->
+        <view class="accordion-body" wx:if="{{ !collapsedCategories[cat] }}">
+          <block wx:for="{{ groupedRisk[cat] }}" wx:key="name">
+            <view class="food-item-row" bindtap="showFoodDetail" data-name="{{ item.name }}" data-type="risk">
+              <view class="food-avatar">{{ item.icon }}</view>
+              <view class="food-info">
+                <text class="food-name">{{ item.name }}</text>
+                <text class="tag tag-orange">未排敏</text>
+              </view>
+              <!-- 快捷确认按钮：直接标记安全 -->
+              <button class="btn btn-sm btn-outline-primary catch-btn" catchtap="markAsSafeQuick" data-name="{{ item.name }}">
+                标记为已排敏
+              </button>
+            </view>
+          </block>
+        </view>
       </view>
-      <view class="empty-placeholder" wx:if="{{ bannedFoods.length === 0 }}">太棒了，所有已知食材均已安全通关排敏 🥦</view>
+    </block>
+
+    <!-- 底部添加食材按钮 -->
+    <button class="btn btn-orange btn-block fixed-bottom-btn" bindtap="openAddDialog" data-type="risk">
+      ➕ 添加未排敏食材
+    </button>
+  </view>
+
+
+  <!-- ==================== 4. 食材详情 (Detail View) ==================== -->
+  <view class="view-panel" wx:if="{{ viewState === 'detail' }}">
+    <!-- 返回头部 -->
+    <view class="header-back-row">
+      <text class="back-arrow" bindtap="switchViewState" data-state="{{ selectedFood.type === 'safe' ? 'safe_list' : 'risk_list' }}">◀ 返回列表</text>
+      <text class="header-title">食材详情</text>
+    </view>
+
+    <!-- 食材大卡片 -->
+    <view class="card food-detail-card">
+      <view class="detail-top-row">
+        <view class="detail-avatar-box">{{ selectedFood.icon }}</view>
+        <view class="detail-meta">
+          <view class="title-row">
+            <text class="name">{{ selectedFood.name }}</text>
+            <text class="tag {{ selectedFood.type === 'safe' ? 'tag-green' : 'tag-orange' }}">
+              {{ selectedFood.type === 'safe' ? '已排敏' : '未排敏' }}
+            </text>
+          </view>
+          <text class="desc">大类分类：{{ selectedFood.category }}</text>
+          <text class="desc">添加日期：2026-07-01 (已入库)</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 排敏日记/打卡 Timeline -->
+    <view class="section-title">📊 排敏测试观察日记</view>
+    
+    <view class="card log-timeline-card">
+      <block wx:if="{{ foodDetailTimeline.length > 0 }}">
+        <view class="detail-timeline-flow">
+          <block wx:for="{{ foodDetailTimeline }}" wx:key="id">
+            <view class="dt-timeline-node">
+              <view class="dt-node-bullet"></view>
+              <view class="dt-node-body">
+                <text class="dt-date">{{ item.date }}</text>
+                <text class="dt-content">{{ item.content }}</text>
+              </view>
+            </view>
+          </block>
+        </view>
+      </block>
+      <view class="empty-placeholder" wx:else>
+        <view class="placeholder-emoji">📋</view>
+        <text class="placeholder-text">暂无排敏期间过敏症状观察记录</text>
+        <button class="btn btn-outline-primary btn-sm" style="margin-top:16rpx" bindtap="addObserveLog">开始排敏记录</button>
+      </view>
+    </view>
+
+    <!-- 底部按钮操控层 -->
+    <view class="detail-action-container">
+      <button class="btn btn-primary btn-block" bindtap="detailToggleSafe">
+        {{ selectedFood.type === 'safe' ? '🔄 撤销排敏并移入风险库' : '✅ 标记为已排敏食材' }}
+      </button>
+      
+      <button class="btn btn-outline-danger btn-block" style="margin-top:20rpx;" bindtap="deleteFoodItem">
+        🗑️ 彻底删除食材
+      </button>
+    </view>
+  </view>
+
+
+  <!-- ==================== 5. 添加新食材 Dialog Modal ==================== -->
+  <view class="modal-overlay" wx:if="{{ showAddDialog }}">
+    <view class="modal-card">
+      <view class="modal-header">
+        <text class="modal-title">添加新食材</text>
+        <text class="modal-close" bindtap="closeAddDialog">✕</text>
+      </view>
+      <view class="modal-body">
+        <view class="form-item">
+          <text class="lbl">食材名字</text>
+          <input type="text" placeholder="例如：西梅、三文鱼" value="{{ addFoodName }}" bindinput="onAddInput" data-field="addFoodName" />
+        </view>
+        <view class="form-item" style="margin-top:20rpx">
+          <text class="lbl">食物大类分类</text>
+          <picker mode="selector" range="{{ catOptions }}" bindchange="onAddInput" data-field="addFoodCategory">
+            <view class="date-picker-btn">{{ addFoodCategory }}</view>
+          </picker>
+        </view>
+      </view>
+      <view class="modal-footer">
+        <button class="btn btn-primary btn-block" bindtap="saveCustomFood">保存食材</button>
+      </view>
     </view>
   </view>
 
