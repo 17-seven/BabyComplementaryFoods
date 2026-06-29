@@ -71,7 +71,8 @@ npm run build
 
 ## 📑 业务文档索引
 
-若需了解辅食配餐的具体食材种类、排餐校验规则等内容，请前往以下文档查阅：
+若需了解辅食配餐的具体食材种类、排餐校验规则以及微信小程序移植架构，请前往以下文档查阅：
+* **微信小程序移植与开发指南**：[docs/miniprogram/README.md](docs/miniprogram/README.md)
 * **系统功能说明**：[docs/system_spec.md](docs/system_spec.md)
 * **已排敏食材池**：[docs/01_已排敏食材池.md](docs/01_已排敏食材池.md)
 * **未排敏食材池**：[docs/02_未排敏食材池.md](docs/02_未排敏食材池.md)

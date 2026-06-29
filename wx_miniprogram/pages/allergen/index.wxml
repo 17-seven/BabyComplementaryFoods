@@ -1,0 +1,4 @@
+<!--pages/allergen/index.wxml-->
+<view class="container">
+  <text>排敏食材管理页面开发中...</text>
+</view>

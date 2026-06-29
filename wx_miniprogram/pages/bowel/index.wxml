@@ -1,0 +1,4 @@
+<!--pages/bowel/index.wxml-->
+<view class="container">
+  <text>排便记录页面开发中...</text>
+</view>

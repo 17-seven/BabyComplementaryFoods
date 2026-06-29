@@ -1,0 +1,4 @@
+<!--pages/mealplan/index.wxml-->
+<view class="container">
+  <text>辅食计划页面开发中...</text>
+</view>

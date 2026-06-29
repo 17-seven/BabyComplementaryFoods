@@ -1,0 +1,4 @@
+<!--pages/nutrition/index.wxml-->
+<view class="container">
+  <text>饮奶与饮水记录页面开发中...</text>
+</view>

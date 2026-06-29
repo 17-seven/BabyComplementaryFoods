@@ -1,0 +1,113 @@
+/** app.wxss **/
+
+page {
+  background-color: #f7f9fc;
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica,
+    Segoe UI, Arial, Roboto, 'PingFang SC', 'miui', 'Hiragino Sans GB', 'Microsoft Yahei',
+    sans-serif;
+  font-size: 28rpx;
+  color: #2d3748;
+  line-height: 1.5;
+  box-sizing: border-box;
+
+  /* 全局配色变量 */
+  --primary-color: #38a169;      /* 橄榄绿 (主色调) */
+  --accent-orange: #ff7043;      /* 温暖橘 (第二主色) */
+  --bg-light: #f7f9fc;           /* 背景淡灰 */
+  --card-border: #edf2f7;        /* 卡片边框线 */
+  --text-main: #2d3748;          /* 主要文字 */
+  --text-muted: #718096;         /* 辅助文字 */
+  --status-green: #48bb78;       /* 状态：已完成/通过 */
+  --status-red: #f56565;         /* 状态：需补种/警示 */
+  --status-orange: #ed8936;      /* 状态：待接种/推荐 */
+}
+
+/* 通用容器样式 */
+.container {
+  padding: 24rpx;
+  box-sizing: border-box;
+}
+
+/* 通用卡片布局 */
+.card {
+  background: #ffffff;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.02);
+  border: 1rpx solid #edf2f7;
+  box-sizing: border-box;
+}
+
+/* 模块标题 */
+.section-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #2d3748;
+  margin-bottom: 16rpx;
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+/* 圆角状态标签 */
+.tag {
+  font-size: 20rpx;
+  padding: 6rpx 16rpx;
+  border-radius: 20rpx;
+  display: inline-block;
+  font-weight: 600;
+}
+.tag-green {
+  background-color: #e6fffa;
+  color: #319795;
+}
+.tag-orange {
+  background-color: #fffaf0;
+  color: #dd6b20;
+}
+.tag-red {
+  background-color: #fff5f5;
+  color: #e53e3e;
+}
+.tag-blue {
+  background-color: #ebf8ff;
+  color: #2b6cb0;
+}
+.tag-gray {
+  background-color: #edf2f7;
+  color: #4a5568;
+}
+
+/* 圆角操作按钮 */
+.btn {
+  font-size: 28rpx;
+  padding: 16rpx 32rpx;
+  border-radius: 40rpx;
+  font-weight: 600;
+  text-align: center;
+  transition: all 0.15s ease;
+  border: none;
+  background-color: #edf2f7;
+  color: #4a5568;
+}
+.btn-primary {
+  background-color: var(--primary-color);
+  color: #ffffff;
+}
+.btn-orange {
+  background-color: var(--accent-orange);
+  color: #ffffff;
+}
+.btn-danger {
+  background-color: #fed7d7;
+  color: #c53030;
+}
+
+/* 空白占位 */
+.empty-placeholder {
+  text-align: center;
+  padding: 80rpx 0;
+  color: #a0aec0;
+  font-size: 26rpx;
+}

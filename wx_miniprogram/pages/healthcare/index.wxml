@@ -1,0 +1,4 @@
+<!--pages/healthcare/index.wxml-->
+<view class="container">
+  <text>医疗儿保页面开发中...</text>
+</view>

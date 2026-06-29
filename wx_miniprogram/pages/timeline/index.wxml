@@ -1,0 +1,4 @@
+<!--pages/timeline/index.wxml-->
+<view class="container">
+  <text>大事记时间轴页面开发中...</text>
+</view>

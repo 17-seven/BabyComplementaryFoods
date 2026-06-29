@@ -1,0 +1,121 @@
+<!--pages/dashboard/index.wxml-->
+<view class="container">
+  
+  <!-- 1. 宝宝名片 Card -->
+  <view class="baby-card">
+    <view class="baby-header">
+      <image class="avatar" src="/assets/avatar_default.png" mode="aspectFill" />
+      <view class="baby-meta">
+        <view class="name-row">
+          <text class="name">{{ babyInfo.name }}</text>
+          <text class="gender-icon">👶</text>
+        </view>
+        <text class="birth-desc">出生：{{ babyInfo.birthDate }} ({{ babyInfo.desc }})</text>
+      </view>
+    </view>
+    <view class="age-row">
+      <view class="age-box">
+        <text class="age-lbl">实际月龄</text>
+        <text class="age-val">{{ actualAge }}</text>
+      </view>
+      <view class="age-line"></view>
+      <view class="age-box">
+        <text class="age-lbl">纠正月龄</text>
+        <text class="age-val">{{ correctedAge }}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 2. 重要提醒 Card -->
+  <view class="section-title">
+    <text>🔔 重要提醒</text>
+  </view>
+  
+  <view class="reminder-container" wx:if="{{ nextVaccine || nextCheckup || nextClinical }}">
+    <!-- 疫苗提醒 -->
+    <view class="alert-box alert-red" wx:if="{{ nextVaccine }}" bindtap="toHealthcare">
+      <view class="alert-icon">💉</view>
+      <view class="alert-body">
+        <view class="alert-title">下一针补种疫苗：{{ nextVaccine.name }} ({{ nextVaccine.dose }})</view>
+        <view class="alert-desc">还有 <text class="alert-highlight">{{ nextVaccine.daysLeft }}</text> 天 | 预计接种日：{{ nextVaccine.plannedDate }}</view>
+      </view>
+    </view>
+
+    <!-- 儿保提醒 -->
+    <view class="alert-box alert-orange" wx:if="{{ nextCheckup }}" bindtap="toHealthcare">
+      <view class="alert-icon">🩺</view>
+      <view class="alert-body">
+        <view class="alert-title">下一次季度儿保体检</view>
+        <view class="alert-desc">还有 <text class="alert-highlight">{{ nextCheckup.daysLeft }}</text> 天 | 建议体检日：{{ nextCheckup.plannedDate }}</view>
+      </view>
+    </view>
+
+    <!-- 临床就诊提醒 -->
+    <view class="alert-box alert-blue" wx:if="{{ nextClinical }}" bindtap="toHealthcare">
+      <view class="alert-icon">📅</view>
+      <view class="alert-body">
+        <view class="alert-title">下一次就诊检查预约：{{ nextClinical.name }}</view>
+        <view class="alert-desc">还有 <text class="alert-highlight">{{ nextClinical.daysLeft }}</text> 天 | 预约时间：{{ nextClinical.date }}</view>
+      </view>
+    </view>
+  </view>
+  <view class="empty-placeholder" wx:else>当前暂无就诊或接种日程计划 🍃</view>
+
+  <!-- 3. 今日护理概览 Grid -->
+  <view class="section-title">
+    <text>📈 今日护理概览</text>
+  </view>
+
+  <view class="gauge-grid">
+    <view class="gauge-card">
+      <view class="gauge-ring ring-green">
+        <text class="gauge-num">{{ milkVal }}</text>
+        <text class="gauge-unit">ml</text>
+      </view>
+      <text class="gauge-name">饮奶量 (目标500)</text>
+    </view>
+
+    <view class="gauge-card">
+      <view class="gauge-ring ring-blue">
+        <text class="gauge-num">{{ waterVal }}</text>
+        <text class="gauge-unit">ml</text>
+      </view>
+      <text class="gauge-name">饮水量</text>
+    </view>
+
+    <view class="gauge-card">
+      <view class="gauge-ring ring-teal">
+        <text class="gauge-num">{{ bowelCount }}</text>
+        <text class="gauge-unit">次</text>
+      </view>
+      <text class="gauge-name">排便次数</text>
+    </view>
+
+    <view class="gauge-card">
+      <view class="gauge-ring ring-orange">
+        <text class="gauge-num">{{ eyepatchVal }}</text>
+        <text class="gauge-unit">h</text>
+      </view>
+      <text class="gauge-name">眼罩佩戴 (目标4h)</text>
+    </view>
+  </view>
+
+  <!-- 4. 最近大事记 -->
+  <view class="section-title" bindtap="toTimeline">
+    <text>🏆 最近大事记</text>
+    <text class="arrow-more">查看更多 ➔</text>
+  </view>
+
+  <view class="card milestone-card" wx:if="{{ latestMilestone }}" bindtap="toTimeline">
+    <view class="milestone-header">
+      <view class="milestone-badge">{{ latestMilestone.category }}</view>
+      <text class="milestone-date">{{ latestMilestone.date }}</text>
+    </view>
+    <view class="milestone-body">
+      <text class="milestone-title">{{ latestMilestone.title }}</text>
+      <text class="milestone-content">{{ latestMilestone.content }}</text>
+    </view>
+  </view>
+  <view class="empty-placeholder" wx:else>暂无大事记记录 📝</view>
+
+</view>

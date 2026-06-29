@@ -1,0 +1,52 @@
+{
+  "pages": [
+    "pages/dashboard/index",
+    "pages/mealplan/index",
+    "pages/healthcare/index",
+    "pages/timeline/index",
+    "pages/vision/index",
+    "pages/bowel/index",
+    "pages/nutrition/index",
+    "pages/allergen/index",
+    "pages/my/index"
+  ],
+  "window": {
+    "backgroundColor": "#F7F9FC",
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#FFFFFF",
+    "navigationBarTitleText": "成长助手",
+    "navigationBarTextStyle": "black",
+    "navigationStyle": "default"
+  },
+  "tabBar": {
+    "color": "#718096",
+    "selectedColor": "#38A169",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/dashboard/index",
+        "text": "首页概览"
+      },
+      {
+        "pagePath": "pages/mealplan/index",
+        "text": "辅食计划"
+      },
+      {
+        "pagePath": "pages/healthcare/index",
+        "text": "医疗儿保"
+      },
+      {
+        "pagePath": "pages/timeline/index",
+        "text": "大事记"
+      },
+      {
+        "pagePath": "pages/my/index",
+        "text": "我的"
+      }
+    ]
+  },
+  "sitemapLocation": "sitemap.json",
+  "style": "v2",
+  "lazyCodeLoading": "requiredComponents"
+}
