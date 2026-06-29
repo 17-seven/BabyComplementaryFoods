@@ -1,5 +1,6 @@
 {
   "pages": [
+    "pages/login/index",
     "pages/dashboard/index",
     "pages/mealplan/index",
     "pages/healthcare/index",
@@ -11,8 +12,7 @@
     "pages/my/index",
     "pages/album/index",
     "pages/family/index",
-    "pages/baby/index",
-    "pages/login/index"
+    "pages/baby/index"
   ],
   "window": {
     "backgroundColor": "#F7F9FC",
