@@ -91,12 +91,15 @@ Page({
     
     wx.showLoading({ title: '正在开通家庭组...' });
     
+    const savedUserInfo = getStorage('user_info', null);
     db.collection('families').add({
       data: {
         baby_name: babyProfile.name,
         birth_date: babyProfile.birthDate,
         premature_days: babyProfile.prematureDays || 0,
         members: [app.globalData.openid],
+        creator_nickname: savedUserInfo ? (savedUserInfo.nickName || '') : '',
+        creator_avatar: savedUserInfo ? (savedUserInfo.avatarUrl || '/assets/avatar_default.png') : '/assets/avatar_default.png',
         create_time: new Date()
       },
       success: (res) => {

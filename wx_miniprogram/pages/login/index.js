@@ -118,6 +118,9 @@ Page({
                   app.globalData.userInfo = userInfo;
                 }
 
+                // 后台静默从云端拉取所有业务数据，恢复本地缓存
+                this.restoreCloudDataToLocal(familyRec._id);
+
                 wx.hideLoading();
                 wx.showToast({
                   title: '欢迎回来',
@@ -231,16 +234,30 @@ Page({
     }
 
     // 实时同步更新至云数据库备份里（以防未来被清除缓存）
+    // 同步看护人昵称到云端：优先按 familyId 更新，否则按 openid 检索所有所属家庭组更新
     const familyId = wx.getStorageSync('user_family_id');
-    if (familyId && wx.cloud) {
+    const openid = wx.getStorageSync('user_openid') || '';
+    if (wx.cloud && openid) {
       try {
         const db = wx.cloud.database();
-        db.collection('families').doc(familyId).update({
-          data: {
-            creator_nickname: nickname,
-            creator_avatar: avatar || '/assets/avatar_default.png'
-          }
-        });
+        const updatePayload = {
+          creator_nickname: nickname,
+          creator_avatar: avatar || '/assets/avatar_default.png'
+        };
+        if (familyId) {
+          db.collection('families').doc(familyId).update({ data: updatePayload });
+        } else {
+          // 家庭组尚未创建，按 openid 成员关系查询后补录昵称
+          db.collection('families').where({ members: openid }).get({
+            success: (res) => {
+              if (res.data && res.data.length > 0) {
+                res.data.forEach(fam => {
+                  db.collection('families').doc(fam._id).update({ data: updatePayload });
+                });
+              }
+            }
+          });
+        }
       } catch (e) {
         console.warn("实时上传云端看护人信息备份失败：", e);
       }
@@ -263,6 +280,43 @@ Page({
           });
         }, 1500);
       }
+    });
+  },
+
+  /**
+   * 清缓存重新登录后，把云端各业务集合数据拉回本地 Storage
+   * 采用 fire-and-forget 模式，不阻塞页面跳转
+   */
+  restoreCloudDataToLocal: function (familyId) {
+    if (!wx.cloud || !familyId) return;
+    const db = wx.cloud.database();
+
+    const CLOUD_TO_LOCAL = {
+      'timeline_events':  'baby_timeline_events',
+      'vaccines':         'baby_vaccines_list',
+      'healthcares':      'baby_healthcares',
+      'assessments':      'baby_assessments',
+      'clinical_logs':    'baby_clinical_logs',
+      'safe_foods':       'mp_safe_foods_list',
+      'risk_foods':       'mp_risk_foods_list',
+      'meal_plans':       'baby_week_plans',
+      'bowel_records':    'bowel_records',
+      'milk_water_records': 'milk_water_records',
+      'eyepatch_records': 'eyepatch_records'
+    };
+
+    Object.entries(CLOUD_TO_LOCAL).forEach(([collName, localKey]) => {
+      db.collection(collName).where({ family_id: familyId }).limit(100).get({
+        success: (res) => {
+          if (res.data && res.data.length > 0) {
+            wx.setStorageSync(localKey, res.data);
+            console.log('[云端恢复]', collName, res.data.length, '条 →', localKey);
+          }
+        },
+        fail: (err) => {
+          console.warn('[云端恢复失败]', collName, err);
+        }
+      });
     });
   },
 

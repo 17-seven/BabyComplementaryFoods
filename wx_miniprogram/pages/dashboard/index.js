@@ -31,6 +31,13 @@ Page({
   },
 
   onShow: function () {
+    // 清除缓存后未登录，强制跳回登录页
+    const isLoggedIn = wx.getStorageSync('user_is_logged_in');
+    const openid = wx.getStorageSync('user_openid');
+    if (!isLoggedIn && !openid) {
+      wx.reLaunch({ url: '/pages/login/index' });
+      return;
+    }
     this.loadBabyStatus();
   },
 
