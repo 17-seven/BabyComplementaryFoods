@@ -1,0 +1,88 @@
+<!--pages/family/index.wxml-->
+<view class="container">
+
+  <!-- 1. 顶部提示语 -->
+  <view class="tip-banner">
+    ☁️ 协同共享机制开启后，您和爱人的设备将全部挂接同一个云端宝宝数据库。任何一方记录的便便、饮奶、用药及儿保打卡，另一方点击页面即可实时同步获取。
+  </view>
+
+  <!-- ==================== 情况A: 已绑定家庭组 ==================== -->
+  <view wx:if="{{ myFamilyId }}">
+    
+    <!-- 家庭概览 Card -->
+    <view class="card family-active-card">
+      <view class="family-badge">🏡 共享家庭进行中</view>
+      <view class="baby-name-row">
+        <text class="lbl">关爱宝宝：</text>
+        <text class="val">{{ familyDetails.baby_name || '未录入' }}</text>
+      </view>
+      
+      <!-- 邀请码展示框 -->
+      <view class="invite-display-box" bindtap="copyInviteCode">
+        <view class="code-header">
+          <text class="lbl">家庭同步码 (点击可复制)</text>
+          <text class="btn-copy">📋 复制</text>
+        </view>
+        <text class="code-val">{{ myFamilyId }}</text>
+      </view>
+
+      <view class="hint-msg">把这串同步码发送给家人，家人在“我的 - 协同共享”里输入后即可自动共享。</view>
+    </view>
+
+    <!-- 看护人列表 Card -->
+    <view class="card">
+      <view class="section-title">👥 家庭守护成员 ({{ membersList.length }}人)</view>
+      <view class="members-flow">
+        <block wx:for="{{ membersList }}" wx:key="*this">
+          <view class="member-row-item">
+            <view class="avatar-tag">👤</view>
+            <view class="member-meta">
+              <text class="member-openid">{{ item }}</text>
+              <text class="member-role" wx:if="{{ index === 0 }}">创建者 (管理员)</text>
+              <text class="member-role" wx:else>协同看护人</text>
+            </view>
+          </view>
+        </block>
+      </view>
+    </view>
+
+    <!-- 解绑退出按钮 -->
+    <button class="btn btn-danger btn-block" style="margin-top: 40rpx;" bindtap="leaveFamily">
+      📴 退出/解绑当前家庭组
+    </button>
+  </view>
+
+
+  <!-- ==================== 情况B: 未绑定家庭组 ==================== -->
+  <view wx:else>
+    
+    <!-- 方案1：我是管理员，创建家庭 -->
+    <view class="card create-card-box">
+      <view class="section-title">🏡 方式一：我是创建者</view>
+      <text class="card-desc">如果您是第一次使用本小程序并负责记录，请点击下方按钮开通全新的家庭空间。开通后系统会自动为您复制同步码。</text>
+      <button class="btn btn-primary btn-block" bindtap="createFamily">
+        新建家庭组并获取邀请码
+      </button>
+    </view>
+
+    <!-- 分割线 -->
+    <view class="divider-line">
+      <view class="line"></view>
+      <text class="text">或者</text>
+      <view class="line"></view>
+    </view>
+
+    <!-- 方案2：爱人已建好，我来加入 -->
+    <view class="card join-card-box">
+      <view class="section-title">🔗 方式二：加入爱人的家庭</view>
+      <text class="card-desc">如果您的家人已经开通了家庭空间并向您发送了邀请同步码，请在下方粘贴或输入它以绑定：</text>
+      
+      <view class="invite-input-group">
+        <input class="invite-input" type="text" placeholder="请粘贴 24 位家庭同步码" value="{{ inviteCodeInput }}" bindinput="onInviteInput" />
+        <button class="btn btn-orange" bindtap="joinFamily">确认绑定</button>
+      </view>
+    </view>
+
+  </view>
+
+</view>

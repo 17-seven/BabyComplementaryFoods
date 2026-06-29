@@ -9,7 +9,8 @@
     "pages/nutrition/index",
     "pages/allergen/index",
     "pages/my/index",
-    "pages/album/index"
+    "pages/album/index",
+    "pages/family/index"
   ],
   "window": {
     "backgroundColor": "#F7F9FC",

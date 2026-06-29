@@ -1,0 +1,177 @@
+/* pages/family/index.wxss */
+
+/* 顶部提示语 */
+.tip-banner {
+  background-color: #ebf8ff;
+  color: #2b6cb0;
+  font-size: 22rpx;
+  padding: 18rpx 28rpx;
+  border-radius: 16rpx;
+  margin-bottom: 30rpx;
+  line-height: 1.5;
+  font-weight: 500;
+  box-sizing: border-box;
+}
+
+/* 活跃家庭卡片 */
+.family-active-card {
+  border-left: 8rpx solid var(--primary-color);
+  padding: 36rpx 28rpx;
+}
+.family-badge {
+  font-size: 22rpx;
+  background-color: #e6fffa;
+  color: #319795;
+  padding: 6rpx 16rpx;
+  border-radius: 8rpx;
+  display: inline-block;
+  font-weight: 700;
+  margin-bottom: 20rpx;
+}
+.baby-name-row {
+  margin-bottom: 24rpx;
+  font-size: 28rpx;
+}
+.baby-name-row .lbl {
+  color: #718096;
+  font-weight: 600;
+}
+.baby-name-row .val {
+  font-weight: 800;
+  color: #2d3748;
+}
+
+/* 邀请码展示盒 */
+.invite-display-box {
+  background-color: #f7f9fc;
+  border: 2rpx dashed #cbd5e0;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+  cursor: pointer;
+}
+.code-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.code-header .lbl {
+  font-size: 20rpx;
+  color: #a0aec0;
+  font-weight: 600;
+}
+.btn-copy {
+  font-size: 20rpx;
+  color: var(--primary-color);
+  font-weight: 700;
+}
+.code-val {
+  font-size: 36rpx;
+  font-weight: 800;
+  color: #2d3748;
+  letter-spacing: 2rpx;
+}
+.hint-msg {
+  font-size: 20rpx;
+  color: #a0aec0;
+  margin-top: 16rpx;
+}
+
+/* 看护人成员排版 */
+.members-flow {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+.member-row-item {
+  display: flex;
+  align-items: center;
+  padding: 16rpx 0;
+  border-bottom: 1rpx solid #f7f9fc;
+}
+.member-row-item:last-child {
+  border-bottom: none;
+}
+.avatar-tag {
+  width: 60rpx;
+  height: 60rpx;
+  background-color: #edf2f7;
+  border-radius: 50%;
+  font-size: 32rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 20rpx;
+}
+.member-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+  flex: 1;
+  overflow: hidden;
+}
+.member-openid {
+  font-size: 22rpx;
+  color: #4a5568;
+  word-break: break-all;
+  font-weight: 600;
+}
+.member-role {
+  font-size: 18rpx;
+  color: #cbd5e0;
+  font-weight: 600;
+}
+
+/* 分割线 */
+.divider-line {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 36rpx 0;
+  gap: 20rpx;
+}
+.divider-line .line {
+  flex: 1;
+  height: 1rpx;
+  background-color: #edf2f7;
+}
+.divider-line .text {
+  font-size: 22rpx;
+  color: #cbd5e0;
+  font-weight: 600;
+}
+
+/* 未绑定创建/加入卡片 */
+.create-card-box {
+  border-left: 8rpx solid var(--primary-color);
+}
+.join-card-box {
+  border-left: 8rpx solid var(--accent-orange);
+}
+.card-desc {
+  font-size: 24rpx;
+  color: #718096;
+  line-height: 1.6;
+  display: block;
+  margin-bottom: 24rpx;
+}
+
+/* 输入栏组合 */
+.invite-input-group {
+  display: flex;
+  gap: 16rpx;
+  align-items: center;
+}
+.invite-input {
+  flex: 1;
+  background-color: #f7f9fc;
+  border: 1rpx solid #edf2f7;
+  border-radius: 12rpx;
+  padding: 18rpx;
+  font-size: 26rpx;
+}
+.btn-block {
+  width: 100%;
+}

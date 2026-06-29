@@ -67,6 +67,15 @@
       </view>
       <view class="menu-arrow">➔</view>
     </view>
+
+    <view class="menu-item" bindtap="navigateToPage" data-page="family">
+      <view class="menu-icon">🏡</view>
+      <view class="menu-body">
+        <text class="menu-title">家庭协同共享</text>
+        <text class="menu-desc">获取家庭同步码邀请爱人，多端数据自动刷新同步</text>
+      </view>
+      <view class="menu-arrow">➔</view>
+    </view>
   </view>
 
   <!-- 3. 设置面板 -->
