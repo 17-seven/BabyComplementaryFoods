@@ -8,7 +8,8 @@
     "pages/bowel/index",
     "pages/nutrition/index",
     "pages/allergen/index",
-    "pages/my/index"
+    "pages/my/index",
+    "pages/album/index"
   ],
   "window": {
     "backgroundColor": "#F7F9FC",

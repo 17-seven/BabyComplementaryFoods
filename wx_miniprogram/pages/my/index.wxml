@@ -58,6 +58,15 @@
       </view>
       <view class="menu-arrow">➔</view>
     </view>
+
+    <view class="menu-item" bindtap="navigateToPage" data-page="album">
+      <view class="menu-icon">🖼️</view>
+      <view class="menu-body">
+        <text class="menu-title">宝宝相册</text>
+        <text class="menu-desc">限制上传最多10张萌照，支持从中挑选设为宝宝头像</text>
+      </view>
+      <view class="menu-arrow">➔</view>
+    </view>
   </view>
 
   <!-- 3. 设置面板 -->

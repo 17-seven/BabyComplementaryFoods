@@ -4,7 +4,7 @@
   <!-- 1. 宝宝名片 Card -->
   <view class="baby-card">
     <view class="baby-header">
-      <image class="avatar" src="/assets/avatar_default.png" mode="aspectFill" />
+      <image class="avatar" src="{{ avatarUrl }}" mode="aspectFill" />
       <view class="baby-meta">
         <view class="name-row">
           <text class="name">{{ babyInfo.name }}</text>

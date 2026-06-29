@@ -26,7 +26,8 @@ Page({
     eyepatchVal: 0,
 
     // 最新大事记
-    latestMilestone: null
+    latestMilestone: null,
+    avatarUrl: '/assets/avatar_default.png'
   },
 
   onShow: function () {
@@ -118,6 +119,8 @@ Page({
       latestMilestone = [...list].sort((a, b) => b.date.localeCompare(a.date))[0];
     }
 
+    const avatar = getStorage('baby_custom_avatar', '/assets/avatar_default.png');
+
     this.setData({
       actualAge: ageInfo.actualAge,
       correctedAge: ageInfo.correctedAge,
@@ -130,7 +133,8 @@ Page({
       nextVaccine,
       nextCheckup,
       nextClinical,
-      latestMilestone
+      latestMilestone,
+      avatarUrl: avatar
     });
   },
 
