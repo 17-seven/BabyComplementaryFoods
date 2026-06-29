@@ -155,5 +155,58 @@ Page({
 
     notes[`${date}_${mealtype}`] = val;
     setStorage('meal_notes', notes);
+  },
+
+  // 就地修改特定辅食食谱菜品
+  editMeal: function (e) {
+    const { date, mealtype, name } = e.currentTarget.dataset;
+    const that = this;
+
+    wx.showModal({
+      title: `修改 ${mealtype} 菜品`,
+      content: name || '',
+      editable: true,
+      placeholderText: '请输入辅食菜品名称（如：泥糊状牛肉小米粥）',
+      success: (res) => {
+        if (res.confirm) {
+          const newName = res.content.trim();
+          if (!newName) {
+            wx.showToast({ title: '菜品名称不能为空', icon: 'none' });
+            return;
+          }
+
+          // 读取当前所有周计划
+          const list = [...that.data.weekPlans];
+          const activeIndex = that.data.currentWeekIndex;
+          const currentWeek = list[activeIndex];
+
+          if (!currentWeek) return;
+
+          // 寻找对应天和餐别
+          const dayObj = currentWeek.days.find(d => d.date === date);
+          if (dayObj) {
+            const mealObj = dayObj.meals.find(m => m.type === mealtype);
+            if (mealObj) {
+              mealObj.name = newName;
+            } else {
+              // 兜底创建餐别
+              dayObj.meals.push({ type: mealtype, name: newName });
+            }
+          }
+
+          // 写回本地缓存
+          setStorage('baby_week_plans', list);
+          
+          // 更新页面状态并重新校验
+          that.setData({
+            weekPlans: list,
+            currentWeek: currentWeek
+          }, () => {
+            that.validateRules();
+            wx.showToast({ title: '菜品已修改', icon: 'success' });
+          });
+        }
+      }
+    });
   }
 });

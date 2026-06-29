@@ -147,5 +147,14 @@ Page({
   },
   toTimeline: function() {
     wx.switchTab({ url: '/pages/timeline/index' });
+  },
+  toNutrition: function() {
+    wx.navigateTo({ url: '/pages/nutrition/index' });
+  },
+  toBowel: function() {
+    wx.navigateTo({ url: '/pages/bowel/index' });
+  },
+  toVision: function() {
+    wx.navigateTo({ url: '/pages/vision/index' });
   }
 });

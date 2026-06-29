@@ -72,9 +72,9 @@
       
       <view class="meals-side">
         <block wx:for="{{ item.meals }}" wx:for-item="meal" wx:key="type">
-          <view class="meal-row">
+          <view class="meal-row" bindtap="editMeal" data-date="{{ item.date }}" data-mealtype="{{ meal.type }}" data-name="{{ meal.name }}">
             <text class="meal-label">{{ meal.type }}</text>
-            <text class="meal-name">{{ meal.name }}</text>
+            <text class="meal-name">{{ meal.name || '点击录入辅食菜品...' }} ✍️</text>
           </view>
         </block>
         

@@ -67,36 +67,36 @@
   </view>
 
   <view class="gauge-grid">
-    <view class="gauge-card">
+    <view class="gauge-card" bindtap="toNutrition">
       <view class="gauge-ring ring-green">
         <text class="gauge-num">{{ milkVal }}</text>
         <text class="gauge-unit">ml</text>
       </view>
-      <text class="gauge-name">饮奶量 (目标500)</text>
+      <text class="gauge-name">饮奶量 (目标500) ➔</text>
     </view>
 
-    <view class="gauge-card">
+    <view class="gauge-card" bindtap="toNutrition">
       <view class="gauge-ring ring-blue">
         <text class="gauge-num">{{ waterVal }}</text>
         <text class="gauge-unit">ml</text>
       </view>
-      <text class="gauge-name">饮水量</text>
+      <text class="gauge-name">饮水量 ➔</text>
     </view>
 
-    <view class="gauge-card">
+    <view class="gauge-card" bindtap="toBowel">
       <view class="gauge-ring ring-teal">
         <text class="gauge-num">{{ bowelCount }}</text>
         <text class="gauge-unit">次</text>
       </view>
-      <text class="gauge-name">排便次数</text>
+      <text class="gauge-name">排便次数 ➔</text>
     </view>
 
-    <view class="gauge-card">
+    <view class="gauge-card" bindtap="toVision">
       <view class="gauge-ring ring-orange">
         <text class="gauge-num">{{ eyepatchVal }}</text>
         <text class="gauge-unit">h</text>
       </view>
-      <text class="gauge-name">眼罩佩戴 (目标4h)</text>
+      <text class="gauge-name">眼罩佩戴 (目标4h) ➔</text>
     </view>
   </view>
 
