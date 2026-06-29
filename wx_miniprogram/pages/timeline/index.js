@@ -9,6 +9,8 @@ Page({
     
     // 过滤与搜索条件
     categories: ['全部', '大运动/发育', '辅食/便秘', '评估/康复', '疾病用药', '日常医疗'],
+    // 新增弹窗用的分类选项（去掉"全部"）
+    addCategories: ['大运动/发育', '辅食/便秘', '评估/康复', '疾病用药', '日常医疗'],
     activeCategory: '全部',
     searchKeyword: '',
 
@@ -90,6 +92,12 @@ Page({
 
   closeAddModal: function () {
     this.setData({ showModal: false });
+  },
+
+  // 分类选择器专用处理器（弹窗内新增分类）
+  onCategoryChange: function (e) {
+    const idx = parseInt(e.detail.value);
+    this.setData({ evtCategory: this.data.addCategories[idx] });
   },
 
   // 输入绑定

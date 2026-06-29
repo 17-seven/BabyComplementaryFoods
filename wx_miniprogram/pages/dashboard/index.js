@@ -160,6 +160,17 @@ Page({
     });
   },
 
+  // 首页头像点击：有图展示大图，无图跳到相册管理页面上传
+  onAvatarTap: function () {
+    const avatar = this.data.avatarUrl;
+    const isDefault = !avatar || avatar === '/assets/avatar_default.png';
+    if (isDefault) {
+      wx.navigateTo({ url: '/pages/album/index' });
+    } else {
+      wx.previewImage({ urls: [avatar], current: avatar });
+    }
+  },
+
   // 页面交互方法
   toMealPlan: function() {
     wx.switchTab({ url: '/pages/mealplan/index' });

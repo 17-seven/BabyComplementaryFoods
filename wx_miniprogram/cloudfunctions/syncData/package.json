@@ -1,0 +1,9 @@
+{
+  "name": "syncData",
+  "version": "1.0.0",
+  "description": "业务数据批量云端同步（管理员权限，绕过安全规则）",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

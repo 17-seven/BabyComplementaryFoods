@@ -30,69 +30,40 @@ function setStorage(key, value) {
 }
 
 /**
- * 自动静默云同步逻辑
+ * 自动静默云同步：通过 syncData 云函数（管理员权限）批量 upsert，彻底绕过客户端安全规则
  */
 function triggerAutoCloudSync(key, data) {
   const familyId = wx.getStorageSync('user_family_id');
-  if (!familyId) return; // 未开启家庭协同，不进行自动上传
+  if (!familyId) return; // 未开启家庭协同，跳过
+
+  // 本地缓存键 → 云集合名称映射（含食材、周计划等全量业务集合）
+  const KEY_TO_COLLECTION = {
+    'bowel_records':        'bowel_records',
+    'milk_water_records':   'milk_water_records',
+    'eyepatch_records':     'eyepatch_records',
+    'baby_timeline_events': 'timeline_events',
+    'baby_vaccines_list':   'vaccines',
+    'baby_healthcares':     'healthcares',
+    'baby_clinical_logs':   'clinical_logs',
+    'mp_safe_foods_list':   'safe_foods',
+    'mp_risk_foods_list':   'risk_foods',
+    'baby_week_plans':      'meal_plans',
+    'baby_assessments':     'assessments'
+  };
+
+  const collName = KEY_TO_COLLECTION[key];
+  if (!collName || !Array.isArray(data) || data.length === 0) return;
 
   try {
-    const db = wx.cloud.database();
-    
-    // 本地缓存键与云集合名称映射
-    const collections = {
-      'bowel_records': 'bowel_records',
-      'milk_water_records': 'milk_water_records',
-      'eyepatch_records': 'eyepatch_records',
-      'baby_timeline_events': 'timeline_events',
-      'baby_vaccines_list': 'vaccines',
-      'baby_healthcares': 'healthcares',
-      'baby_clinical_logs': 'clinical_logs'
-    };
-
-    const collName = collections[key];
-    if (!collName) return;
-
-    if (Array.isArray(data)) {
-      // 遍历更新单条记录
-      data.forEach(item => {
-        const syncId = item.id || item.name; // 依据 id 或 疫苗名称 识别唯一性
-        if (!syncId) return;
-
-        db.collection(collName).where({
-          family_id: familyId,
-          sync_id: syncId
-        }).get({
-          success: (res) => {
-            if (res.data.length > 0) {
-              // 已存在记录，执行更新
-              db.collection(collName).doc(res.data[0]._id).update({
-                data: {
-                  ...item,
-                  sync_time: new Date()
-                }
-              });
-            } else {
-              // 新增记录，包含家庭ID和唯一标示
-              db.collection(collName).add({
-                data: {
-                  ...item,
-                  family_id: familyId,
-                  sync_id: syncId,
-                  sync_time: new Date()
-                }
-              });
-            }
-          },
-          fail: (err) => {
-            console.error("云端条件查询失败", err);
-          }
-        });
-      });
-    }
+    wx.cloud.callFunction({
+      name: 'syncData',
+      data: { collection: collName, familyId: familyId, records: data },
+      fail: (err) => {
+        console.warn('[syncData] 静默云同步失败，本地数据已保存:', err.errMsg || err);
+      }
+    });
   } catch (e) {
-    // 捕获可能未开通云开发或在测试环境下未配置云环境的报错，保证系统正常离线运行
-    console.warn("微信云能力尚未开启，已自动跳过静默云同步", e);
+    console.warn('[triggerAutoCloudSync] 云函数调用异常:', e);
   }
 }
 
