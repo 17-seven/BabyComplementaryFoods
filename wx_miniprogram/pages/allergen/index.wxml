@@ -242,30 +242,29 @@
     </view>
   </view>
 
+</view>
 
-  <!-- ==================== 5. 添加新食材 Dialog Modal ==================== -->
-  <view class="modal-overlay" wx:if="{{ showAddDialog }}">
-    <view class="modal-card">
-      <view class="modal-header">
-        <text class="modal-title">添加新食材</text>
-        <text class="modal-close" bindtap="closeAddDialog">✕</text>
+<!-- 弹窗在 .page-transition 容器外，避免 will-change:transform 导致 fixed 定位失效 -->
+<view class="modal-overlay" wx:if="{{ showAddDialog }}">
+  <view class="modal-card">
+    <view class="modal-header">
+      <text class="modal-title">添加新食材</text>
+      <text class="modal-close" bindtap="closeAddDialog">✕</text>
+    </view>
+    <view class="modal-body">
+      <view class="form-item">
+        <text class="lbl">食材名字</text>
+        <input type="text" placeholder="例如：西梅、三文鱼" value="{{ addFoodName }}" bindinput="onAddInput" data-field="addFoodName" />
       </view>
-      <view class="modal-body">
-        <view class="form-item">
-          <text class="lbl">食材名字</text>
-          <input type="text" placeholder="例如：西梅、三文鱼" value="{{ addFoodName }}" bindinput="onAddInput" data-field="addFoodName" />
-        </view>
-        <view class="form-item" style="margin-top:20rpx">
-          <text class="lbl">食物大类分类</text>
-          <picker mode="selector" range="{{ catOptions }}" bindchange="onAddInput" data-field="addFoodCategory">
-            <view class="date-picker-btn">{{ addFoodCategory }}</view>
-          </picker>
-        </view>
-      </view>
-      <view class="modal-footer">
-        <button class="btn btn-primary btn-block" bindtap="saveCustomFood">保存食材</button>
+      <view class="form-item" style="margin-top:20rpx">
+        <text class="lbl">食物大类分类</text>
+        <picker mode="selector" range="{{ catOptions }}" value="{{ catOptions.indexOf(addFoodCategory) }}" bindchange="onAddCategoryChange">
+          <view class="date-picker-btn">{{ addFoodCategory }}</view>
+        </picker>
       </view>
     </view>
+    <view class="modal-footer">
+      <button class="btn btn-primary btn-block" bindtap="saveCustomFood">保存食材</button>
+    </view>
   </view>
-
 </view>

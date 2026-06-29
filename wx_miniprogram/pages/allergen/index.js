@@ -392,6 +392,12 @@ Page({
     this.setData({ [field]: e.detail.value });
   },
 
+  // 食材分类 picker 专用（mode=selector 返回 index，需转成名称）
+  onAddCategoryChange: function (e) {
+    const idx = parseInt(e.detail.value);
+    this.setData({ addFoodCategory: this.data.catOptions[idx] });
+  },
+
   saveCustomFood: function () {
     const name = this.data.addFoodName.trim();
     const cat = this.data.addFoodCategory;
