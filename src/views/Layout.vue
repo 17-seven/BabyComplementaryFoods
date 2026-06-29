@@ -1,5 +1,8 @@
 <template>
   <div class="layout">
+    <!-- 遮罩层，仅在移动端且侧边栏展开时显示 -->
+    <div v-if="!sidebarCollapsed" class="sidebar-backdrop" @click="sidebarCollapsed = true"></div>
+
     <!-- 侧边栏 -->
     <nav class="sidebar" :class="{ collapsed: sidebarCollapsed }">
       <div class="sidebar-header">
@@ -9,7 +12,7 @@
 
       <ul class="nav-list">
         <li v-for="item in navItems" :key="item.path">
-          <router-link :to="item.path" class="nav-item" active-class="active">
+          <router-link :to="item.path" class="nav-item" active-class="active" @click="handleNavClick">
             <span class="nav-icon">{{ item.icon }}</span>
             <span v-if="!sidebarCollapsed" class="nav-label">{{ item.label }}</span>
           </router-link>
@@ -46,7 +49,9 @@ import { useAuthStore } from '../stores/auth.js'
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
-const sidebarCollapsed = ref(false)
+
+// 移动端默认折叠，PC端默认展开
+const sidebarCollapsed = ref(window.innerWidth < 768)
 
 const navItems = [
   { path: '/dashboard',      icon: '📊', label: '首页概览' },
@@ -56,6 +61,9 @@ const navItems = [
   { path: '/classes',        icon: '🏥', label: '春雨课程' },
   { path: '/favorite-foods', icon: '❤️',  label: '爱吃食物' },
   { path: '/bowel',          icon: '📝', label: '排便记录' },
+  { path: '/vision',         icon: '👁️', label: '视力矫正' },
+  { path: '/timeline',       icon: '⏳', label: '大事记' },
+  { path: '/healthcare',     icon: '🩺', label: '医疗儿保' },
 ]
 
 const currentTitle = computed(() => navItems.find(n => route.path.startsWith(n.path))?.label || '')
@@ -69,6 +77,13 @@ function handleLogout() {
   auth.logout()
   router.push('/login')
 }
+
+// 移动端点击导航链接后自动折叠侧边栏
+function handleNavClick() {
+  if (window.innerWidth < 768) {
+    sidebarCollapsed.value = true
+  }
+}
 </script>
 
 <style scoped>
@@ -78,8 +93,9 @@ function handleLogout() {
   width: 220px; flex-shrink: 0;
   background: #fff; border-right: 1px solid #f0f0f0;
   display: flex; flex-direction: column;
-  transition: width .25s;
+  transition: width .25s, transform .25s ease-in-out;
   position: sticky; top: 0; height: 100vh; overflow: hidden;
+  z-index: 10;
 }
 .sidebar.collapsed { width: 60px; }
 
@@ -114,7 +130,7 @@ function handleLogout() {
 .topbar {
   height: 56px; background: #fff; border-bottom: 1px solid #f0f0f0;
   display: flex; align-items: center; padding: 0 20px; gap: 14px;
-  position: sticky; top: 0; z-index: 10;
+  position: sticky; top: 0; z-index: 9;
 }
 .collapse-btn {
   border: none; background: transparent; font-size: 18px;
@@ -124,4 +140,41 @@ function handleLogout() {
 .date-display { color: #a0aec0; font-size: 13px; }
 
 .content { padding: 24px; flex: 1; }
+
+/* 移动端遮罩层样式 */
+.sidebar-backdrop {
+  display: none;
+}
+
+/* 移动端响应式适配 */
+@media (max-width: 767px) {
+  .sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    height: 100vh;
+    z-index: 100;
+    width: 220px;
+    transform: translateX(0);
+  }
+  /* 移动端隐藏时向左移出屏幕，且宽度保持 220px */
+  .sidebar.collapsed {
+    transform: translateX(-100%);
+    width: 220px;
+  }
+  
+  .sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(1.5px);
+    z-index: 99;
+  }
+  
+  .content {
+    padding: 16px;
+  }
+}
 </style>

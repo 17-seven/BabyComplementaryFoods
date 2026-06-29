@@ -50,8 +50,14 @@ function handleLogin() {
 }
 .login-card {
   background: #fff; border-radius: 20px; padding: 40px 36px;
-  width: 360px; box-shadow: 0 8px 32px rgba(255,112,67,.15);
+  width: 100%; max-width: 360px; box-shadow: 0 8px 32px rgba(255,112,67,.15);
   text-align: center;
+  margin: 16px; /* 增加外边距以防边缘紧贴屏幕 */
+}
+@media (max-width: 480px) {
+  .login-card {
+    padding: 30px 20px;
+  }
 }
 .logo { font-size: 48px; margin-bottom: 12px; }
 h1 { font-size: 20px; font-weight: 700; color: #2d3748; }

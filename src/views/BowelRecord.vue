@@ -72,12 +72,12 @@
           </thead>
           <tbody>
             <tr v-for="r in filteredRecords" :key="r.id">
-              <td>{{ r.date }}</td>
-              <td>{{ r.time || '-' }}</td>
-              <td><span class="tag" :class="typeClass(r.type)">{{ r.type }}</span></td>
-              <td>{{ r.color }}</td>
-              <td>{{ r.note }}</td>
-              <td><button class="btn btn-danger btn-sm" @click="deleteRecord(r.id)">删除</button></td>
+              <td data-label="日期">{{ r.date }}</td>
+              <td data-label="时间">{{ r.time || '-' }}</td>
+              <td data-label="性状"><span class="tag" :class="typeClass(r.type)">{{ r.type }}</span></td>
+              <td data-label="颜色">{{ r.color }}</td>
+              <td data-label="备注">{{ r.note }}</td>
+              <td data-label="操作"><button class="btn btn-danger btn-sm" @click="deleteRecord(r.id)">删除</button></td>
             </tr>
           </tbody>
         </table>
@@ -126,6 +126,7 @@ function typeClass(t) { return typeMap[t] || 'tag-gray' }
 .section-title { font-size: 15px; font-weight: 600; margin-bottom: 14px; }
 .add-form { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0 16px; }
 @media (max-width: 700px) { .add-form { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 480px) { .add-form { grid-template-columns: 1fr; } }
 .today-summary { margin-top: 16px; }
 .list-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
 .month-input { border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 6px 10px; font-size: 13px; }
@@ -133,4 +134,14 @@ function typeClass(t) { return typeMap[t] || 'tag-gray' }
 table { width: 100%; border-collapse: collapse; font-size: 13px; }
 th, td { padding: 9px 10px; text-align: left; border-bottom: 1px solid #f0f0f0; }
 th { color: #a0aec0; font-weight: 500; }
+
+/* 移动端表格卡片化展示 */
+@media (max-width: 600px) {
+  table, thead, tbody, th, td, tr { display: block; }
+  thead { display: none; } /* 移动端隐藏表头 */
+  tr { margin-bottom: 12px; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 10px 14px; background: #fff; }
+  td { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px dashed #f0f0f0; min-height: 38px; text-align: right; }
+  td:last-child { border-bottom: none; }
+  td::before { content: attr(data-label); font-weight: 600; color: #718096; margin-right: 8px; text-align: left; }
+}
 </style>

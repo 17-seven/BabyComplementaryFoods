@@ -1,49 +1,176 @@
 <template>
   <div>
-    <div class="page-header">
-      <h2>辅食计划</h2>
-      <p>2026-W27（06/29 - 07/05）｜{{ plan.note }}</p>
-    </div>
-
-    <!-- 星期选择 -->
-    <div class="day-tabs">
-      <button
-        v-for="day in plan.days" :key="day.date"
-        class="day-tab" :class="{ active: selectedDate === day.date }"
-        @click="selectedDate = day.date"
-      >
-        <div class="day-name">{{ day.dayName }}</div>
-        <div class="day-date">{{ day.date.slice(5) }}</div>
-        <div class="egg-dot" :style="{ background: day.eggTarget >= 2 ? '#ff7043' : '#fbc02d' }"></div>
+    <div class="page-header flex-header">
+      <div>
+        <h2>辅食计划</h2>
+        <p>2026-W27（06/29 - 07/05）｜{{ plan.note }}</p>
+      </div>
+      <button class="btn btn-secondary toggle-view-btn" @click="viewMode = viewMode === 'daily' ? 'weekly' : 'daily'">
+        {{ viewMode === 'daily' ? '📅 切换竖排周视图' : '🎯 切换单日视图' }}
       </button>
     </div>
 
-    <!-- 当日详情 -->
-    <div v-if="selectedDay" class="day-detail">
-      <div class="egg-target card">🥚 今日鸡蛋目标：<strong>{{ selectedDay.eggTarget }} 个</strong></div>
-
-      <div v-for="meal in selectedDay.meals" :key="meal.type" class="meal-card card">
-        <div class="meal-header">
-          <span class="meal-badge">{{ meal.type }}</span>
-          <button class="btn btn-secondary btn-sm" @click="openNote(meal.type)">
-            {{ noteMap[noteKey(meal.type)] ? '✏️ 编辑备注' : '+ 添加备注' }}
-          </button>
+    <!-- 规则校验 & 周统计 -->
+    <div class="top-stats-grid">
+      <!-- 规则校验 -->
+      <div class="card rule-card">
+        <h3 class="section-title">⚖️ 规则校验</h3>
+        <div class="rule-list">
+          <div class="rule-item">
+            <span class="rule-name">鱼类频次</span>
+            <span class="rule-val">{{ fishCount.count }} 次（{{ fishCount.list.join('、') }}）</span>
+            <span class="rule-status tag" :class="fishCount.status ? 'tag-green' : 'tag-red'">
+              {{ fishCount.status ? '✅ 达标' : '❌ 未达标' }}
+            </span>
+          </div>
+          <div class="rule-item">
+            <span class="rule-name">虾类频次</span>
+            <span class="rule-val">{{ shrimpCount.count }} 次（{{ shrimpCount.list.join('、') }}）</span>
+            <span class="rule-status tag" :class="shrimpCount.status ? 'tag-green' : 'tag-red'">
+              {{ shrimpCount.status ? '✅ 达标' : '❌ 未达标' }}
+            </span>
+          </div>
+          <div class="rule-item">
+            <span class="rule-name">鹅肝频次</span>
+            <span class="rule-val">{{ liverCount.count }} 次（{{ liverCount.list.join('、') }}）</span>
+            <span class="rule-status tag" :class="liverCount.status ? 'tag-green' : 'tag-red'">
+              {{ liverCount.status ? '✅ 达标' : '❌ 未达标' }}
+            </span>
+          </div>
+          <div class="rule-item">
+            <span class="rule-name">主食（粥）</span>
+            <span class="rule-val">{{ porridgeCount.count }} 次（{{ porridgeCount.list.join('、') }}）</span>
+            <span class="rule-status tag" :class="porridgeCount.status ? 'tag-green' : 'tag-red'">
+              {{ porridgeCount.status ? '✅ 达标' : '❌ 未达标' }}
+            </span>
+          </div>
+          <div class="rule-item">
+            <span class="rule-name">主食（粗面）</span>
+            <span class="rule-val">{{ noodleCount.count }} 次（{{ noodleCount.list.join('、') }}）</span>
+            <span class="rule-status tag" :class="noodleCount.status ? 'tag-green' : 'tag-red'">
+              {{ noodleCount.status ? '✅ 达标' : '❌ 未达标' }}
+            </span>
+          </div>
+          <div class="rule-item">
+            <span class="rule-name">每日鸡蛋</span>
+            <span class="rule-val">{{ eggValidation.text }}</span>
+            <span class="rule-status tag" :class="eggValidation.status ? 'tag-green' : 'tag-red'">
+              {{ eggValidation.status ? '✅ 达标' : '❌ 未达标' }}
+            </span>
+          </div>
+          <div class="rule-item">
+            <span class="rule-name">每餐青菜</span>
+            <span class="rule-val">{{ greenVegCount.text }}</span>
+            <span class="rule-status tag" :class="greenVegCount.status ? 'tag-green' : 'tag-red'">
+              {{ greenVegCount.status ? '✅ 达标' : '❌ 未达标' }}
+            </span>
+          </div>
         </div>
+      </div>
 
-        <div class="items-list">
-          <span v-for="item in meal.items" :key="item" class="food-chip">{{ item }}</span>
-        </div>
-
-        <div v-if="noteMap[noteKey(meal.type)]" class="meal-note-display">
-          📌 {{ noteMap[noteKey(meal.type)] }}
+      <!-- 周统计 -->
+      <div class="card summary-card">
+        <h3 class="section-title">📊 本周食材统计</h3>
+        <div class="stats-summary-grid">
+          <div class="summary-stat-box">
+            <span class="summary-stat-val">{{ weeklyStats.eggs }} 个</span>
+            <span class="summary-stat-label">鸡蛋目标</span>
+          </div>
+          <div class="summary-stat-box">
+            <span class="summary-stat-val">{{ weeklyStats.seafood }} 次</span>
+            <span class="summary-stat-label">水产品总计</span>
+          </div>
+          <div class="summary-stat-box">
+            <span class="summary-stat-val">{{ weeklyStats.beef }} 次</span>
+            <span class="summary-stat-label">牛肉摄入</span>
+          </div>
+          <div class="summary-stat-box">
+            <span class="summary-stat-val">{{ weeklyStats.pork }} 次</span>
+            <span class="summary-stat-label">猪肉摄入</span>
+          </div>
+          <div class="summary-stat-box">
+            <span class="summary-stat-val">{{ weeklyStats.liver }} 次</span>
+            <span class="summary-stat-label">内脏摄入</span>
+          </div>
+          <div class="summary-stat-box">
+            <span class="summary-stat-val">14 顿</span>
+            <span class="summary-stat-label">总餐顿数</span>
+          </div>
         </div>
       </div>
     </div>
 
+    <!-- 1. 单日视图模式 -->
+    <template v-if="viewMode === 'daily'">
+      <!-- 星期选择 -->
+      <div class="day-tabs">
+        <button
+          v-for="day in plan.days" :key="day.date"
+          class="day-tab" :class="{ active: selectedDate === day.date }"
+          @click="selectedDate = day.date"
+        >
+          <div class="day-name">{{ day.dayName }}</div>
+          <div class="day-date">{{ day.date.slice(5) }}</div>
+          <div class="egg-dot" :style="{ background: day.eggTarget >= 2 ? '#ff7043' : '#fbc02d' }"></div>
+        </button>
+      </div>
+
+      <!-- 当日详情 -->
+      <div v-if="selectedDay" class="day-detail">
+        <div class="egg-target card">🥚 今日鸡蛋目标：<strong>{{ selectedDay.eggTarget }} 个</strong></div>
+
+        <div v-for="meal in selectedDay.meals" :key="meal.type" class="meal-card card">
+          <div class="meal-header">
+            <span class="meal-badge">{{ meal.type }}</span>
+            <button class="btn btn-secondary btn-sm" @click="openNote(selectedDate, meal.type)">
+              {{ noteMap[`${selectedDate}_${meal.type}`] ? '✏️ 编辑备注' : '+ 添加备注' }}
+            </button>
+          </div>
+
+          <div class="items-list">
+            <span v-for="item in meal.items" :key="item" class="food-chip">{{ item }}</span>
+          </div>
+
+          <div v-if="noteMap[`${selectedDate}_${meal.type}`]" class="meal-note-display">
+            📌 {{ noteMap[`${selectedDate}_${meal.type}`] }}
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <!-- 2. 周一到周日竖排周视图模式 -->
+    <template v-else>
+      <div class="weekly-list">
+        <div v-for="day in plan.days" :key="day.date" class="weekly-day-card card">
+          <div class="weekly-day-header">
+            <span class="weekly-day-title">{{ day.dayName }}（{{ day.date.slice(5) }}）</span>
+            <span class="weekly-egg-target">🥚 鸡蛋目标：<strong>{{ day.eggTarget }} 个</strong></span>
+          </div>
+
+          <div class="weekly-meals">
+            <div v-for="meal in day.meals" :key="meal.type" class="weekly-meal-row">
+              <span class="weekly-badge weekly-meal-badge">{{ meal.type }}</span>
+              <div class="weekly-meal-content">
+                <div class="weekly-food-chips">
+                  <span v-for="item in meal.items" :key="item" class="weekly-food-chip">{{ item }}</span>
+                </div>
+                <div v-if="noteMap[`${day.date}_${meal.type}`]" class="weekly-meal-note">
+                  📌 {{ noteMap[`${day.date}_${meal.type}`] }}
+                </div>
+              </div>
+              <button class="btn btn-secondary btn-sm edit-note-btn" @click="openNote(day.date, meal.type)">
+                {{ noteMap[`${day.date}_${meal.type}`] ? '✏️' : '+' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </template>
+
     <!-- 备注弹窗 -->
     <div v-if="noteDialog.show" class="modal-mask" @click.self="noteDialog.show = false">
       <div class="modal-box card">
-        <h3>{{ selectedDate }} {{ noteDialog.mealType }} 备注</h3>
+        <h3>{{ noteDialog.date }} {{ noteDialog.mealType }} 备注</h3>
         <div class="form-row" style="margin-top:14px;">
           <label>备注内容（如：加了乳果糖15ml，吃了大半碗）</label>
           <textarea v-model="noteDialog.text" rows="3" placeholder="输入备注..." />
@@ -69,18 +196,140 @@ const selectedDay = computed(() => plan.days.find(d => d.date === selectedDate.v
 
 const noteMap = reactive(getStorage('meal_notes', {}))
 
-function noteKey(mealType) { return `${selectedDate.value}_${mealType}` }
+// 视图模式：'daily' 表示单日视图，'weekly' 表示周一至周日竖排周视图
+const viewMode = ref('daily')
 
-const noteDialog = reactive({ show: false, mealType: '', text: '' })
+const noteDialog = reactive({ show: false, date: '', mealType: '', text: '' })
 
-function openNote(mealType) {
+// 规则校验：鱼类频次
+const fishCount = computed(() => {
+  let count = 0
+  const list = []
+  plan.days.forEach(d => {
+    d.meals.forEach(m => {
+      if (m.items.some(item => item.includes('鱼'))) {
+        count++
+        list.push(`${d.dayName}${m.type === '午餐' ? '午' : '晚'}`)
+      }
+    })
+  })
+  return { count, list, status: count >= 2 && count <= 3 }
+})
+
+// 规则校验：虾类频次
+const shrimpCount = computed(() => {
+  let count = 0
+  const list = []
+  plan.days.forEach(d => {
+    d.meals.forEach(m => {
+      if (m.items.some(item => item.includes('虾'))) {
+        count++
+        list.push(`${d.dayName}${m.type === '午餐' ? '午' : '晚'}`)
+      }
+    })
+  })
+  return { count, list, status: count >= 2 && count <= 3 }
+})
+
+// 规则校验：鹅肝频次
+const liverCount = computed(() => {
+  let count = 0
+  const list = []
+  plan.days.forEach(d => {
+    d.meals.forEach(m => {
+      if (m.items.some(item => item.includes('鹅肝'))) {
+        count++
+        list.push(`${d.dayName}${m.type === '午餐' ? '午' : '晚'}`)
+      }
+    })
+  })
+  return { count, list, status: count >= 2 && count <= 3 }
+})
+
+// 规则校验：主食（粥）
+const porridgeCount = computed(() => {
+  let count = 0
+  const list = []
+  plan.days.forEach(d => {
+    d.meals.forEach(m => {
+      if (m.items.some(item => item.includes('粥'))) {
+        count++
+        list.push(`${d.dayName}${m.type === '午餐' ? '午' : '晚'}`)
+      }
+    })
+  })
+  return { count, list, status: count === 2 }
+})
+
+// 规则校验：主食（粗面）
+const noodleCount = computed(() => {
+  let count = 0
+  const list = []
+  plan.days.forEach(d => {
+    d.meals.forEach(m => {
+      if (m.items.some(item => item.includes('面'))) {
+        count++
+        list.push(`${d.dayName}${m.type === '午餐' ? '午' : '晚'}`)
+      }
+    })
+  })
+  return { count, list, status: count === 3 }
+})
+
+// 规则校验：每日鸡蛋限制
+const eggValidation = computed(() => {
+  const status = plan.days.every(d => d.eggTarget >= 1 && d.eggTarget <= 2)
+  return { status, text: status ? '全 7 天均满足' : '有天数不满足' }
+})
+
+// 规则校验：每顿含绿叶菜/青菜
+const greenVegCount = computed(() => {
+  let okCount = 0
+  let totalMeals = 0
+  plan.days.forEach(d => {
+    d.meals.forEach(m => {
+      totalMeals++
+      if (m.items.some(item => item.includes('青菜') || item.includes('绿叶菜') || item.includes('菠菜') || item.includes('西兰花') || item.includes('小白菜') || item.includes('油菜'))) {
+        okCount++
+      }
+    })
+  })
+  return { status: okCount === totalMeals, text: `全周 ${totalMeals} 顿中含 ${okCount} 顿` }
+})
+
+// 周统计数据
+const weeklyStats = computed(() => {
+  let eggs = plan.days.reduce((s, d) => s + d.eggTarget, 0)
+  let fish = 0
+  let shrimp = 0
+  let liver = 0
+  let pork = 0
+  let beef = 0
+  
+  plan.days.forEach(d => {
+    d.meals.forEach(m => {
+      m.items.forEach(item => {
+        if (item.includes('鱼')) fish++
+        if (item.includes('虾')) shrimp++
+        if (item.includes('鹅肝') || item.includes('猪肝')) liver++
+        if (item.includes('猪肉')) pork++
+        if (item.includes('牛肉')) beef++
+      })
+    })
+  })
+  
+  return { eggs, seafood: fish + shrimp, liver, pork, beef }
+})
+
+function openNote(date, mealType) {
+  noteDialog.date = date
   noteDialog.mealType = mealType
-  noteDialog.text = noteMap[noteKey(mealType)] || ''
+  noteDialog.text = noteMap[`${date}_${mealType}`] || ''
   noteDialog.show = true
 }
 
 function saveNote() {
-  const key = noteKey(noteDialog.mealType)
+  const key = `${noteDialog.date}_${noteDialog.mealType}`
   if (noteDialog.text.trim()) {
     noteMap[key] = noteDialog.text.trim()
   } else {
@@ -92,6 +341,101 @@ function saveNote() {
 </script>
 
 <style scoped>
+.flex-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.flex-header .btn {
+  white-space: nowrap;
+}
+@media (max-width: 600px) {
+  .flex-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .flex-header .btn {
+    width: 100%;
+  }
+}
+
+.top-stats-grid {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+@media (max-width: 900px) {
+  .top-stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.rule-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.rule-item {
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  padding: 6px 0;
+  border-bottom: 1px dashed #f0f0f0;
+}
+.rule-item:last-child {
+  border-bottom: none;
+}
+.rule-name {
+  font-weight: 600;
+  color: #4a5568;
+  width: 90px;
+  flex-shrink: 0;
+}
+.rule-val {
+  color: #718096;
+  flex: 1;
+}
+.rule-status {
+  flex-shrink: 0;
+  font-size: 11px;
+}
+
+.stats-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  height: calc(100% - 30px);
+}
+@media (max-width: 480px) {
+  .stats-summary-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.summary-stat-box {
+  background: #f7f9fc;
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+.summary-stat-val {
+  font-size: 18px;
+  font-weight: 700;
+  color: #ff7043;
+}
+.summary-stat-label {
+  font-size: 11px;
+  color: #a0aec0;
+  margin-top: 4px;
+}
+
 .day-tabs {
   display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap;
 }
@@ -107,6 +451,26 @@ function saveNote() {
 .egg-dot {
   width: 7px; height: 7px; border-radius: 50%;
   position: absolute; top: 7px; right: 7px;
+}
+
+/* 移动端星期切换栏横向滚动 */
+@media (max-width: 600px) {
+  .day-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .day-tab {
+    flex-shrink: 0;
+  }
+  /* 隐藏滚动条但保留滚动功能 */
+  .day-tabs::-webkit-scrollbar {
+    display: none;
+  }
+  .day-tabs {
+    scrollbar-width: none;
+  }
 }
 
 .day-detail { display: flex; flex-direction: column; gap: 14px; }
@@ -130,6 +494,90 @@ function saveNote() {
   margin-top: 10px; padding: 8px 12px; background: #fffbf0;
   border-left: 3px solid #fbd38d; border-radius: 6px;
   font-size: 13px; color: #744210;
+}
+
+/* 周视图样式 */
+.weekly-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.weekly-day-card {
+  padding: 16px;
+}
+.weekly-day-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f0f0f0;
+  margin-bottom: 12px;
+}
+.weekly-day-title {
+  font-weight: 700;
+  font-size: 15px;
+  color: #2d3748;
+}
+.weekly-egg-target {
+  font-size: 13px;
+  color: #718096;
+}
+.weekly-meals {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.weekly-meal-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px dashed #f0f0f0;
+}
+.weekly-meal-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+.weekly-meal-badge {
+  background: #ff7043;
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.weekly-meal-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.weekly-food-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.weekly-food-chip {
+  background: #f7f8fa;
+  border: 1px solid #e2e8f0;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 12px;
+  color: #4a5568;
+}
+.weekly-meal-note {
+  font-size: 12px;
+  color: #744210;
+  background: #fffbf0;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border-left: 3px solid #fbd38d;
+}
+.edit-note-btn {
+  padding: 2px 8px;
+  font-size: 12px;
 }
 
 .modal-mask {

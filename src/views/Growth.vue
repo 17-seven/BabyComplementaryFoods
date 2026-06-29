@@ -58,11 +58,11 @@
           <thead><tr><th>日期</th><th>体重(kg)</th><th>身高(cm)</th><th>备注</th><th>操作</th></tr></thead>
           <tbody>
             <tr v-for="r in sortedRecords" :key="r.id">
-              <td>{{ r.date }}</td>
-              <td>{{ r.weight }}</td>
-              <td>{{ r.height }}</td>
-              <td>{{ r.note }}</td>
-              <td><button class="btn btn-danger btn-sm" @click="deleteRecord(r.id)">删除</button></td>
+              <td data-label="日期">{{ r.date }}</td>
+              <td data-label="体重(kg)">{{ r.weight }}</td>
+              <td data-label="身高(cm)">{{ r.height }}</td>
+              <td data-label="备注">{{ r.note }}</td>
+              <td data-label="操作"><button class="btn btn-danger btn-sm" @click="deleteRecord(r.id)">删除</button></td>
             </tr>
           </tbody>
         </table>
@@ -160,9 +160,20 @@ onMounted(() => {
 .big-val small { font-size: 16px; font-weight: 400; }
 
 .chart-card { margin-top: 16px; }
+.chart-card canvas { max-height: 220px !important; }
 
 .table-wrap { overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; font-size: 14px; }
 th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #f0f0f0; }
 th { color: #a0aec0; font-weight: 500; font-size: 13px; }
+
+/* 移动端表格卡片化展示 */
+@media (max-width: 600px) {
+  table, thead, tbody, th, td, tr { display: block; }
+  thead { display: none; } /* 移动端隐藏表头 */
+  tr { margin-bottom: 12px; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 10px 14px; background: #fff; }
+  td { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px dashed #f0f0f0; min-height: 38px; text-align: right; }
+  td:last-child { border-bottom: none; }
+  td::before { content: attr(data-label); font-weight: 600; color: #718096; margin-right: 8px; text-align: left; }
+}
 </style>

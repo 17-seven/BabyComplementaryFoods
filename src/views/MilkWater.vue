@@ -167,5 +167,6 @@ onMounted(() => {
 .big-num.blue { color: #4fc3f7; }
 .big-num small { font-size: 16px; font-weight: 400; }
 .chart-card { margin-top: 16px; }
+.chart-card canvas { max-height: 220px !important; }
 .record-item { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid #f7f7f7; font-size: 13px; }
 </style>

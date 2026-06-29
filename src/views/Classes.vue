@@ -104,16 +104,16 @@
           </thead>
           <tbody>
             <tr v-for="r in filteredRecords" :key="r.date + (r.id||'')" :class="{ absent: !r.attended, negative: r.balance < 0 }">
-              <td>{{ r.date }}</td>
-              <td>{{ r.dayName }}</td>
-              <td><span class="tag" :class="r.attended ? 'tag-green' : 'tag-red'">{{ r.attended ? '✓ 上课' : '✗ 未去' }}</span></td>
-              <td>{{ r.teacher || '-' }}</td>
-              <td>{{ r.sessions || '-' }}</td>
-              <td>{{ r.cost ? '¥'+r.cost : '-' }}</td>
-              <td>{{ r.topup ? '¥'+r.topup : '-' }}</td>
-              <td :style="{ color: r.balance < 0 ? '#e53e3e' : 'inherit', fontWeight: 600 }">¥{{ r.balance }}</td>
-              <td style="max-width:160px;word-break:break-all">{{ r.note }}</td>
-              <td>
+              <td data-label="日期">{{ r.date }}</td>
+              <td data-label="星期">{{ r.dayName }}</td>
+              <td data-label="状态"><span class="tag" :class="r.attended ? 'tag-green' : 'tag-red'">{{ r.attended ? '✓ 上课' : '✗ 未去' }}</span></td>
+              <td data-label="老师">{{ r.teacher || '-' }}</td>
+              <td data-label="课节">{{ r.sessions || '-' }}</td>
+              <td data-label="费用">{{ r.cost ? '¥'+r.cost : '-' }}</td>
+              <td data-label="充值">{{ r.topup ? '¥'+r.topup : '-' }}</td>
+              <td data-label="余额" :style="{ color: r.balance < 0 ? '#e53e3e' : 'inherit', fontWeight: 600 }">¥{{ r.balance }}</td>
+              <td data-label="备注" style="max-width:160px;word-break:break-all">{{ r.note }}</td>
+              <td data-label="操作">
                 <button v-if="r.id" class="btn btn-danger btn-sm" @click="deleteRecord(r.id)">删</button>
               </td>
             </tr>
@@ -209,7 +209,8 @@ onMounted(() => {
 
 <style scoped>
 .top-cards { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 14px; margin-bottom: 16px; }
-@media (max-width: 800px) { .top-cards { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 900px) { .top-cards { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 480px) { .top-cards { grid-template-columns: 1fr; } }
 
 .balance-card { }
 .bal-label { font-size: 12px; color: #a0aec0; }
@@ -221,10 +222,12 @@ onMounted(() => {
 .stat-mini-label { font-size: 12px; color: #a0aec0; margin-top: 4px; }
 
 .chart-card { }
+.chart-card canvas { max-height: 220px !important; }
 .section-title { font-size: 15px; font-weight: 600; margin-bottom: 14px; }
 
 .add-form { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0 16px; }
-@media (max-width: 700px) { .add-form { grid-template-columns: 1fr; } }
+@media (max-width: 900px) { .add-form { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 550px) { .add-form { grid-template-columns: 1fr; } }
 .add-form .btn { grid-column: 1 / -1; }
 
 .list-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
@@ -235,5 +238,15 @@ table { width: 100%; border-collapse: collapse; font-size: 13px; }
 th, td { padding: 9px 10px; text-align: left; border-bottom: 1px solid #f0f0f0; white-space: nowrap; }
 th { color: #a0aec0; font-weight: 500; }
 tr.absent td { color: #a0aec0; }
-tr.negative td:nth-child(8) { color: #e53e3e; }
+tr.negative td.negative-balance { color: #e53e3e; }
+
+/* 移动端表格卡片化展示 */
+@media (max-width: 768px) {
+  table, thead, tbody, th, td, tr { display: block; }
+  thead { display: none; } /* 移动端隐藏表头 */
+  tr { margin-bottom: 12px; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 10px 14px; background: #fff; }
+  td { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px dashed #f0f0f0; min-height: 38px; text-align: right; white-space: normal; }
+  td:last-child { border-bottom: none; }
+  td::before { content: attr(data-label); font-weight: 600; color: #718096; margin-right: 8px; text-align: left; }
+}
 </style>

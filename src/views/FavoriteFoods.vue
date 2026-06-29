@@ -86,6 +86,11 @@ function catClass(cat) { return catMap[cat] || 'tag-gray' }
 .add-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-start; }
 .add-row .form-row { margin-bottom: 0; }
 
+@media (max-width: 768px) {
+  .add-row { display: grid; grid-template-columns: 1fr; gap: 12px; }
+  .add-row .form-row { flex: none !important; width: 100%; }
+}
+
 .food-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
 .food-card { padding: 16px; }
 .food-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }

@@ -16,6 +16,9 @@ const routes = [
       { path: 'classes',       component: () => import('../views/Classes.vue') },
       { path: 'favorite-foods',component: () => import('../views/FavoriteFoods.vue') },
       { path: 'bowel',         component: () => import('../views/BowelRecord.vue') },
+      { path: 'vision',        component: () => import('../views/Vision.vue') },
+      { path: 'timeline',      component: () => import('../views/Timeline.vue') },
+      { path: 'healthcare',    component: () => import('../views/Healthcare.vue') },
     ]
   },
   { path: '/:pathMatch(.*)*', redirect: '/dashboard' }
