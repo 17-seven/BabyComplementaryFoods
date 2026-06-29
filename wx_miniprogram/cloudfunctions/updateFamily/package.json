@@ -1,0 +1,9 @@
+{
+  "name": "updateFamily",
+  "version": "1.0.0",
+  "description": "统一处理 families 集合写操作（创建/更新/添加成员）",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

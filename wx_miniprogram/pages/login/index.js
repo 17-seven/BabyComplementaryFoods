@@ -232,33 +232,23 @@ Page({
     }
 
     // 实时同步更新至云数据库备份里（以防未来被清除缓存）
-    // 同步看护人昵称到云端：优先按 familyId 更新，否则按 openid 检索所有所属家庭组更新
+    // 通过云函数同步看护人昵称到云端（familyId 有则更新，无则等家庭组创建时自动带入）
     const familyId = wx.getStorageSync('user_family_id');
-    const openid = wx.getStorageSync('user_openid') || '';
-    if (wx.cloud && openid) {
-      try {
-        const db = wx.cloud.database();
-        const updatePayload = {
-          creator_nickname: nickname,
-          creator_avatar: avatar || '/assets/avatar_default.png'
-        };
-        if (familyId) {
-          db.collection('families').doc(familyId).update({ data: updatePayload });
-        } else {
-          // 家庭组尚未创建，按 openid 成员关系查询后补录昵称
-          db.collection('families').where({ members: openid }).get({
-            success: (res) => {
-              if (res.data && res.data.length > 0) {
-                res.data.forEach(fam => {
-                  db.collection('families').doc(fam._id).update({ data: updatePayload });
-                });
-              }
-            }
-          });
+    if (wx.cloud && familyId) {
+      wx.cloud.callFunction({
+        name: 'updateFamily',
+        data: {
+          action: 'update',
+          familyId: familyId,
+          data: {
+            creator_nickname: nickname,
+            creator_avatar: avatar || '/assets/avatar_default.png'
+          }
+        },
+        fail: (err) => {
+          console.warn('同步昵称至云端失败（本地已保存）:', err);
         }
-      } catch (e) {
-        console.warn("实时上传云端看护人信息备份失败：", e);
-      }
+      });
     }
 
     this.setData({

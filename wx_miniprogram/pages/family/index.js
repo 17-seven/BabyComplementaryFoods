@@ -86,45 +86,44 @@ Page({
       return;
     }
 
-    const db = wx.cloud.database();
     const that = this;
-    
-    wx.showLoading({ title: '正在开通家庭组...' });
-    
     const savedUserInfo = getStorage('user_info', null);
-    db.collection('families').add({
+    wx.showLoading({ title: '正在开通家庭组...' });
+
+    wx.cloud.callFunction({
+      name: 'updateFamily',
       data: {
-        baby_name: babyProfile.name,
-        birth_date: babyProfile.birthDate,
-        premature_days: babyProfile.prematureDays || 0,
-        members: [app.globalData.openid],
-        creator_nickname: savedUserInfo ? (savedUserInfo.nickName || '') : '',
-        creator_avatar: savedUserInfo ? (savedUserInfo.avatarUrl || '/assets/avatar_default.png') : '/assets/avatar_default.png',
-        create_time: new Date()
+        action: 'create',
+        data: {
+          baby_name: babyProfile.name,
+          birth_date: babyProfile.birthDate,
+          premature_days: babyProfile.prematureDays || 0,
+          creator_nickname: savedUserInfo ? (savedUserInfo.nickName || '') : '',
+          creator_avatar: savedUserInfo ? (savedUserInfo.avatarUrl || '/assets/avatar_default.png') : '/assets/avatar_default.png'
+        }
       },
       success: (res) => {
         wx.hideLoading();
-        const familyId = res._id;
-        
+        if (!res.result || !res.result.success) {
+          wx.showModal({ title: '创建失败', content: res.result && res.result.error || '未知错误', showCancel: false });
+          return;
+        }
+        const familyId = res.result.familyId;
         that.setData({ myFamilyId: familyId }, () => {
           setStorage('user_family_id', familyId);
           that.fetchFamilyDetails();
-          
           wx.showModal({
             title: '家庭创建成功',
             content: `您的专属家庭同步码为：\n\n${familyId}\n\n已为您自动复制。把此邀请码发送给您爱人，她在小程序端输入后即可共享数据。`,
             confirmText: '好 的',
             showCancel: false,
-            success: () => {
-              wx.setClipboardData({ data: familyId });
-            }
+            success: () => { wx.setClipboardData({ data: familyId }); }
           });
         });
       },
       fail: (err) => {
         wx.hideLoading();
-        console.error("开通云端家庭失败，可能没有创建families集合，采用本地离线虚拟方案", err);
-        
+        console.error('updateFamily 云函数调用失败，离线降级:', err);
         // 离线生成临时同步码
         const fakeFamilyId = 'fam_loc_' + Date.now();
         that.setData({ myFamilyId: fakeFamilyId }, () => {
@@ -173,8 +172,8 @@ Page({
 
     // 优先调用 joinFamily 云函数
     wx.cloud.callFunction({
-      name: 'joinFamily',
-      data: { familyId: code },
+      name: 'updateFamily',
+      data: { action: 'addMember', familyId: code },
       success: (res) => {
         wx.hideLoading();
         if (res.result && res.result.success) {
