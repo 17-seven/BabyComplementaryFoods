@@ -3,7 +3,7 @@
 
   <!-- 顶部提示语 -->
   <view class="tip-banner">
-    📝 请录入您家宝宝的真实姓名和出生日期。如果宝宝是早产儿，系统会自动进行月龄校正，并依此精准滚动生成疫苗接种及体检的规划排班日程。
+    📝 请录入您家宝宝的真实姓名和出生日期。如果宝宝是早产儿，请填写预产期，系统会自动计算早产天数，并以此精准校正月龄、疫苗接种及体检排班日程。
   </view>
 
   <view class="card form-card">
@@ -16,9 +16,9 @@
 
     <!-- 出生日期 -->
     <view class="form-item" style="margin-top: 24rpx;">
-      <text class="lbl">📅 出生日期 (公历/实际生日)</text>
-      <picker mode="date" value="{{ birthDate }}" start="2020-01-01" end="2030-12-31" bindchange="onDateChange">
-        <view class="date-picker-btn">{{ birthDate }}</view>
+      <text class="lbl">📅 出生日期（公历/实际生日）</text>
+      <picker mode="date" value="{{ birthDate }}" start="2020-01-01" end="2030-12-31" bindchange="onBirthDateChange">
+        <view class="date-picker-btn {{ birthDate ? '' : 'placeholder' }}">{{ birthDate || '请选择出生日期' }}</view>
       </picker>
     </view>
 
@@ -34,17 +34,23 @@
     <!-- 早产细节 (早产时展示) -->
     <block wx:if="{{ isPremature }}">
       
-      <!-- 早产纠正天数 -->
+      <!-- 预产期 -->
       <view class="form-item" style="margin-top: 24rpx;">
-        <text class="lbl">⏳ 早产纠正天数 (偏移天数)</text>
-        <input type="number" placeholder="例如：71" value="{{ prematureDays }}" bindinput="onFieldInput" data-field="prematureDays" />
-        <text class="hint-lbl">计算规则：若 40 周为足月，早产天数 = 280天 - 实际孕周天数（如 29w+6 约为偏离 71 天）。</text>
+        <text class="lbl">🤰 预产期</text>
+        <picker mode="date" value="{{ dueDate }}" start="2020-01-01" end="2030-12-31" bindchange="onDueDateChange">
+          <view class="date-picker-btn {{ dueDate ? '' : 'placeholder' }}">{{ dueDate || '请选择预产期日期' }}</view>
+        </picker>
+        <text class="hint-lbl">选择预产期后，系统将自动计算出早产天数。</text>
       </view>
 
-      <!-- 早产描述 -->
-      <view class="form-item" style="margin-top: 24rpx;">
-        <text class="lbl">📝 胎龄阶段说明</text>
-        <input type="text" placeholder="例如：29w+6 早产" value="{{ prematureDesc }}" bindinput="onFieldInput" data-field="prematureDesc" />
+      <!-- 自动计算的早产天数（只读展示） -->
+      <view class="form-item" style="margin-top: 24rpx;" wx:if="{{ prematureDays > 0 }}">
+        <text class="lbl">⏳ 早产天数（自动计算）</text>
+        <view class="computed-value">
+          <text class="computed-number">{{ prematureDays }}</text>
+          <text class="computed-unit"> 天</text>
+        </view>
+        <text class="hint-lbl">{{ prematureDesc }}</text>
       </view>
 
     </block>
