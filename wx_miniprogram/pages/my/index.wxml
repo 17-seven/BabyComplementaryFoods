@@ -98,15 +98,6 @@
       </view>
       <view class="menu-arrow">➔</view>
     </view>
-
-    <view class="menu-item" bindtap="clearAppData">
-      <view class="menu-icon">🗑️</view>
-      <view class="menu-body">
-        <text class="menu-title" style="color: #e53e3e;">清空本地所有打卡缓存</text>
-        <text class="menu-desc">删除本地记录并重置加载默认数据</text>
-      </view>
-      <view class="menu-arrow">➔</view>
-    </view>
   </view>
 
   <!-- 4. 微信登录授权信息补充弹窗 -->
