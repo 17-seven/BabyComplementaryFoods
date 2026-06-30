@@ -34,6 +34,8 @@ input {
 /* 通用容器样式 */
 .container {
   padding: 24rpx;
+  /* 底部预留自定义tabBar(112rpx) + 安全区 + 额外间距，防止内容被遮挡 */
+  padding-bottom: calc(112rpx + env(safe-area-inset-bottom) + 32rpx);
   box-sizing: border-box;
 }
 
