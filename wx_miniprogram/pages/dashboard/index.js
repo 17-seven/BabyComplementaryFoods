@@ -68,9 +68,10 @@ Page({
     const todayWater = milkRecs.filter(r => r.type === 'water').reduce((s, r) => s + (r.amount || 0), 0);
     const todayBowel = getStorage('bowel_records', []).filter(r => r.date === todayStr).length;
 
-    // 可扩展计时项
+    // 可扩展计时项（只展示用户自创的，排除默认眼罩模块）
     const defaultTimers = [{ id: 'eyepatch', name: '眼罩遮盖', icon: '👁️', targetMins: 240 }];
-    const timerDefs  = getStorage('vision_timer_items', defaultTimers);
+    const timerDefs = getStorage('vision_timer_items', defaultTimers)
+      .filter(t => t.id !== 'eyepatch');  // 首页不展示默认眼罩，保持简洁
     const timerItems = timerDefs.map(t => {
       const key  = t.id === 'eyepatch' ? 'eyepatch_records' : `vision_records_${t.id}`;
       const mins = getStorage(key, [])
