@@ -205,36 +205,6 @@ Page({
   },
 
   openShortcutModal: function () { wx.showToast({ title: '功能已移除', icon: 'none' }); },
-  },
-  closeShortcutModal: function () { this.setData({ showShortcutModal: false }); },
-  selectShortcutPage: function (e) { this.setData({ newShortcutPage: e.currentTarget.dataset.page }); },
-
-  confirmAddShortcut: function () {
-    const pageDef = AVAILABLE_PAGES.find(p => p.page === this.data.newShortcutPage);
-    if (!pageDef) return;
-    const shortcuts = [...this.data.customShortcuts];
-    if (shortcuts.some(s => s.page === pageDef.page)) {
-      wx.showToast({ title: '已添加过该入口', icon: 'none' }); return;
-    }
-    shortcuts.push({ id: Date.now(), page: pageDef.page, name: pageDef.name, icon: pageDef.icon });
-    setStorage('my_custom_shortcuts', shortcuts);
-    this.setData({ customShortcuts: shortcuts, showShortcutModal: false });
-    wx.showToast({ title: '快捷入口已添加', icon: 'success' });
-  },
-
-  deleteShortcut: function (e) {
-    const id = e.currentTarget.dataset.id;
-    wx.showModal({
-      title: '移除快捷入口', content: '确定要移除这个快捷入口吗？',
-      success: (res) => {
-        if (res.confirm) {
-          const shortcuts = this.data.customShortcuts.filter(s => s.id !== id);
-          setStorage('my_custom_shortcuts', shortcuts);
-          this.setData({ customShortcuts: shortcuts });
-        }
-      }
-    });
-  },
 
   // ===== 开发者隐藏入口：版本号连点10次解锁 =====
   _versionTapCount: 0,       // 点击计数器
