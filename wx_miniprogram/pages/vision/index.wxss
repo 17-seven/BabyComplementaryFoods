@@ -192,11 +192,11 @@
 .log-remark { font-size: 20rpx; color: #a0aec0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .log-del   { font-size: 22rpx; color: #e53e3e; padding: 8rpx 16rpx; flex-shrink: 0; }
 
-/* 悬浮按钮（复用全局floating-btn即可） */
+/* 悬浮按钮（在page-transition容器外） */
 .floating-btn {
   position: fixed;
   right: 36rpx;
-  bottom: 48rpx;
+  bottom: 140rpx;
   width: 100rpx;
   height: 100rpx;
   background-color: var(--accent-orange);
@@ -207,7 +207,7 @@
   align-items: center;
   justify-content: center;
   box-shadow: 0 8rpx 20rpx rgba(255, 112, 67, 0.35);
-  z-index: 99;
+  z-index: 999;
 }
 
 /* 图标选择器 */

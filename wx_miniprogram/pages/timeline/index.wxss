@@ -135,7 +135,7 @@
 .floating-btn {
   position: fixed;
   right: 36rpx;
-  bottom: 48rpx;
+  bottom: 140rpx;
   width: 100rpx;
   height: 100rpx;
   background-color: var(--accent-orange);
@@ -146,7 +146,7 @@
   align-items: center;
   justify-content: center;
   box-shadow: 0 8rpx 20rpx rgba(255, 112, 67, 0.35);
-  z-index: 99;
+  z-index: 999;
 }
 
 /* 弹窗遮罩 */
