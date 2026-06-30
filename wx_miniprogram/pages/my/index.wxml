@@ -88,15 +88,29 @@
     <text class="shortcut-hint">按住可删除</text>
   </view>
   <view class="shortcut-grid">
-    <view class="shortcut-card" wx:for="{{ customShortcuts }}" wx:key="id"
+    <!-- 自定义计时模块 -->
+    <view class="shortcut-card" wx:for="{{ customTimers }}" wx:key="id"
+      bindtap="goTimer" data-id="{{ item.id }}"
+      bindlongpress="deleteCustomTimer" data-id="{{ item.id }}">
+      <text class="shortcut-icon">{{ item.icon }}</text>
+      <text class="shortcut-name">{{ item.name }}</text>
+      <text class="shortcut-subdesc">{{ item.todayHours }}h / {{ item.targetHours }}h</text>
+    </view>
+    <!-- 页面快捷方式 -->
+    <view class="shortcut-card shortcut-link" wx:for="{{ customShortcuts }}" wx:key="id"
       bindtap="goShortcut" data-page="{{ item.page }}"
       bindlongpress="deleteShortcut" data-id="{{ item.id }}">
       <text class="shortcut-icon">{{ item.icon }}</text>
       <text class="shortcut-name">{{ item.name }}</text>
     </view>
-    <view class="shortcut-card shortcut-add" bindtap="openShortcutModal">
-      <text class="shortcut-icon">＋</text>
-      <text class="shortcut-name">添加</text>
+    <!-- 新增按钮 -->
+    <view class="shortcut-card shortcut-add" bindtap="openNewTimerModal">
+      <text class="shortcut-icon">⏱️</text>
+      <text class="shortcut-name">新增计时</text>
+    </view>
+    <view class="shortcut-card shortcut-add shortcut-add-link" bindtap="openShortcutModal">
+      <text class="shortcut-icon">🔗</text>
+      <text class="shortcut-name">页面快捷</text>
     </view>
   </view>
 
@@ -141,7 +155,46 @@
 
 </view>
 
-<!-- 添加快捷入口弹窗（在page-anim容器外） -->
+<!-- 新增计时模块弹窗 -->
+<view class="modal-overlay" wx:if="{{ showNewTimerModal }}">
+  <view class="modal-card">
+    <view class="modal-header">
+      <text class="modal-title">➕ 新增计时模块</text>
+      <text class="modal-close" bindtap="closeNewTimerModal">✕</text>
+    </view>
+    <view class="modal-body">
+      <!-- 图标选择 -->
+      <view class="form-item">
+        <text class="lbl">选择图标</text>
+        <scroll-view class="icon-picker-row" scroll-x="true">
+          <view class="icon-opt {{ newTimerIcon === icon ? 'icon-opt-sel' : '' }}"
+            wx:for="{{ timerIconOptions }}" wx:key="*this" wx:for-item="icon"
+            bindtap="selectTimerIcon" data-icon="{{ icon }}">{{ icon }}</view>
+        </scroll-view>
+      </view>
+      <view class="form-item">
+        <text class="lbl">模块标题 *</text>
+        <input type="text" placeholder="如：眼罩遮盖、睡眠计时、训练时长"
+          value="{{ newTimerName }}" bindinput="onNewTimerInput" data-field="newTimerName" />
+      </view>
+      <view class="form-item">
+        <text class="lbl">功能说明</text>
+        <input type="text" placeholder="如：矫正训练、日常作息"
+          value="{{ newTimerDesc }}" bindinput="onNewTimerInput" data-field="newTimerDesc" />
+      </view>
+      <view class="form-item">
+        <text class="lbl">每日目标（小时）</text>
+        <input type="number" placeholder="如：4" value="{{ newTimerTargetHours }}"
+          bindinput="onNewTimerInput" data-field="newTimerTargetHours" />
+      </view>
+    </view>
+    <view class="modal-footer">
+      <button class="btn btn-primary btn-block" bindtap="saveNewTimerModule">创建模块</button>
+    </view>
+  </view>
+</view>
+
+<!-- 添加页面快捷方式弹窗 -->
 <view class="modal-overlay" wx:if="{{ showShortcutModal }}">
   <view class="modal-card">
     <view class="modal-header">

@@ -71,6 +71,25 @@
 .option-desc { font-size: 20rpx; color: #718096; display: block; margin-top: 4rpx; }
 .option-check { color: var(--primary-color); font-size: 32rpx; font-weight: 700; flex-shrink: 0; }
 
+.shortcut-subdesc {
+  font-size: 18rpx;
+  color: #a0aec0;
+  text-align: center;
+}
+.shortcut-link { background: #f0fff4; border-color: #c6f6d5; }
+.shortcut-add-link { border-color: #bee3f8; background: #ebf8ff; }
+.shortcut-add-link .shortcut-icon, .shortcut-add-link .shortcut-name { color: #2b6cb0; }
+
+/* 图标选择器 */
+.icon-picker-row { white-space: nowrap; width: 100%; }
+.icon-opt {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 72rpx; height: 72rpx; font-size: 36rpx;
+  border-radius: 16rpx; margin-right: 12rpx;
+  border: 2rpx solid #edf2f7; background: #f7f9fc;
+}
+.icon-opt-sel { border-color: var(--primary-color); background: #e6fffa; }
+
 /* 个人信息头 */
 .my-profile-header {
   display: flex;

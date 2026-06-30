@@ -1,8 +1,15 @@
 // pages/my/index.js
 const { calculateBabyAge } = require('../../utils/babyHelper.js');
 const { getStorage, setStorage } = require('../../utils/storage.js');
+const { today } = require('../../utils/storage.js');
 
-// 可添加为快捷入口的页面清单
+// 默认计时模块（与 vision 页保持同步）
+const DEFAULT_TIMERS = [
+  { id: 'eyepatch', name: '眼罩遮盖', desc: '矫正斜视遮盖治疗', targetMins: 240, icon: '👁️' }
+];
+const TIMER_ICONS = ['⏱️', '😴', '🏃', '📺', '📖', '🧩', '🎵', '💊', '🧘', '🌙', '🎯', '⚽'];
+
+// 可添加为页面快捷方式的清单
 const AVAILABLE_PAGES = [
   { page: 'vision',    name: '计时模块',   icon: '⏱️', desc: '自定义计时追踪管理' },
   { page: 'bowel',     name: '排便记录',   icon: '💩', desc: '大便次数与性状打卡' },
@@ -27,8 +34,15 @@ Page({
     tempAvatarUrl: '',
     inputNickname: '',
 
-    // 自定义快捷入口
+    // 自定义计时模块（同步 vision_timer_items）
+    customTimers: [],
+    // 页面快捷方式
     customShortcuts: [],
+    // 新增计时模块弹窗
+    showNewTimerModal: false,
+    newTimerName: '', newTimerDesc: '', newTimerTargetHours: '1', newTimerIcon: '⏱️',
+    timerIconOptions: TIMER_ICONS,
+    // 页面快捷方式弹窗
     showShortcutModal: false,
     newShortcutPage: '',
     availablePages: AVAILABLE_PAGES
@@ -127,22 +141,74 @@ Page({
   // ===== 自定义快捷入口 =====
   loadCustomShortcuts: function () {
     const shortcuts = getStorage('my_custom_shortcuts', []);
-    this.setData({ customShortcuts: shortcuts });
+    // 加载用户自创的计时模块（排除默认eyepatch）
+    const timerDefs = getStorage('vision_timer_items', DEFAULT_TIMERS);
+    const todayStr = today();
+    const customTimers = timerDefs
+      .filter(t => t.id !== 'eyepatch')
+      .map(t => {
+        const mins = getStorage(`vision_records_${t.id}`, [])
+          .filter(r => r.date === todayStr)
+          .reduce((s, r) => s + (r.durationMinutes || 0), 0);
+        return { ...t, todayHours: parseFloat((mins / 60).toFixed(1)), targetHours: Math.round(t.targetMins / 60) };
+      });
+    this.setData({ customShortcuts: shortcuts, customTimers });
   },
 
+  goTimer: function () { wx.navigateTo({ url: '/pages/vision/index' }); },
+
   goShortcut: function (e) {
-    const page = e.currentTarget.dataset.page;
-    wx.navigateTo({ url: `/pages/${page}/index` });
+    wx.navigateTo({ url: `/pages/${e.currentTarget.dataset.page}/index` });
+  },
+
+  // ===== 新增计时模块弹窗 =====
+  openNewTimerModal: function () {
+    this.setData({ showNewTimerModal: true, newTimerName: '', newTimerDesc: '', newTimerTargetHours: '1', newTimerIcon: '⏱️' });
+  },
+  closeNewTimerModal: function () { this.setData({ showNewTimerModal: false }); },
+  selectTimerIcon:    function (e) { this.setData({ newTimerIcon: e.currentTarget.dataset.icon }); },
+  onNewTimerInput:    function (e) { this.setData({ [e.currentTarget.dataset.field]: e.detail.value }); },
+
+  saveNewTimerModule: function () {
+    const name = this.data.newTimerName.trim();
+    if (!name) { wx.showToast({ title: '请输入模块标题', icon: 'error' }); return; }
+    const newItem = {
+      id: 'timer_' + Date.now(), name,
+      desc: this.data.newTimerDesc.trim(),
+      targetMins: Math.round((parseFloat(this.data.newTimerTargetHours) || 1) * 60),
+      icon: this.data.newTimerIcon || '⏱️'
+    };
+    const defs = getStorage('vision_timer_items', DEFAULT_TIMERS);
+    defs.push(newItem);
+    wx.setStorageSync('vision_timer_items', defs);
+    const familyId = wx.getStorageSync('user_family_id');
+    if (familyId && wx.cloud) {
+      wx.cloud.callFunction({ name: 'updateFamily', data: { action: 'update', familyId, data: { timer_items: defs } } });
+    }
+    this.setData({ showNewTimerModal: false }, () => { this.loadCustomShortcuts(); wx.showToast({ title: '计时模块已创建', icon: 'success' }); });
+  },
+
+  deleteCustomTimer: function (e) {
+    const id = e.currentTarget.dataset.id;
+    wx.showModal({ title: '删除计时模块', content: '确定要删除此模块及所有历史记录吗？', confirmColor: '#e53e3e',
+      success: (res) => {
+        if (res.confirm) {
+          const defs = getStorage('vision_timer_items', DEFAULT_TIMERS).filter(t => t.id !== id);
+          wx.setStorageSync('vision_timer_items', defs);
+          const familyId = wx.getStorageSync('user_family_id');
+          if (familyId && wx.cloud) {
+            wx.cloud.callFunction({ name: 'updateFamily', data: { action: 'update', familyId, data: { timer_items: defs } } });
+          }
+          this.loadCustomShortcuts();
+        }
+      }
+    });
   },
 
   openShortcutModal: function () {
     const shortcuts = this.data.customShortcuts;
-    // 过滤掉已添加的页面
     const available = AVAILABLE_PAGES.filter(p => !shortcuts.some(s => s.page === p.page));
-    if (available.length === 0) {
-      wx.showToast({ title: '所有页面均已添加', icon: 'none' });
-      return;
-    }
+    if (available.length === 0) { wx.showToast({ title: '所有页面均已添加', icon: 'none' }); return; }
     this.setData({ showShortcutModal: true, newShortcutPage: available[0].page, availablePages: available });
   },
   closeShortcutModal: function () { this.setData({ showShortcutModal: false }); },
