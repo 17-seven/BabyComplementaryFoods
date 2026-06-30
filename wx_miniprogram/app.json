@@ -1,7 +1,7 @@
 {
   "pages": [
-    "pages/login/index",
     "pages/dashboard/index",
+    "pages/login/index",
     "pages/mealplan/index",
     "pages/healthcare/index",
     "pages/timeline/index",

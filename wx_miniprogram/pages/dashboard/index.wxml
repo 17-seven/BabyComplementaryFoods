@@ -1,6 +1,11 @@
 <!--pages/dashboard/index.wxml-->
 <view class="container page-transition">
   
+  <!-- 未登录柔和提示条（非强制，用户可忽略继续浏览） -->
+  <view class="login-hint-bar" wx:if="{{ !isLoggedIn }}" bindtap="goToLogin">
+    <text class="login-hint-text">💡 登录后可开启多端同步与家庭协同 →</text>
+  </view>
+
   <!-- 1. 宝宝名片 Card -->
   <view class="baby-card">
     <view class="baby-header">

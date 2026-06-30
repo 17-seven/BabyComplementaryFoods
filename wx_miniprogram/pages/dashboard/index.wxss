@@ -1,5 +1,21 @@
 /* pages/dashboard/index.wxss */
 
+/* 未登录柔和提示条 */
+.login-hint-bar {
+  background-color: #fffbeb;
+  border: 1rpx solid #fbd38d;
+  border-radius: 16rpx;
+  padding: 20rpx 28rpx;
+  margin-bottom: 20rpx;
+  display: flex;
+  align-items: center;
+}
+.login-hint-text {
+  font-size: 24rpx;
+  color: #b7791f;
+  font-weight: 500;
+}
+
 /* 宝宝名片渐变卡片 */
 .baby-card {
   background: linear-gradient(135deg, #ff9e80 0%, #ff7043 100%);

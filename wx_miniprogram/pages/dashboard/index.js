@@ -11,6 +11,7 @@ Page({
     },
     actualAge: "",
     correctedAge: "",
+    isLoggedIn: false,  // 控制首页登录提示条显示
     
     // 日程提醒
     nextVaccine: null,
@@ -31,13 +32,7 @@ Page({
   },
 
   onShow: function () {
-    // 清除缓存后未登录，强制跳回登录页
-    const isLoggedIn = wx.getStorageSync('user_is_logged_in');
-    const openid = wx.getStorageSync('user_openid');
-    if (!isLoggedIn && !openid) {
-      wx.reLaunch({ url: '/pages/login/index' });
-      return;
-    }
+    // 允许未登录用户游客模式浏览，登录仅在“我的”页面自行选择（微信审核要求）
     this.loadBabyStatus();
   },
 
@@ -137,6 +132,7 @@ Page({
     }
 
     const avatar = getStorage('baby_custom_avatar', '/assets/avatar_default.png');
+    const isLoggedIn = !!(wx.getStorageSync('user_is_logged_in') || wx.getStorageSync('user_openid'));
 
     this.setData({
       babyInfo: {
@@ -156,7 +152,8 @@ Page({
       nextCheckup,
       nextClinical,
       latestMilestone,
-      avatarUrl: avatar
+      avatarUrl: avatar,
+      isLoggedIn: isLoggedIn
     });
   },
 
@@ -172,6 +169,9 @@ Page({
   },
 
   // 页面交互方法
+  goToLogin: function() {
+    wx.navigateTo({ url: '/pages/login/index' });
+  },
   toMealPlan: function() {
     wx.switchTab({ url: '/pages/mealplan/index' });
   },
