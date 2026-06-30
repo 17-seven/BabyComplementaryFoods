@@ -141,7 +141,8 @@ Page({
     const catList = [...this.data.categoryList];
     if (catList.includes(name)) { wx.showToast({ title: '分类已存在', icon: 'none' }); return; }
     catList.push(name);
-    setStorage('timeline_categories', catList);
+    wx.setStorageSync('timeline_categories', catList);  // 直接写本地，不触发syncData
+    this._syncCategoriesToCloud(catList);               // 单独同步到families文档
     this.setData({ newCatName: '', categoryList: catList, categories: ['全部', ...catList], addCategories: catList });
     wx.showToast({ title: '分类已添加', icon: 'success' });
   },
@@ -155,16 +156,16 @@ Page({
       confirmColor: '#e53e3e',
       success: (res) => {
         if (res.confirm) {
-          // 把该分类下的事件移入"未分类"
+          // 把该分类下的事件移入"未分类"（直接写本地，跳过全量云同步避免报错）
           const events = getStorage('baby_timeline_events', []).map(ev =>
             ev.category === name ? { ...ev, category: '未分类' } : ev
           );
-          setStorage('baby_timeline_events', events);
+          wx.setStorageSync('baby_timeline_events', events);  // 直接写，不触发syncData
 
           const catList = this.data.categoryList.filter(c => c !== name);
-          // 确保"未分类"始终存在
           if (!catList.includes('未分类')) catList.push('未分类');
-          setStorage('timeline_categories', catList);
+          wx.setStorageSync('timeline_categories', catList);
+          this._syncCategoriesToCloud(catList);               // 同步分类配置到families文档
 
           const newActive = this.data.activeCategory === name ? '全部' : this.data.activeCategory;
           this.setData({
@@ -174,6 +175,17 @@ Page({
           wx.showToast({ title: '已删除，事件已移入未分类', icon: 'success' });
         }
       }
+    });
+  },
+
+  // 将分类配置同步到 families 文档（无需新建集合）
+  _syncCategoriesToCloud: function (catList) {
+    const familyId = wx.getStorageSync('user_family_id');
+    if (!familyId || !wx.cloud) return;
+    wx.cloud.callFunction({
+      name: 'updateFamily',
+      data: { action: 'update', familyId, data: { timeline_categories: catList } },
+      fail: (err) => { console.warn('timeline_categories 同步失败:', err); }
     });
   }
 });

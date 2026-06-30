@@ -105,6 +105,14 @@ Page({
       if (familyRecord.album_photos) {
         wx.setStorageSync('baby_album_photos', familyRecord.album_photos);
       }
+      // 恢复自定义计时模块配置
+      if (familyRecord.timer_items && familyRecord.timer_items.length > 0) {
+        wx.setStorageSync('vision_timer_items', familyRecord.timer_items);
+      }
+      // 恢复自定义大事记分类配置
+      if (familyRecord.timeline_categories && familyRecord.timeline_categories.length > 0) {
+        wx.setStorageSync('timeline_categories', familyRecord.timeline_categories);
+      }
 
       // 把云函数一次性返回的业务数据直接写入本地 Storage
       const CLOUD_TO_LOCAL = {
