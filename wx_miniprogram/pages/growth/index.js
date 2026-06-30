@@ -39,17 +39,7 @@ Page({
 
   // 加载数据记录
   loadGrowthRecords: function () {
-    const todayStr = today();
-    
-    // 默认发育记录种子数据
-    const defaultRecords = [
-      { id: 1, date: '2026-03-30', height: 68.5, weight: 7.80, head: 42.0, foot: 9.5, note: '6月龄体检测量' },
-      { id: 2, date: '2026-04-30', height: 70.0, weight: 8.20, head: 42.8, foot: 9.8, note: '7月龄体检测量' },
-      { id: 3, date: '2026-05-30', height: 71.5, weight: 8.60, head: 43.5, foot: 10.2, note: '8月龄在家自主测量' },
-      { id: 4, date: '2026-06-30', height: 72.8, weight: 9.00, head: 44.2, foot: 10.5, note: '9月龄医院测量' }
-    ];
-
-    const rawRecords = getStorage('baby_growth_records', defaultRecords);
+    const rawRecords = getStorage('baby_growth_records', []);
     
     // 按日期从小到大排序，用于计算差值
     const sortedChrono = [...rawRecords].sort((a, b) => a.date.localeCompare(b.date));
