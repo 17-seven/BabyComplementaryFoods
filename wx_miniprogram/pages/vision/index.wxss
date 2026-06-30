@@ -192,22 +192,29 @@
 .log-remark { font-size: 20rpx; color: #a0aec0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .log-del   { font-size: 22rpx; color: #e53e3e; padding: 8rpx 16rpx; flex-shrink: 0; }
 
-/* 悬浮按钮（在page-transition容器外） */
-.floating-btn {
+/* 悬浮添加按钮（非 tabBar 页，位置靠近底部） */
+.floating-add-btn {
   position: fixed;
-  right: 36rpx;
-  bottom: 140rpx;
-  width: 100rpx;
-  height: 100rpx;
+  right: 28rpx;
+  bottom: 60rpx;
   background-color: var(--accent-orange);
   color: #ffffff;
-  border-radius: 50%;
-  font-size: 52rpx;
+  border-radius: 48rpx;
+  padding: 18rpx 32rpx;
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 10rpx;
   box-shadow: 0 8rpx 20rpx rgba(255, 112, 67, 0.35);
   z-index: 999;
+}
+.fab-icon {
+  font-size: 36rpx;
+  line-height: 1;
+  font-weight: 700;
+}
+.fab-label {
+  font-size: 26rpx;
+  font-weight: 600;
 }
 
 /* 图标选择器 */

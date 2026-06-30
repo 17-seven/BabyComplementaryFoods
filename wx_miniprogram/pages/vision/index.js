@@ -23,7 +23,7 @@ Page({
   loadAllTimers: function () {
     const defs     = getStorage('vision_timer_items', DEFAULT_TIMERS);
     const todayStr = today();
-    const timerItems = defs.map(t => {
+    const timerItems = defs.filter(t => t.id !== 'eyepatch').map(t => {
       const recordsKey  = t.id === 'eyepatch' ? 'eyepatch_records' : `vision_records_${t.id}`;
       const wearingData = getStorage(`vision_wearing_${t.id}`, { isWearing: false, startTime: null });
       const logs        = getStorage(recordsKey, []);
