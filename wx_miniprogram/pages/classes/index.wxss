@@ -5,50 +5,63 @@
   padding: 24rpx 28rpx;
   margin-bottom: 24rpx;
   background-color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx; /* 增加上下两行的行距 */
 }
 .control-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
-.picker-wrap {
-  display: flex;
-  align-items: center;
-  gap: 8rpx;
-}
 .bar-label {
-  font-size: 26rpx;
+  font-size: 28rpx;
+  font-weight: 800;
+  color: #1e293b;
+}
+.action-buttons {
+  display: flex;
+  gap: 16rpx;
+}
+.action-btn {
+  font-size: 22rpx;
   font-weight: 700;
-  color: #4a5568;
+  padding: 8rpx 18rpx;
+  border-radius: 10rpx;
+}
+.text-primary {
+  color: #16a34a;
+  background-color: #f0fdf4;
+}
+.text-danger {
+  color: #dc2626;
+  background-color: #fef2f2;
+}
+.picker-row {
+  width: 100%;
 }
 .picker-btn {
-  font-size: 26rpx;
-  color: #3182ce;
-  font-weight: 700;
-  padding: 8rpx 16rpx;
-  background-color: #ebf8ff;
-  border-radius: 12rpx;
-}
-.btn-group-sm {
+  width: 100%;
   display: flex;
-  gap: 12rpx;
-}
-.btn-sm-primary {
-  font-size: 22rpx;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 26rpx;
+  color: #2563eb;
   font-weight: 700;
-  color: #ffffff;
-  background: linear-gradient(135deg, #7cb342 0%, #689f38 100%);
-  padding: 10rpx 16rpx;
-  border-radius: 12rpx;
-  box-shadow: 0 4rpx 8rpx rgba(104, 159, 56, 0.2);
+  padding: 14rpx 20rpx;
+  background-color: #eff6ff;
+  border-radius: 14rpx;
+  box-sizing: border-box;
 }
-.btn-sm-danger {
-  font-size: 22rpx;
-  font-weight: 700;
-  color: #ffffff;
-  background-color: #e53e3e;
-  padding: 10rpx 16rpx;
-  border-radius: 12rpx;
+.picker-text {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  max-width: 90%;
+}
+.picker-arrow {
+  color: #3b82f6;
+  font-size: 24rpx;
 }
 .divider {
   height: 1rpx;
@@ -177,20 +190,24 @@
   color: #718096;
   font-weight: 600;
 }
-.picker-field, .form-item input, .disabled-input {
+.picker-field, .form-item input, .disabled-input, .info-tip {
   background-color: #f8fafc;
   border: 1rpx solid #edf2f7;
   border-radius: 16rpx;
-  padding: 18rpx 24rpx;
+  padding: 0 24rpx; /* 对齐全局 input 的左右内边距 */
   font-size: 24rpx;
   color: #334155;
-  height: 38rpx;
-  line-height: 38rpx;
+  height: 88rpx; /* 对齐全局 app.wxss 中定义的 88rpx 高度，消除高度差 */
+  line-height: 88rpx;
   display: flex;
   align-items: center;
   box-sizing: border-box;
+  width: 100%;
 }
-.disabled-input {
+.form-item picker {
+  width: 100%; /* 使 picker 容器撑满父级宽度，与 input 保持一致 */
+}
+.disabled-input, .info-tip {
   background-color: #f1f5f9;
   color: #94a3b8;
 }
@@ -204,14 +221,7 @@
   font-weight: 700;
   color: #4a5568;
 }
-.info-tip {
-  font-size: 22rpx;
-  color: #a0aec0;
-  font-weight: 600;
-  height: 38rpx;
-  display: flex;
-  align-items: center;
-}
+/* 旧的 info-tip 已与 disabled-input 合并，以实现网格高度对齐 */
 .save-btn {
   background: linear-gradient(135deg, #7cb342 0%, #689f38 100%);
   color: #ffffff;

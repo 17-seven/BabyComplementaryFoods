@@ -451,6 +451,18 @@ Page({
               setStorage(localKey, dataArray);
             }
 
+            // 针对 classes 集合导入，自动提取并创建对应的机构档案（到 class_customers），省去手动创建步骤
+            if (collectionName === 'classes' && dataArray.length > 0) {
+              const firstRecord = dataArray[0];
+              const instName = firstRecord.institution_name || '春雨红圆健康管理中心';
+              
+              let customers = getStorage('class_customers', []);
+              if (!customers.some(c => c.id === 'spring_rain')) {
+                customers.push({ id: 'spring_rain', name: instName });
+                setStorage('class_customers', customers);
+              }
+            }
+
             // 2. 尝试向云数据库中写入（调用 syncData 覆盖式同步，去重且物理同步删除）
             let cloudSuccess = true;
             let cloudErrMsg = '';
@@ -469,7 +481,14 @@ Page({
               });
               if (!syncRes.result || !syncRes.result.success) {
                 cloudSuccess = false;
-                cloudErrMsg = syncRes.result && syncRes.result.error || '云端同步处理失败';
+                if (syncRes.result && Array.isArray(syncRes.result.errors) && syncRes.result.errors.length > 0) {
+                  // 取前 3 个错误输出展示，避免长列表撑爆 UI
+                  const topErrors = syncRes.result.errors.slice(0, 3).map(e => `${e.syncId || '未知'}: ${e.error}`);
+                  cloudErrMsg = topErrors.join('; ');
+                  if (syncRes.result.errors.length > 3) cloudErrMsg += ` (共 ${syncRes.result.errors.length} 个错误)`;
+                } else {
+                  cloudErrMsg = syncRes.result && syncRes.result.error || '云端同步处理失败';
+                }
               }
             } catch (cloudErr) {
               console.error(`同步写入云端数据库 ${collectionName} 失败：`, cloudErr);

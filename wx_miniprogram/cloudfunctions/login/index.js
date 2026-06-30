@@ -64,7 +64,7 @@ exports.main = async (event, context) => {
         try {
           const result = await db.collection(collName).where({
             family_id: familyId
-          }).limit(100).get();
+          }).limit(1000).get(); // 提高限制到 1000 条，防止长数据（如 classes 有 125 条）被截断丢失
           if (result.data && result.data.length > 0) {
             businessData[collName] = result.data;
           }

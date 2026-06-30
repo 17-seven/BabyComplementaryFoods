@@ -99,7 +99,18 @@ Page({
     const records = getStorage(`class_records_${customerId}`, []);
     const sortedRecords = records.sort((a, b) => a.date.localeCompare(b.date));
     
-    this.setData({ customerRecords: sortedRecords }, () => {
+    // 自动提取最后一次上课的教师、课时和费用作为默认填入值，避免重复录入
+    const lastAttended = [...sortedRecords].reverse().find(r => r.attended);
+    const defaultTeacher = lastAttended ? lastAttended.teacher : '';
+    const defaultSessions = lastAttended ? lastAttended.sessions : 2;
+    const defaultCost = lastAttended ? lastAttended.cost : 240;
+
+    this.setData({ 
+      customerRecords: sortedRecords,
+      formTeacher: defaultTeacher,
+      formSessions: defaultSessions,
+      formCost: defaultCost
+    }, () => {
       this.calculateStats();
       this.precalculateFormBalance();
     });
@@ -267,17 +278,13 @@ Page({
           
           wx.showToast({ title: '保存成功', icon: 'success' });
           
-          // 重置表单状态
+          // 重置表单状态，保留授课老师、课节数和费用（由 loadActiveCustomerRecords 从最新数据中自动填充）
           this.setData({
             formDate: today(),
             formDayName: this.getDayName(today()),
             formAttended: true,
-            formTeacher: '',
-            formSessions: 2,
-            formCost: 0,
             formTopup: 0,
             formNote: '',
-            formAveragePrice: 0
           }, () => {
             this.loadActiveCustomerRecords();
           });
@@ -325,7 +332,8 @@ Page({
       return;
     }
 
-    const id = `customer_${Date.now()}`;
+    // 若用户手动创建了“春雨”、“春雨教育”、“春雨 (默认)”或“春雨红圆健康管理中心”，其 ID 必须设为 'spring_rain' 以对齐导入的历史打卡记录
+    const id = (name === '春雨' || name === '春雨教育' || name === '春雨 (默认)' || name === '春雨红圆健康管理中心') ? 'spring_rain' : `customer_${Date.now()}`;
     const list = [...this.data.customers];
     list.push({ id, name });
 

@@ -21,7 +21,7 @@ exports.main = async (event, context) => {
   let successCount = 0;
   const errors = [];
 
-  // 同步物理删除：删除云端存在但客户端已删除的历史数据
+  // 1. 同步物理删除：删除云端存在但客户端已删除的历史数据
   try {
     const activeSyncIds = records
       .map(item => {
@@ -45,38 +45,59 @@ exports.main = async (event, context) => {
     console.warn('[syncData] 同步物理删除失败:', err);
   }
 
-  for (const item of records) {
-    // 唯一标识：优先 id 字段，其次用 name（食材等场景）
-    const rawId = item.id !== undefined ? item.id : item.name;
-    const syncId = rawId !== undefined && rawId !== null ? String(rawId) : null;
+  // 2. 一次性获取云端该家庭在该集合的所有记录，构建 sync_id -> _id 的映射，避免循环中进行 get 查询
+  let existingMap = new Map();
+  try {
+    // 考虑数据可能较多，云函数端一次性 get 限制为 1000 条，对种子数据同步完全足够
+    const res = await db.collection(collection).where({
+      family_id: familyId
+    }).limit(1000).get();
+    
+    if (res.data) {
+      for (const rec of res.data) {
+        if (rec.sync_id) {
+          existingMap.set(String(rec.sync_id), rec._id);
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('[syncData] 批量获取已有记录失败:', err);
+  }
 
-    try {
-      if (syncId) {
-        // 查询是否已存在同步记录
-        const existing = await db.collection(collection).where({
-          family_id: familyId,
-          sync_id: syncId
-        }).limit(1).get();
+  // 3. 分批并行执行添加或更新操作，避免一次性并发过多请求导致底层数据库连接池阻塞
+  const BATCH_SIZE = 20;
+  for (let i = 0; i < records.length; i += BATCH_SIZE) {
+    const batch = records.slice(i, i + BATCH_SIZE);
+    const batchTasks = batch.map(async (item) => {
+      const rawId = item.id !== undefined ? item.id : item.name;
+      const syncId = rawId !== undefined && rawId !== null ? String(rawId) : null;
 
-        if (existing.data && existing.data.length > 0) {
-          await db.collection(collection).doc(existing.data[0]._id).update({
-            data: { ...item, family_id: familyId, sync_id: syncId, sync_time: new Date() }
-          });
+      try {
+        if (syncId) {
+          const existingDocId = existingMap.get(syncId);
+          if (existingDocId) {
+            await db.collection(collection).doc(existingDocId).update({
+              data: { ...item, family_id: familyId, sync_id: syncId, sync_time: new Date() }
+            });
+          } else {
+            await db.collection(collection).add({
+              data: { ...item, family_id: familyId, sync_id: syncId, sync_time: new Date() }
+            });
+          }
         } else {
+          // 无唯一标识，直接追加
           await db.collection(collection).add({
-            data: { ...item, family_id: familyId, sync_id: syncId, sync_time: new Date() }
+            data: { ...item, family_id: familyId, sync_time: new Date() }
           });
         }
-      } else {
-        // 无唯一标识，直接追加
-        await db.collection(collection).add({
-          data: { ...item, family_id: familyId, sync_time: new Date() }
-        });
+        successCount++;
+      } catch (e) {
+        errors.push({ syncId, error: e.message || String(e) });
       }
-      successCount++;
-    } catch (e) {
-      errors.push({ syncId, error: e.message || String(e) });
-    }
+    });
+
+    // 等待当前批次完成，再进行下一批，确保平稳高效
+    await Promise.all(batchTasks);
   }
 
   return {

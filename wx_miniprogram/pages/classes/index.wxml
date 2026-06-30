@@ -4,18 +4,19 @@
   <!-- 1. 机构选择与管理控制卡片 -->
   <view class="card control-bar">
     <view class="control-row">
-      <view class="picker-wrap">
-        <text class="bar-label">机构：</text>
-        <picker mode="selector" range="{{ customers }}" range-key="name" bindchange="onCustomerChange">
-          <view class="picker-btn">
-            {{ activeCustomerName || '暂无机构 (点击新建)' }} ▾
-          </view>
-        </picker>
+      <text class="bar-label">上课机构</text>
+      <view class="action-buttons">
+        <view class="action-btn text-primary" hover-class="btn-hover" bindtap="openAddCustomerModal">➕ 新建机构</view>
+        <view class="action-btn text-danger" hover-class="btn-hover" bindtap="deleteActiveCustomer" wx:if="{{ activeCustomerId }}">🗑️ 删除机构</view>
       </view>
-      <view class="btn-group-sm">
-        <view class="btn-sm-primary" hover-class="btn-hover" bindtap="openAddCustomerModal">➕ 新建机构</view>
-        <view class="btn-sm-danger" hover-class="btn-hover" bindtap="deleteActiveCustomer" wx:if="{{ activeCustomerId }}">🗑️ 删除机构</view>
-      </view>
+    </view>
+    <view class="picker-row">
+      <picker mode="selector" range="{{ customers }}" range-key="name" bindchange="onCustomerChange" style="width: 100%;">
+        <view class="picker-btn">
+          <text class="picker-text">{{ activeCustomerName || '暂无机构 (点击新建)' }}</text>
+          <text class="picker-arrow">▾</text>
+        </view>
+      </picker>
     </view>
   </view>
 
