@@ -154,6 +154,22 @@
       <text class="modal-close" bindtap="closeNewTimerModal">✕</text>
     </view>
     <view class="modal-body">
+      <!-- 模块类型选择 -->
+      <view class="form-item">
+        <text class="lbl">模块类型</text>
+        <view class="type-selector-row">
+          <view class="type-option {{ newTimerType === 'timer' ? 'type-option-active' : '' }}" bindtap="setNewTimerType" data-type="timer">
+            <text class="type-option-icon">⏱️</text>
+            <text class="type-option-name">计时器</text>
+            <text class="type-option-desc">开始/停止自动计时</text>
+          </view>
+          <view class="type-option {{ newTimerType === 'range' ? 'type-option-active' : '' }}" bindtap="setNewTimerType" data-type="range">
+            <text class="type-option-icon">📅</text>
+            <text class="type-option-name">时间段</text>
+            <text class="type-option-desc">填写开始~结束时间</text>
+          </view>
+        </view>
+      </view>
       <!-- 图标选择 -->
       <view class="form-item">
         <text class="lbl">选择图标</text>

@@ -40,6 +40,7 @@ Page({
     // 新增计时模块弹窗
     showNewTimerModal: false,
     newTimerName: '', newTimerDesc: '', newTimerTargetHours: '1', newTimerIcon: '⏱️',
+    newTimerType: 'timer',
     timerIconOptions: TIMER_ICONS,
     // 页面快捷方式弹窗
     showShortcutModal: false,
@@ -162,10 +163,11 @@ Page({
 
   // ===== 新增计时模块弹窗 =====
   openNewTimerModal: function () {
-    this.setData({ showNewTimerModal: true, newTimerName: '', newTimerDesc: '', newTimerTargetHours: '1', newTimerIcon: '⏱️' });
+    this.setData({ showNewTimerModal: true, newTimerName: '', newTimerDesc: '', newTimerTargetHours: '1', newTimerIcon: '⏱️', newTimerType: 'timer' });
   },
   closeNewTimerModal: function () { this.setData({ showNewTimerModal: false }); },
   selectTimerIcon:    function (e) { this.setData({ newTimerIcon: e.currentTarget.dataset.icon }); },
+  setNewTimerType:    function (e) { this.setData({ newTimerType: e.currentTarget.dataset.type }); },
   onNewTimerInput:    function (e) { this.setData({ [e.currentTarget.dataset.field]: e.detail.value }); },
 
   saveNewTimerModule: function () {
@@ -175,7 +177,8 @@ Page({
       id: 'timer_' + Date.now(), name,
       desc: this.data.newTimerDesc.trim(),
       targetMins: Math.round((parseFloat(this.data.newTimerTargetHours) || 1) * 60),
-      icon: this.data.newTimerIcon || '⏱️'
+      icon: this.data.newTimerIcon || '⏱️',
+      type: this.data.newTimerType || 'timer'
     };
     const defs = getStorage('vision_timer_items', DEFAULT_TIMERS);
     defs.push(newItem);

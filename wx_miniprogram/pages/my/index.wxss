@@ -110,6 +110,28 @@
 }
 .icon-opt-sel { border-color: var(--primary-color); background: #e6fffa; }
 
+/* 计时模块类型选择器 */
+.type-selector-row {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 12rpx;
+}
+.type-option {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20rpx 12rpx;
+  border: 2rpx solid #edf2f7;
+  border-radius: 16rpx;
+  background: #f7f9fc;
+  gap: 6rpx;
+}
+.type-option-active { border-color: #38a169; background: #f0fdf4; }
+.type-option-icon { font-size: 36rpx; line-height: 1; }
+.type-option-name { font-size: 26rpx; font-weight: 700; color: #2d3748; }
+.type-option-desc { font-size: 20rpx; color: #a0aec0; text-align: center; }
+
 /* 个人信息头 */
 .my-profile-header {
   display: flex;
