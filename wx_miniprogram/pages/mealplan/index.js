@@ -177,7 +177,17 @@ Page({
     const notes = { ...this.data.notes };
     notes[date] = val;
     this.setData({ notes });
-    setStorage('meal_day_notes', notes);
+    // 本地保存
+    wx.setStorageSync('meal_day_notes', notes);
+    // 同步到云端 families 文档（与 timer_items、timeline_categories 方式一致）
+    const familyId = wx.getStorageSync('user_family_id');
+    if (familyId && wx.cloud) {
+      wx.cloud.callFunction({
+        name: 'updateFamily',
+        data: { action: 'update', familyId, data: { meal_day_notes: notes } },
+        fail: (err) => { console.warn('meal_day_notes 同步失败:', err); }
+      });
+    }
   },
 
   // 就地修改特定辅食食谱菜品

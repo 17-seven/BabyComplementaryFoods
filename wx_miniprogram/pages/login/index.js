@@ -113,6 +113,10 @@ Page({
       if (familyRecord.timeline_categories && familyRecord.timeline_categories.length > 0) {
         wx.setStorageSync('timeline_categories', familyRecord.timeline_categories);
       }
+      // 恢复辅食备注
+      if (familyRecord.meal_day_notes && Object.keys(familyRecord.meal_day_notes).length > 0) {
+        wx.setStorageSync('meal_day_notes', familyRecord.meal_day_notes);
+      }
 
       // 把云函数一次性返回的业务数据直接写入本地 Storage
       const CLOUD_TO_LOCAL = {
