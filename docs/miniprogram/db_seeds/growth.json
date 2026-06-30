@@ -1,6 +1,209 @@
 [
-  { "id": 1, "date": "2026-03-30", "height": 68.5, "weight": 7.80, "head": 42.0, "foot": 9.5, "note": "6月龄体检测量" },
-  { "id": 2, "date": "2026-04-30", "height": 70.0, "weight": 8.20, "head": 42.8, "foot": 9.8, "note": "7月龄体检测量" },
-  { "id": 3, "date": "2026-05-30", "height": 71.5, "weight": 8.60, "head": 43.5, "foot": 10.2, "note": "8月龄在家自主测量" },
-  { "id": 4, "date": "2026-06-30", "height": 72.8, "weight": 9.00, "head": 44.2, "foot": 10.5, "note": "9月龄医院测量" }
+  {
+    "id": 1,
+    "date": "2024-04-18",
+    "height": null,
+    "weight": 7.7,
+    "head": null,
+    "foot": null,
+    "note": ""
+  },
+  {
+    "id": 2,
+    "date": "2024-04-20",
+    "height": null,
+    "weight": 7.7,
+    "head": null,
+    "foot": null,
+    "note": ""
+  },
+  {
+    "id": 3,
+    "date": "2024-04-22",
+    "height": 71.0,
+    "weight": 7.55,
+    "head": 40.3,
+    "foot": null,
+    "note": ""
+  },
+  {
+    "id": 4,
+    "date": "2024-04-24",
+    "height": null,
+    "weight": 7.675,
+    "head": null,
+    "foot": null,
+    "note": ""
+  },
+  {
+    "id": 5,
+    "date": "2024-04-26",
+    "height": null,
+    "weight": 8.145,
+    "head": null,
+    "foot": null,
+    "note": ""
+  },
+  {
+    "id": 6,
+    "date": "2024-04-28",
+    "height": 71.0,
+    "weight": 7.825,
+    "head": 40.3,
+    "foot": null,
+    "note": ""
+  },
+  {
+    "id": 7,
+    "date": "2024-04-30",
+    "height": null,
+    "weight": 7.675,
+    "head": null,
+    "foot": null,
+    "note": ""
+  },
+  {
+    "id": 8,
+    "date": "2024-05-02",
+    "height": 72.0,
+    "weight": 7.5,
+    "head": 39.5,
+    "foot": null,
+    "note": ""
+  },
+  {
+    "id": 9,
+    "date": "2024-05-04",
+    "height": null,
+    "weight": 7.55,
+    "head": null,
+    "foot": null,
+    "note": ""
+  },
+  {
+    "id": 10,
+    "date": "2024-05-06",
+    "height": 72.0,
+    "weight": 7.65,
+    "head": 39.5,
+    "foot": null,
+    "note": ""
+  },
+  {
+    "id": 11,
+    "date": "2024-05-08",
+    "height": 72.5,
+    "weight": 7.6,
+    "head": 39.5,
+    "foot": null,
+    "note": ""
+  },
+  {
+    "id": 12,
+    "date": "2024-05-10",
+    "height": 72.5,
+    "weight": 7.4,
+    "head": 39.2,
+    "foot": null,
+    "note": ""
+  },
+  {
+    "id": 13,
+    "date": "2024-05-12",
+    "height": null,
+    "weight": 7.5,
+    "head": null,
+    "foot": null,
+    "note": ""
+  },
+  {
+    "id": 14,
+    "date": "2024-05-14",
+    "height": null,
+    "weight": 7.545,
+    "head": null,
+    "foot": null,
+    "note": ""
+  },
+  {
+    "id": 15,
+    "date": "2024-05-16",
+    "height": 72.0,
+    "weight": null,
+    "head": 39.0,
+    "foot": null,
+    "note": ""
+  },
+  {
+    "id": 16,
+    "date": "2024-05-18",
+    "height": null,
+    "weight": 7.465,
+    "head": null,
+    "foot": null,
+    "note": ""
+  },
+  {
+    "id": 17,
+    "date": "2024-05-20",
+    "height": null,
+    "weight": 7.555,
+    "head": null,
+    "foot": null,
+    "note": ""
+  },
+  {
+    "id": 18,
+    "date": "2024-05-22",
+    "height": 72.8,
+    "weight": 7.595,
+    "head": 39.0,
+    "foot": null,
+    "note": ""
+  },
+  {
+    "id": 19,
+    "date": "2024-05-24",
+    "height": null,
+    "weight": 7.565,
+    "head": null,
+    "foot": null,
+    "note": ""
+  },
+  {
+    "id": 20,
+    "date": "2024-05-26",
+    "height": null,
+    "weight": 7.545,
+    "head": null,
+    "foot": null,
+    "note": ""
+  },
+  {
+    "id": 21,
+    "date": "2024-05-28",
+    "height": null,
+    "weight": 7.5,
+    "head": null,
+    "foot": null,
+    "note": ""
+  },
+  {
+    "id": 22,
+    "date": "2024-05-30",
+    "height": 73.0,
+    "weight": 7.55,
+    "head": 38.7,
+    "foot": null,
+    "note": ""
+  },
+  {
+    "id": 23,
+    "date": "2024-06-01",
+    "height": null,
+    "weight": 7.7,
+    "head": null,
+    "foot": null,
+    "note": ""
+  }
 ]
