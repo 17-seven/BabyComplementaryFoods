@@ -35,18 +35,50 @@
         <view class="progress-bar {{ item.isWearing ? 'bar-orange' : 'bar-green' }}" style="width: {{ item.progress }}%"></view>
       </view>
 
-      <!-- 开始/停止大按钮 -->
-      <button class="tc-action-btn {{ item.isWearing ? 'btn-stop' : 'btn-start' }}" bindtap="toggleTimer" data-id="{{ item.id }}">
-        {{ item.isWearing ? '⏹ 停止计时' : '▶ 开始计时' }}
-      </button>
+      <!-- 开始/停止大按钮（计时器专用） -->
+      <block wx:if="{{ item.type !== 'range' }}">
+        <button class="tc-action-btn {{ item.isWearing ? 'btn-stop' : 'btn-start' }}" bindtap="toggleTimer" data-id="{{ item.id }}">
+          {{ item.isWearing ? '⏹ 停止计时' : '▶ 开始计时' }}
+        </button>
 
-      <!-- 手动补录 -->
-      <view class="tc-manual-row">
-        <input class="tc-manual-input" type="number" placeholder="补录分钟数..."
-          value="{{ manualInputs[item.id] || '' }}"
-          bindinput="onManualInput" data-id="{{ item.id }}" />
-        <button class="tc-manual-btn" bindtap="addManual" data-id="{{ item.id }}">补录</button>
-      </view>
+        <!-- 手动补录 -->
+        <view class="tc-manual-row">
+          <input class="tc-manual-input" type="number" placeholder="补录分钟数..."
+            value="{{ manualInputs[item.id] || '' }}"
+            bindinput="onManualInput" data-id="{{ item.id }}" />
+          <button class="tc-manual-btn" bindtap="addManual" data-id="{{ item.id }}">补录</button>
+        </view>
+      </block>
+
+      <!-- 时间段录入（range 类型专用） -->
+      <block wx:if="{{ item.type === 'range' && item._draft }}">
+        <view class="range-input-section">
+          <view class="range-row">
+            <view class="range-field">
+              <text class="range-lbl">日期</text>
+              <picker mode="date" value="{{ item._draft.date }}" bindchange="onRangeInput" data-id="{{ item.id }}" data-field="date">
+                <view class="range-picker-btn">{{ item._draft.date || '选择日期' }}</view>
+              </picker>
+            </view>
+          </view>
+          <view class="range-row">
+            <view class="range-field">
+              <text class="range-lbl">开始</text>
+              <picker mode="time" value="{{ item._draft.startTime }}" bindchange="onRangeInput" data-id="{{ item.id }}" data-field="startTime">
+                <view class="range-picker-btn {{ item._draft.startTime ? 'picker-has-val' : '' }}">{{ item._draft.startTime || '选择时间' }}</view>
+              </picker>
+            </view>
+            <text class="range-arrow">→</text>
+            <view class="range-field">
+              <text class="range-lbl">结束</text>
+              <picker mode="time" value="{{ item._draft.endTime }}" bindchange="onRangeInput" data-id="{{ item.id }}" data-field="endTime">
+                <view class="range-picker-btn {{ item._draft.endTime ? 'picker-has-val' : '' }}">{{ item._draft.endTime || '选择时间' }}</view>
+              </picker>
+            </view>
+          </view>
+          <button class="tc-action-btn btn-start" bindtap="addRangeRecord" data-id="{{ item.id }}">＋ 添加时间段记录</button>
+        </view>
+      </block>
 
       <!-- 历史记录折叠面板 -->
       <view class="tc-history-toggle" bindtap="toggleHistory" data-id="{{ item.id }}">
@@ -58,8 +90,14 @@
         <view class="tc-log-item" wx:for="{{ item.logs }}" wx:key="id" wx:for-item="log">
           <view class="log-left">
             <text class="log-date">{{ log.date }}</text>
-            <text class="log-mins">{{ log.durationMinutes }}分钟</text>
-            <text class="log-remark">{{ log.remark }}</text>
+            <block wx:if="{{ log.startTime }}">
+              <text class="log-range">{{ log.startTime }}→{{ log.endTime }}</text>
+              <text class="log-mins">{{ log.durationMinutes }}分钟</text>
+            </block>
+            <block wx:else>
+              <text class="log-mins">{{ log.durationMinutes }}分钟</text>
+              <text class="log-remark">{{ log.remark }}</text>
+            </block>
           </view>
           <text class="log-del" bindtap="deleteLog" data-id="{{ item.id }}" data-logid="{{ log.id }}">✕</text>
         </view>
@@ -90,6 +128,23 @@
       <text class="modal-close" bindtap="closeAddModal">✕</text>
     </view>
     <view class="modal-body">
+
+      <!-- 模块类型选择 -->
+      <view class="form-item">
+        <text class="lbl">模块类型</text>
+        <view class="type-selector-row">
+          <view class="type-option {{ newType === 'timer' ? 'type-option-active' : '' }}" bindtap="setNewType" data-type="timer">
+            <text class="type-option-icon">⏱️</text>
+            <text class="type-option-name">计时器</text>
+            <text class="type-option-desc">开始/停止自动计时</text>
+          </view>
+          <view class="type-option {{ newType === 'range' ? 'type-option-active' : '' }}" bindtap="setNewType" data-type="range">
+            <text class="type-option-icon">📅</text>
+            <text class="type-option-name">时间段</text>
+            <text class="type-option-desc">填写开始~结束时间</text>
+          </view>
+        </view>
+      </view>
 
       <!-- 图标选择 -->
       <view class="form-item">

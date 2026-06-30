@@ -15,6 +15,7 @@ Page({
     manualInputs: {},
     showAddModal: false,
     newName: '', newDesc: '', newIcon: '⏱️', newTargetHours: '4',
+    newType: 'timer',
     iconOptions: ICON_OPTIONS
   },
 
@@ -141,7 +142,8 @@ Page({
   },
 
   selectIcon: function (e) { this.setData({ newIcon: e.currentTarget.dataset.icon }); },
-  openAddModal: function () { this.setData({ showAddModal: true, newName: '', newDesc: '', newIcon: '⏱️', newTargetHours: '4' }); },
+  setNewType: function (e) { this.setData({ newType: e.currentTarget.dataset.type }); },
+  openAddModal: function () { this.setData({ showAddModal: true, newName: '', newDesc: '', newIcon: '⏱️', newTargetHours: '4', newType: 'timer' }); },
   closeAddModal: function () { this.setData({ showAddModal: false }); },
   onNewInput: function (e) { this.setData({ [e.currentTarget.dataset.field]: e.detail.value }); },
 
@@ -152,12 +154,39 @@ Page({
       id: 'timer_' + Date.now(), name,
       desc: this.data.newDesc.trim(),
       targetMins: Math.round((parseFloat(this.data.newTargetHours) || 1) * 60),
-      icon: this.data.newIcon || '⏱️'
+      icon: this.data.newIcon || '⏱️',
+      type: this.data.newType || 'timer'
     };
     const defs = getStorage('vision_timer_items', DEFAULT_TIMERS);
     defs.push(newItem);
     setStorage('vision_timer_items', defs);
     this.setData({ showAddModal: false }, () => { this.loadAllTimers(); wx.showToast({ title: '模块已添加', icon: 'success' }); });
+  },
+
+  // ===== 时间段记录（range 类型专用） =====
+  onRangeInput: function (e) {
+    const { id, field } = e.currentTarget.dataset;
+    const idx = this.data.timerItems.findIndex(t => t.id === id);
+    if (idx < 0) return;
+    this.setData({ [`timerItems[${idx}]._draft.${field}`]: e.detail.value });
+  },
+
+  addRangeRecord: function (e) {
+    const id   = e.currentTarget.dataset.id;
+    const item = this.data.timerItems.find(t => t.id === id);
+    if (!item || !item._draft) return;
+    const { date, startTime, endTime } = item._draft;
+    if (!startTime || !endTime) { wx.showToast({ title: '请选择开始和结束时间', icon: 'error' }); return; }
+    const [sh, sm] = startTime.split(':').map(Number);
+    const [eh, em] = endTime.split(':').map(Number);
+    const mins = (eh * 60 + em) - (sh * 60 + sm);
+    if (mins <= 0) { wx.showToast({ title: '结束时间须晚于开始时间', icon: 'error' }); return; }
+    const recordsKey = `vision_records_${id}`;
+    const logs = getStorage(recordsKey, []);
+    logs.push({ id: Date.now(), date: date || today(), startTime, endTime, durationMinutes: mins, remark: `${startTime}~${endTime}` });
+    setStorage(recordsKey, logs);
+    this.loadAllTimers();
+    wx.showToast({ title: `已记录 ${mins} 分钟`, icon: 'success' });
   },
 
   deleteTimer: function (e) {
