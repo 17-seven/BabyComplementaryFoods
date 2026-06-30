@@ -1,7 +1,6 @@
 // pages/my/index.js
 const { calculateBabyAge } = require('../../utils/babyHelper.js');
-const { getStorage, setStorage } = require('../../utils/storage.js');
-const { today } = require('../../utils/storage.js');
+const { getStorage, setStorage, today } = require('../../utils/storage.js');
 
 // 默认计时模块（与 vision 页保持同步）
 const DEFAULT_TIMERS = [
