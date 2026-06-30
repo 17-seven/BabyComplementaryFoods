@@ -132,6 +132,29 @@
 .type-option-name { font-size: 26rpx; font-weight: 700; color: #2d3748; }
 .type-option-desc { font-size: 20rpx; color: #a0aec0; text-align: center; }
 
+/* 头像编辑 */
+.avatar-edit-wrap { position: relative; flex-shrink: 0; }
+.avatar-edit-badge {
+  position: absolute; bottom: 0; right: 0;
+  background: #38a169; color: #fff; font-size: 18rpx;
+  border-radius: 50%; width: 36rpx; height: 36rpx;
+  display: flex; align-items: center; justify-content: center;
+}
+.edit-profile-link {
+  font-size: 22rpx; color: #38a169; font-weight: 600;
+  padding: 2rpx 14rpx; border: 1rpx solid #c6f6d5; border-radius: 20rpx; flex-shrink: 0;
+}
+.edit-avatar-section {
+  display: flex; flex-direction: column; align-items: center;
+  margin-bottom: 24rpx; gap: 16rpx;
+}
+.edit-avatar-img { width: 120rpx; height: 120rpx; border-radius: 50%; border: 3rpx solid #c6f6d5; }
+.edit-avatar-btn {
+  background: #f7f9fc; color: #4a5568; font-size: 24rpx;
+  border: 1rpx solid #edf2f7; border-radius: 12rpx;
+  padding: 0 24rpx; height: 64rpx; line-height: 64rpx;
+}
+
 /* 个人信息头 */
 .my-profile-header {
   display: flex;

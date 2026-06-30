@@ -36,10 +36,7 @@ Page({
 
   loadBowelLogs: function () {
     const todayStr = today();
-    const defaultLogs = [
-      { id: 1, date: todayStr, status: '正常糊状', color: '黄色', dryness: '适中', hasBlood: false, remark: '吃乳果糖后排便顺畅' }
-    ];
-    const logs = getStorage('bowel_records', defaultLogs);
+    const logs = getStorage('bowel_records', []);
     
     // 过滤出今天的数量
     const todayLogs = logs.filter(l => l.date === todayStr);

@@ -195,7 +195,8 @@
 /* 环形边框颜色 */
 .ring-green { border-color: #c6f6d5; color: #2f855a; }
 .ring-blue { border-color: #bee3f8; color: #2b6cb0; }
-.ring-teal { border-color: #e6fffa; color: #319795; }
+.ring-teal   { border-color: #e6fffa; color: #319795; }
+.ring-purple { border-color: #e9d8fd; color: #6b46c1; }
 .ring-orange { border-color: #feebc8; color: #dd6b20; }
 
 /* 大事记卡片 */
@@ -242,3 +243,18 @@
   margin-top: 6rpx;
   line-height: 1.5;
 }
+
+/* 近7日趋势条形图 */
+.week-chart-card { padding: 24rpx; margin-bottom: 30rpx; }
+.wc-row { margin-bottom: 0; }
+.wc-divider { margin-top: 24rpx; padding-top: 24rpx; border-top: 1rpx solid #f0f4f8; }
+.wc-label { font-size: 24rpx; color: #718096; font-weight: 600; display: block; margin-bottom: 14rpx; }
+.wc-bars { display: flex; align-items: flex-end; gap: 6rpx; }
+.wc-col { flex: 1; display: flex; flex-direction: column; align-items: center; }
+.wc-bar-wrap { width: 100%; height: 80rpx; display: flex; align-items: flex-end; justify-content: center; }
+.wc-bar { width: 26rpx; border-radius: 6rpx 6rpx 0 0; min-height: 0; }
+.wc-milk  { background: #38a169; }
+.wc-water { background: #3182ce; }
+.wc-bowel { background: #dd6b20; }
+.wc-day { font-size: 18rpx; color: #a0aec0; margin-top: 6rpx; }
+.wc-val { font-size: 16rpx; color: #718096; font-weight: 600; margin-top: 2rpx; }

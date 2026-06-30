@@ -8,10 +8,11 @@ const GUEST_DATA = {
   actualAge: '0月0天', correctedAge: '', isPremature: false,
   isLoggedIn: false,
   nextVaccine: null, nextCheckup: null, nextClinical: null,
-  milkVal: 0, milkProgress: 0, waterVal: 0, bowelCount: 0,
+  milkVal: 0, milkProgress: 0, waterVal: 0, bowelCount: 0, sleepVal: 0, sleepTarget: 12,
   timerItems: [{ id: 'sleep_demo', name: '睡眠记录', icon: '😴', targetHours: 12, todayHours: 0, progress: 0 }],
   latestMilestone: null,
-  avatarUrl: '/assets/avatar_default.png'
+  avatarUrl: '/assets/avatar_default.png',
+  weekStats: []
 };
 
 Page({
@@ -21,10 +22,11 @@ Page({
     isLoggedIn: false,
     animKey: 0,
     nextVaccine: null, nextCheckup: null, nextClinical: null,
-    milkProgress: 0, milkVal: 0, waterVal: 0, bowelCount: 0,
+    milkProgress: 0, milkVal: 0, waterVal: 0, bowelCount: 0, sleepVal: 0, sleepTarget: 12,
     timerItems: [],
     latestMilestone: null,
-    avatarUrl: '/assets/avatar_default.png'
+    avatarUrl: '/assets/avatar_default.png',
+    weekStats: []
   },
 
   _liveTimer: null,
@@ -96,6 +98,39 @@ Page({
     const todayMilk  = milkRecs.filter(r => r.type === 'milk').reduce((s, r) => s + (r.amount || 0), 0);
     const todayWater = milkRecs.filter(r => r.type === 'water').reduce((s, r) => s + (r.amount || 0), 0);
     const todayBowel = getStorage('bowel_records', []).filter(r => r.date === todayStr).length;
+    const todaySleepMins = getStorage('baby_sleep_records', []).filter(r => r.date === todayStr).reduce((s, r) => s + (r.durationMinutes || 0), 0);
+    const todaySleepHours = parseFloat((todaySleepMins / 60).toFixed(1));
+
+    // 本周（周一~周日）趋势统计
+    const _allMilk  = getStorage('milk_water_records', []);
+    const _allBowel = getStorage('bowel_records', []);
+    const _weekLabels = ['一', '二', '三', '四', '五', '六', '日'];
+    const _now = new Date();
+    const _dow = _now.getDay(); // 0=周日 1=周一 ... 6=周六
+    const _mondayOffset = _dow === 0 ? -6 : 1 - _dow; // 偏移到本周一
+    const _monday = new Date(_now);
+    _monday.setDate(_now.getDate() + _mondayOffset);
+    const _weekDays = [];
+    for (let i = 0; i < 7; i++) {
+      const _d = new Date(_monday);
+      _d.setDate(_monday.getDate() + i);
+      _weekDays.push(_d.toISOString().slice(0, 10));
+    }
+    const _raw = _weekDays.map((date, i) => {
+      const milk  = _allMilk.filter(r => r.date === date && r.type === 'milk').reduce((s, r) => s + (r.amount || 0), 0);
+      const water = _allMilk.filter(r => r.date === date && r.type === 'water').reduce((s, r) => s + (r.amount || 0), 0);
+      const bowel = _allBowel.filter(r => r.date === date).length;
+      return { date, label: _weekLabels[i], milk, water, bowel };
+    });
+    const mxMilk  = Math.max(..._raw.map(s => s.milk),  1);
+    const mxWater = Math.max(..._raw.map(s => s.water), 1);
+    const mxBowel = Math.max(..._raw.map(s => s.bowel), 1);
+    const weekStats = _raw.map(s => ({
+      ...s,
+      milkH:  Math.max(Math.round((s.milk  / mxMilk)  * 80), s.milk  > 0 ? 6 : 0),
+      waterH: Math.max(Math.round((s.water / mxWater) * 80), s.water > 0 ? 6 : 0),
+      bowelH: Math.max(Math.round((s.bowel / mxBowel) * 80), s.bowel > 0 ? 6 : 0)
+    }));
 
     // 可扩展计时项（只展示用户自创的，排除默认眼罩模块）
     const defaultTimers = [{ id: 'eyepatch', name: '眼罩遮盖', icon: '👁️', targetMins: 240 }];
@@ -170,10 +205,13 @@ Page({
       milkProgress: Math.min(Math.round((todayMilk / 500) * 100), 100),
       waterVal: todayWater,
       bowelCount: todayBowel,
+      sleepVal: todaySleepHours,
+      sleepTarget: 12,
       timerItems,
       nextVaccine, nextCheckup, nextClinical,
       latestMilestone,
       avatarUrl: avatar,
+      weekStats,
       isLoggedIn: true
     });
   },
@@ -206,5 +244,6 @@ Page({
   toTimeline:   function() { if (!this._requireLogin()) return; wx.switchTab({ url: '/pages/timeline/index' }); },
   toNutrition:  function() { if (!this._requireLogin()) return; wx.navigateTo({ url: '/pages/nutrition/index' }); },
   toBowel:      function() { if (!this._requireLogin()) return; wx.navigateTo({ url: '/pages/bowel/index' }); },
-  toVision:     function() { if (!this._requireLogin()) return; wx.navigateTo({ url: '/pages/vision/index' }); }
+  toVision:     function() { if (!this._requireLogin()) return; wx.navigateTo({ url: '/pages/vision/index' }); },
+  toSleep:      function() { if (!this._requireLogin()) return; wx.navigateTo({ url: '/pages/sleep/index' }); }
 });

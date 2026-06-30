@@ -4,11 +4,15 @@
   <!-- 1. 顶部小名片 -->
   <view class="my-profile-header">
     <block wx:if="{{ isLoggedIn }}">
-      <image class="avatar-img" src="{{ userInfo.avatarUrl }}" mode="aspectFill"></image>
+      <view class="avatar-edit-wrap" bindtap="openEditModal">
+        <image class="avatar-img" src="{{ userInfo.avatarUrl }}" mode="aspectFill"></image>
+        <view class="avatar-edit-badge">✏️</view>
+      </view>
       <view class="baby-info-box">
         <view class="profile-name-row">
           <text class="baby-name">{{ userInfo.nickName }} (看护人)</text>
-          <text class="logout-link" bindtap="handleLogout">退出登录</text>
+          <text class="edit-profile-link" bindtap="openEditModal">编辑</text>
+          <text class="logout-link" bindtap="handleLogout">退出</text>
         </view>
         <text class="baby-age" wx:if="{{ babyInfo }}">实际月龄：{{ actualAge }} | 纠正：{{ correctedAge }}</text>
         <text class="baby-age" wx:else style="color: #e53e3e;">⚠️ 请先在下方设置宝宝档案</text>
@@ -45,7 +49,7 @@
       <view class="menu-arrow">➔</view>
     </view>
 
-    <view class="menu-item" bindtap="navigateToPage" data-page="vision">
+    <view class="menu-item" bindtap="navigateToPage" data-page="sleep">
       <view class="menu-icon">😴</view>
       <view class="menu-body">
         <text class="menu-title">宝宝睡眠记录</text>
@@ -153,6 +157,29 @@
     </button>
   </view>
 
+</view>
+
+<!-- 编辑看护人信息弹窗 -->
+<view class="modal-overlay" wx:if="{{ showEditModal }}">
+  <view class="modal-card">
+    <view class="modal-header">
+      <text class="modal-title">✏️ 编辑看护人信息</text>
+      <text class="modal-close" bindtap="closeEditModal">✕</text>
+    </view>
+    <view class="modal-body">
+      <view class="edit-avatar-section">
+        <image class="edit-avatar-img" src="{{ editAvatarTemp || (userInfo && userInfo.avatarUrl) || '/assets/avatar_default.png' }}" mode="aspectFill"></image>
+        <button class="edit-avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">更换头像</button>
+      </view>
+      <view class="form-item">
+        <text class="lbl">看护人昵称 *</text>
+        <input type="text" placeholder="输入昵称" value="{{ editNickname }}" bindinput="onEditNicknameInput" />
+      </view>
+    </view>
+    <view class="modal-footer">
+      <button class="btn btn-primary btn-block" bindtap="saveEditProfile">保存</button>
+    </view>
+  </view>
 </view>
 
 <!-- 新增计时模块弹窗 -->

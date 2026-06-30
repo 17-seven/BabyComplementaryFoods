@@ -1,0 +1,74 @@
+<!--pages/sleep/index.wxml-->
+<view class="container">
+
+  <!-- 今日睡眠汇总卡 -->
+  <view class="card today-card">
+    <view class="today-header">
+      <text class="today-icon">😴</text>
+      <view class="today-meta">
+        <text class="today-title">今日睡眠</text>
+        <text class="today-sub">目标 {{ targetHours }} 小时</text>
+      </view>
+      <view class="today-total {{ progress >= 100 ? 'total-done' : '' }}">
+        <text class="total-num">{{ todayTotalStr }}</text>
+        <text class="total-pct">{{ progress }}%</text>
+      </view>
+    </view>
+    <view class="progress-bar-container">
+      <view class="progress-bar {{ progress >= 100 ? 'bar-green' : 'bar-blue' }}" style="width: {{ progress }}%"></view>
+    </view>
+  </view>
+
+  <!-- 添加记录折叠卡 -->
+  <view class="card add-card">
+    <view class="add-toggle" bindtap="toggleForm">
+      <text class="add-toggle-label">＋ 添加睡眠记录</text>
+      <text class="add-toggle-chevron">{{ showForm ? '▲' : '▼' }}</text>
+    </view>
+    <view class="add-form" wx:if="{{ showForm }}">
+      <view class="form-item">
+        <text class="lbl">日期</text>
+        <picker mode="date" value="{{ addDate }}" bindchange="onFormInput" data-field="addDate">
+          <view class="date-picker-btn">{{ addDate }}</view>
+        </picker>
+      </view>
+      <view class="form-item time-row">
+        <view class="time-field">
+          <text class="lbl">入睡</text>
+          <picker mode="time" value="{{ addStart }}" bindchange="onFormInput" data-field="addStart">
+            <view class="time-picker-btn {{ addStart ? 'has-val' : '' }}">{{ addStart || '选择时间' }}</view>
+          </picker>
+        </view>
+        <text class="time-arrow">→</text>
+        <view class="time-field">
+          <text class="lbl">醒来</text>
+          <picker mode="time" value="{{ addEnd }}" bindchange="onFormInput" data-field="addEnd">
+            <view class="time-picker-btn {{ addEnd ? 'has-val' : '' }}">{{ addEnd || '选择时间' }}</view>
+          </picker>
+        </view>
+      </view>
+      <view class="form-item">
+        <text class="lbl">备注（可选）</text>
+        <input type="text" placeholder="如：午觉、夜间、小睡..." value="{{ addNote }}" bindinput="onFormInput" data-field="addNote" />
+      </view>
+      <button class="btn btn-primary btn-block" style="margin-top: 16rpx;" bindtap="saveRecord">保存记录</button>
+    </view>
+  </view>
+
+  <!-- 历史记录列表 -->
+  <view class="section-title">📋 历史记录（{{ sleepLogs.length }}条）</view>
+  <view class="card" wx:if="{{ sleepLogs.length > 0 }}">
+    <view class="sleep-log-item" wx:for="{{ sleepLogs }}" wx:key="id">
+      <view class="log-time-badge">{{ item.startTime }} → {{ item.endTime }}</view>
+      <view class="log-info">
+        <text class="log-date">{{ item.date }}</text>
+        <text class="log-dur">{{ item.durStr }}</text>
+        <text class="log-note" wx:if="{{ item.note }}">{{ item.note }}</text>
+      </view>
+      <text class="log-del" bindtap="deleteRecord" data-id="{{ item.id }}">✕</text>
+    </view>
+  </view>
+  <view class="empty-placeholder" wx:else>暂无睡眠记录，快来添加吧 🌙</view>
+
+  <view style="height: 60rpx;"></view>
+</view>

@@ -32,6 +32,8 @@ Page({
     showLoginModal: false,
     tempAvatarUrl: '',
     inputNickname: '',
+    // 编辑看护人信息
+    showEditModal: false, editNickname: '', editAvatarTemp: '',
 
     // 自定义计时模块（同步 vision_timer_items）
     customTimers: [],
@@ -142,6 +144,34 @@ Page({
       });
     }
     return ok;
+  },
+
+  // ===== 编辑看护人信息 =====
+  openEditModal: function () {
+    const ui = this.data.userInfo || {};
+    this.setData({ showEditModal: true, editNickname: ui.nickName || '', editAvatarTemp: '' });
+  },
+  closeEditModal: function () { this.setData({ showEditModal: false }); },
+  onChooseAvatar: function (e) { this.setData({ editAvatarTemp: e.detail.avatarUrl }); },
+  onEditNicknameInput: function (e) { this.setData({ editNickname: e.detail.value }); },
+  saveEditProfile: function () {
+    const name = this.data.editNickname.trim();
+    if (!name) { wx.showToast({ title: '昵称不能为空', icon: 'error' }); return; }
+    const userInfo = { ...(this.data.userInfo || {}), nickName: name };
+    const finish = (url) => {
+      if (url) userInfo.avatarUrl = url;
+      wx.setStorageSync('user_info', userInfo);
+      const app = getApp(); if (app) app.globalData.userInfo = userInfo;
+      this.setData({ userInfo, showEditModal: false });
+      wx.showToast({ title: '已保存', icon: 'success' });
+    };
+    if (this.data.editAvatarTemp) {
+      const dest = `${wx.env.USER_DATA_PATH}/profile_avatar.jpg`;
+      wx.getFileSystemManager().copyFile({
+        srcPath: this.data.editAvatarTemp, destPath: dest,
+        success: () => finish(dest), fail: () => finish(this.data.editAvatarTemp)
+      });
+    } else { finish(null); }
   },
 
   // 快捷页面跳转

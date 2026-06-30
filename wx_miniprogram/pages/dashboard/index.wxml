@@ -103,6 +103,14 @@
       <text class="gauge-name">排便次数 ➔</text>
     </view>
 
+    <view class="gauge-card" bindtap="toSleep">
+      <view class="gauge-ring ring-purple">
+        <text class="gauge-num">{{ sleepVal }}</text>
+        <text class="gauge-unit">h</text>
+      </view>
+      <text class="gauge-name">😴 睡眠 ({{ sleepTarget }}h) ➔</text>
+    </view>
+
     <!-- 可扩展计时项（来自 vision_timer_items） -->
     <block wx:for="{{ timerItems }}" wx:key="id">
       <view class="gauge-card" bindtap="toVision">
@@ -113,6 +121,41 @@
         <text class="gauge-name">{{ item.icon }}{{ item.name }} ({{ item.targetHours }}h) ➔</text>
       </view>
     </block>
+  </view>
+
+  <!-- 本周趋势 -->
+  <view class="section-title" wx:if="{{ weekStats.length > 0 }}"><text>📊 本周趋势</text></view>
+  <view class="card week-chart-card" wx:if="{{ weekStats.length > 0 }}">
+    <view class="wc-row">
+      <text class="wc-label">🍼 奶量(ml)</text>
+      <view class="wc-bars">
+        <view class="wc-col" wx:for="{{ weekStats }}" wx:key="date">
+          <view class="wc-bar-wrap"><view class="wc-bar wc-milk" style="height: {{ item.milkH }}rpx"></view></view>
+          <text class="wc-day">{{ item.label }}</text>
+          <text class="wc-val">{{ item.milk }}</text>
+        </view>
+      </view>
+    </view>
+    <view class="wc-row wc-divider">
+      <text class="wc-label">💧 水量(ml)</text>
+      <view class="wc-bars">
+        <view class="wc-col" wx:for="{{ weekStats }}" wx:key="date">
+          <view class="wc-bar-wrap"><view class="wc-bar wc-water" style="height: {{ item.waterH }}rpx"></view></view>
+          <text class="wc-day">{{ item.label }}</text>
+          <text class="wc-val">{{ item.water }}</text>
+        </view>
+      </view>
+    </view>
+    <view class="wc-row wc-divider">
+      <text class="wc-label">💩 排便(次)</text>
+      <view class="wc-bars">
+        <view class="wc-col" wx:for="{{ weekStats }}" wx:key="date">
+          <view class="wc-bar-wrap"><view class="wc-bar wc-bowel" style="height: {{ item.bowelH }}rpx"></view></view>
+          <text class="wc-day">{{ item.label }}</text>
+          <text class="wc-val">{{ item.bowel }}</text>
+        </view>
+      </view>
+    </view>
   </view>
 
   <!-- 4. 最近大事记 -->
