@@ -1,144 +1,132 @@
 // pages/vision/index.js
 const { getStorage, setStorage, today } = require('../../utils/storage.js');
 
+// 默认计时模块（保持向后兼容）
+const DEFAULT_TIMERS = [
+  { id: 'eyepatch', name: '眼罩遮盖', desc: '矫正斜视遮盖治疗', targetMins: 240, icon: '👁️' }
+];
+
+const ICON_OPTIONS = ['👁️', '😴', '🏃', '📺', '📖', '🧩', '🎵', '💊', '🧘', '🌙', '⏱️', '🎯'];
+
 Page({
   data: {
-    isWearing: false,
-    startTime: null,
-    todayDurationMins: 0,
-    progressPercent: 0,
-    historyLogs: [],
-
-    // 手动录入表单
-    manualMins: ''
+    timerItems: [],
+    expandedId: null,
+    manualInputs: {},
+    showAddModal: false,
+    newName: '', newDesc: '', newIcon: '⏱️', newTargetHours: '4',
+    iconOptions: ICON_OPTIONS
   },
 
-  onShow: function () {
-    this.loadVisionData();
-  },
+  onShow: function () { this.loadAllTimers(); },
 
-  loadVisionData: function () {
+  loadAllTimers: function () {
+    const defs     = getStorage('vision_timer_items', DEFAULT_TIMERS);
     const todayStr = today();
-    
-    // 载入是否戴镜状态
-    const status = getStorage('eyepatch_is_wearing', false);
-    const start = getStorage('eyepatch_start_time', null);
-    
-    // 载入历史纪录
-    const defaultLogs = [
-      { id: 1, date: todayStr, durationMinutes: 120, remark: '上午看书遮盖2小时' }
-    ];
-    const logs = getStorage('eyepatch_records', defaultLogs);
-
-    // 计算今日累计遮盖时间
-    const todayLogs = logs.filter(l => l.date === todayStr);
-    const totalMins = todayLogs.reduce((sum, item) => sum + (item.durationMinutes || 0), 0);
-    const progress = Math.min(Math.round((totalMins / 240) * 100), 100); // 目标 4小时 (240分钟)
-
-    this.setData({
-      isWearing: status,
-      startTime: start,
-      historyLogs: logs,
-      todayDurationMins: totalMins,
-      progressPercent: progress
+    const timerItems = defs.map(t => {
+      const recordsKey  = t.id === 'eyepatch' ? 'eyepatch_records' : `vision_records_${t.id}`;
+      const wearingData = getStorage(`vision_wearing_${t.id}`, { isWearing: false, startTime: null });
+      const logs        = getStorage(recordsKey, []);
+      const todayMins   = logs.filter(l => l.date === todayStr).reduce((s, r) => s + (r.durationMinutes || 0), 0);
+      return {
+        ...t,
+        isWearing:  wearingData.isWearing,
+        startTime:  wearingData.startTime,
+        logs:       [...logs].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 50),
+        todayHours:  parseFloat((todayMins / 60).toFixed(1)),
+        targetHours: Math.round(t.targetMins / 60),
+        progress:    Math.min(Math.round((todayMins / (t.targetMins || 1)) * 100), 100)
+      };
     });
+    this.setData({ timerItems });
   },
 
-  // 开关：戴上眼罩 / 摘下眼罩
-  toggleWearing: function () {
-    const nowStatus = !this.data.isWearing;
-    const nowTime = Date.now();
-    const todayStr = today();
-
-    if (nowStatus) {
-      // 1. 戴上：记录开始毫秒数
-      this.setData({
-        isWearing: true,
-        startTime: nowTime
-      });
-      setStorage('eyepatch_is_wearing', true);
-      setStorage('eyepatch_start_time', nowTime);
-      wx.showToast({ title: '开始遮盖计时', icon: 'success' });
+  toggleTimer: function (e) {
+    const id   = e.currentTarget.dataset.id;
+    const item = this.data.timerItems.find(t => t.id === id);
+    if (!item) return;
+    const wearingKey = `vision_wearing_${id}`;
+    const recordsKey = id === 'eyepatch' ? 'eyepatch_records' : `vision_records_${id}`;
+    if (!item.isWearing) {
+      setStorage(wearingKey, { isWearing: true, startTime: Date.now() });
+      this.loadAllTimers();
+      wx.showToast({ title: `${item.name} 开始计时 ▶`, icon: 'success' });
     } else {
-      // 2. 摘下：结算时长
-      const start = this.data.startTime;
-      if (!start) return;
-
-      const diffMs = nowTime - start;
-      const minutes = Math.max(Math.round(diffMs / (1000 * 60)), 1); // 至少记1分钟
-      
-      const list = [...this.data.historyLogs];
-      list.push({
-        id: Date.now(),
-        date: todayStr,
-        durationMinutes: minutes,
-        remark: '计时自动保存'
-      });
-
-      this.setData({
-        isWearing: false,
-        startTime: null,
-        historyLogs: list
-      }, () => {
-        setStorage('eyepatch_is_wearing', false);
-        setStorage('eyepatch_start_time', null);
-        setStorage('eyepatch_records', list);
-        this.loadVisionData();
-      });
-
-      wx.showModal({
-        title: '计时结束',
-        content: `本次遮盖已持续 ${minutes} 分钟，已记入今日总量。`,
-        showCancel: false
-      });
+      const minutes = Math.max(Math.round((Date.now() - (item.startTime || Date.now())) / 60000), 1);
+      const logs = getStorage(recordsKey, []);
+      logs.push({ id: Date.now(), date: today(), durationMinutes: minutes, remark: '计时自动保存' });
+      setStorage(recordsKey, logs);
+      setStorage(wearingKey, { isWearing: false, startTime: null });
+      this.loadAllTimers();
+      wx.showModal({ title: '⏹ 计时结束', content: `${item.name} 本次 ${minutes} 分钟，已记入今日总量。`, showCancel: false });
     }
   },
 
-  // 输入监听
-  onMinsInput: function (e) {
-    this.setData({ manualMins: e.detail.value });
+  onManualInput: function (e) {
+    const inputs = { ...this.data.manualInputs };
+    inputs[e.currentTarget.dataset.id] = e.detail.value;
+    this.setData({ manualInputs: inputs });
   },
 
-  // 手动录入记录
-  addManualRecord: function () {
-    const mins = parseInt(this.data.manualMins);
-    if (!mins || mins <= 0) {
-      wx.showToast({ title: '请输入正确分钟数', icon: 'error' });
-      return;
-    }
-
-    const list = [...this.data.historyLogs];
-    list.push({
-      id: Date.now(),
-      date: today(),
-      durationMinutes: mins,
-      remark: '手动补录'
-    });
-
-    this.setData({
-      manualMins: '',
-      historyLogs: list
-    }, () => {
-      setStorage('eyepatch_records', list);
-      this.loadVisionData();
-      wx.showToast({ title: '记录已保存', icon: 'success' });
-    });
+  addManual: function (e) {
+    const id   = e.currentTarget.dataset.id;
+    const mins = parseInt(this.data.manualInputs[id]);
+    if (!mins || mins <= 0) { wx.showToast({ title: '请输入正确分钟数', icon: 'error' }); return; }
+    const recordsKey = id === 'eyepatch' ? 'eyepatch_records' : `vision_records_${id}`;
+    const logs = getStorage(recordsKey, []);
+    logs.push({ id: Date.now(), date: today(), durationMinutes: mins, remark: '手动补录' });
+    setStorage(recordsKey, logs);
+    const inputs = { ...this.data.manualInputs };
+    inputs[id] = '';
+    this.setData({ manualInputs: inputs }, () => { this.loadAllTimers(); wx.showToast({ title: '补录成功', icon: 'success' }); });
   },
 
-  // 删除某条记录
-  deleteLog: function (e) {
+  toggleHistory: function (e) {
     const id = e.currentTarget.dataset.id;
-    const that = this;
-    wx.showModal({
-      title: '删除记录',
-      content: '确定要删除这条眼罩遮盖记录吗？',
+    this.setData({ expandedId: this.data.expandedId === id ? null : id });
+  },
+
+  deleteLog: function (e) {
+    const { id, logid } = e.currentTarget.dataset;
+    const recordsKey = id === 'eyepatch' ? 'eyepatch_records' : `vision_records_${id}`;
+    wx.showModal({ title: '删除记录', content: '确定要删除这条计时记录吗？',
       success: (res) => {
         if (res.confirm) {
-          const list = that.data.historyLogs.filter(l => l.id !== id);
-          that.setData({ historyLogs: list }, () => {
-            setStorage('eyepatch_records', list);
-            that.loadVisionData();
-          });
+          const logs = getStorage(recordsKey, []).filter(l => String(l.id) !== String(logid));
+          setStorage(recordsKey, logs); this.loadAllTimers();
+        }
+      }
+    });
+  },
+
+  selectIcon: function (e) { this.setData({ newIcon: e.currentTarget.dataset.icon }); },
+  openAddModal: function () { this.setData({ showAddModal: true, newName: '', newDesc: '', newIcon: '⏱️', newTargetHours: '4' }); },
+  closeAddModal: function () { this.setData({ showAddModal: false }); },
+  onNewInput: function (e) { this.setData({ [e.currentTarget.dataset.field]: e.detail.value }); },
+
+  saveNewTimer: function () {
+    const name = this.data.newName.trim();
+    if (!name) { wx.showToast({ title: '请输入模块名称', icon: 'error' }); return; }
+    const newItem = {
+      id: 'timer_' + Date.now(), name,
+      desc: this.data.newDesc.trim(),
+      targetMins: Math.round((parseFloat(this.data.newTargetHours) || 1) * 60),
+      icon: this.data.newIcon || '⏱️'
+    };
+    const defs = getStorage('vision_timer_items', DEFAULT_TIMERS);
+    defs.push(newItem);
+    setStorage('vision_timer_items', defs);
+    this.setData({ showAddModal: false }, () => { this.loadAllTimers(); wx.showToast({ title: '模块已添加', icon: 'success' }); });
+  },
+
+  deleteTimer: function (e) {
+    const id = e.currentTarget.dataset.id;
+    if (id === 'eyepatch') { wx.showToast({ title: '默认模块不可删除', icon: 'none' }); return; }
+    wx.showModal({ title: '删除模块', content: '确定要删除此模块及所有历史记录吗？', confirmColor: '#e53e3e',
+      success: (res) => {
+        if (res.confirm) {
+          const defs = getStorage('vision_timer_items', DEFAULT_TIMERS).filter(t => t.id !== id);
+          setStorage('vision_timer_items', defs); this.loadAllTimers();
         }
       }
     });

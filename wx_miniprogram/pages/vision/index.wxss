@@ -1,7 +1,237 @@
 /* pages/vision/index.wxss */
 
-/* 计时仪表盘 */
-.timer-dashboard {
+/* ===== 计时模块卡片 ===== */
+.timer-card {
+  margin-bottom: 24rpx;
+}
+
+/* 卡片头部 */
+.tc-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 24rpx;
+}
+.tc-icon-wrap {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  background: #f0fdf4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 20rpx;
+  flex-shrink: 0;
+  border: 2rpx solid #c6f6d5;
+}
+.icon-active-pulse {
+  background: #fff3cd;
+  border-color: #ff7043;
+  animation: pulse 1.4s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255,112,67,0.3); }
+  50% { box-shadow: 0 0 0 12rpx rgba(255,112,67,0); }
+}
+.tc-icon {
+  font-size: 40rpx;
+  line-height: 1;
+}
+.tc-meta {
+  flex: 1;
+  min-width: 0;
+}
+.tc-name-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  flex-wrap: wrap;
+}
+.tc-name {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #2d3748;
+}
+.tc-badge-wearing {
+  font-size: 18rpx;
+  color: #ff7043;
+  background: #fff3e0;
+  border-radius: 20rpx;
+  padding: 4rpx 14rpx;
+  font-weight: 600;
+}
+.tc-desc {
+  font-size: 22rpx;
+  color: #718096;
+  margin-top: 6rpx;
+  display: block;
+}
+.tc-delete-btn {
+  font-size: 28rpx;
+  color: #cbd5e0;
+  padding: 8rpx 16rpx;
+  flex-shrink: 0;
+}
+
+/* 进度行 */
+.tc-progress-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8rpx;
+  margin-bottom: 12rpx;
+}
+.tc-hours {
+  font-size: 48rpx;
+  font-weight: 800;
+  color: #38a169;
+  line-height: 1;
+}
+.tc-slash, .tc-target {
+  font-size: 24rpx;
+  color: #a0aec0;
+}
+.tc-pct {
+  margin-left: auto;
+  font-size: 24rpx;
+  color: #718096;
+  font-weight: 600;
+}
+.pct-done {
+  color: #38a169;
+}
+
+/* 进度条 */
+.progress-bar-container {
+  width: 100%;
+  height: 16rpx;
+  background-color: #edf2f7;
+  border-radius: 8rpx;
+  overflow: hidden;
+  margin-bottom: 24rpx;
+}
+.progress-bar {
+  height: 100%;
+  border-radius: 8rpx;
+  transition: width 0.4s ease;
+}
+.bar-green  { background-color: #38a169; }
+.bar-orange { background-color: #ff7043; }
+
+/* 开始/停止按钮 */
+.tc-action-btn {
+  width: 100%;
+  border-radius: 40rpx;
+  font-size: 28rpx;
+  font-weight: 700;
+  padding: 20rpx 0;
+  margin-bottom: 20rpx;
+  border: none;
+  letter-spacing: 2rpx;
+}
+.btn-start {
+  background: #38a169;
+  color: #ffffff;
+  box-shadow: 0 6rpx 16rpx rgba(56,161,105,0.3);
+}
+.btn-stop {
+  background: #ff7043;
+  color: #ffffff;
+  box-shadow: 0 6rpx 16rpx rgba(255,112,67,0.3);
+}
+
+/* 手动补录行 */
+.tc-manual-row {
+  display: flex;
+  gap: 16rpx;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+.tc-manual-input {
+  flex: 1;
+  background: #f7f9fc;
+  border: 1rpx solid #edf2f7;
+  border-radius: 12rpx;
+  padding: 0 20rpx;
+  height: 72rpx;
+  font-size: 26rpx;
+}
+.tc-manual-btn {
+  background: #edf2f7;
+  color: #4a5568;
+  font-size: 24rpx;
+  font-weight: 600;
+  border-radius: 12rpx;
+  padding: 0 28rpx;
+  height: 72rpx;
+  line-height: 72rpx;
+  border: none;
+  flex-shrink: 0;
+}
+
+/* 历史记录折叠 */
+.tc-history-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 24rpx;
+  color: #718096;
+  padding: 12rpx 0;
+  border-top: 1rpx solid #f0f4f8;
+}
+.tc-chevron { font-size: 20rpx; }
+
+.tc-log-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16rpx 0;
+  border-bottom: 1rpx solid #f7f9fc;
+}
+.log-left { display: flex; align-items: center; gap: 16rpx; flex: 1; min-width: 0; }
+.log-date  { font-size: 22rpx; color: #718096; flex-shrink: 0; }
+.log-mins  { font-size: 24rpx; color: #2d3748; font-weight: 600; flex-shrink: 0; }
+.log-remark { font-size: 20rpx; color: #a0aec0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.log-del   { font-size: 22rpx; color: #e53e3e; padding: 8rpx 16rpx; flex-shrink: 0; }
+
+/* 悬浮按钮（复用全局floating-btn即可） */
+.floating-btn {
+  position: fixed;
+  right: 36rpx;
+  bottom: 48rpx;
+  width: 100rpx;
+  height: 100rpx;
+  background-color: var(--accent-orange);
+  color: #ffffff;
+  border-radius: 50%;
+  font-size: 52rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 20rpx rgba(255, 112, 67, 0.35);
+  z-index: 99;
+}
+
+/* 图标选择器 */
+.icon-picker {
+  white-space: nowrap;
+  width: 100%;
+}
+.icon-option {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 72rpx;
+  height: 72rpx;
+  font-size: 36rpx;
+  border-radius: 16rpx;
+  margin-right: 12rpx;
+  border: 2rpx solid #edf2f7;
+  background: #f7f9fc;
+}
+.icon-selected {
+  border-color: var(--primary-color);
+  background: #e6fffa;
+}
+
   display: flex;
   flex-direction: column;
   align-items: center;

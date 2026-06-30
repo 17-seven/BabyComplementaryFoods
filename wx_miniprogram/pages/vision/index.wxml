@@ -1,55 +1,115 @@
 <!--pages/vision/index.wxml-->
-<view class="container">
-  
-  <!-- 1. 计时环形卡片 -->
-  <view class="card timer-dashboard">
-    <view class="circle-progress">
-      <view class="progress-info">
-        <text class="hours-val">{{ todayDurationMins / 60 }}</text>
-        <text class="hours-lbl">今日已戴 (小时)</text>
-      </view>
-    </view>
-    
-    <view class="target-lbl">每日训练目标：4 小时 (240分钟)</view>
-    <view class="progress-bar-container">
-      <view class="progress-bar" style="width: {{ progressPercent }}%"></view>
-    </view>
-    <text class="progress-text">目标进度：{{ progressPercent }}%</text>
-  </view>
+<view class="container page-transition">
 
-  <!-- 2. 戴上/摘下大按钮 -->
-  <view class="btn-container">
-    <button class="timer-action-btn {{ isWearing ? 'active-orange' : 'active-green' }}" bindtap="toggleWearing">
-      {{ isWearing ? '🔴 摘下眼罩并结算' : '🟢 戴上眼罩开始计时' }}
-    </button>
-    <text class="status-tip" wx:if="{{ isWearing }}">计时中：眼罩已戴戴好，请坚持！</text>
-    <text class="status-tip" wx:else>未在计时状态：摘下后将为您自动保存时间。</text>
-  </view>
+  <!-- 计时模块列表 -->
+  <block wx:for="{{ timerItems }}" wx:key="id">
+    <view class="timer-card card">
 
-  <!-- 3. 手动录入记录 -->
-  <view class="card">
-    <view class="section-title">⏱️ 补录遮盖时长</view>
-    <view class="input-group">
-      <input type="number" placeholder="输入戴镜时间 (分钟)" value="{{ manualMins }}" bindinput="onMinsInput" />
-      <button class="btn btn-primary" bindtap="addManualRecord">保存补录</button>
-    </view>
-  </view>
-
-  <!-- 4. 历史记录台账 -->
-  <view class="section-title">📜 遮盖时间记录</view>
-  <view class="history-list">
-    <block wx:for="{{ historyLogs }}" wx:key="id">
-      <view class="card log-card">
-        <view class="log-info">
-          <text class="log-date">{{ item.date }}</text>
-          <text class="log-mins">{{ item.durationMinutes }} 分钟 ({{ item.durationMinutes / 60 }}小时)</text>
+      <!-- 卡片头部：图标 + 名称 + 描述 + 删除按钮 -->
+      <view class="tc-header">
+        <view class="tc-icon-wrap {{ item.isWearing ? 'icon-active-pulse' : '' }}">
+          <text class="tc-icon">{{ item.icon }}</text>
         </view>
-        <view class="log-footer">
-          <text class="log-remark">{{ item.remark }}</text>
-          <text class="delete-link" bindtap="deleteLog" data-id="{{ item.id }}">删除</text>
+        <view class="tc-meta">
+          <view class="tc-name-row">
+            <text class="tc-name">{{ item.name }}</text>
+            <view class="tc-badge-wearing" wx:if="{{ item.isWearing }}">计时中 ●</view>
+          </view>
+          <text class="tc-desc" wx:if="{{ item.desc }}">{{ item.desc }}</text>
         </view>
+        <text class="tc-delete-btn" bindtap="deleteTimer" data-id="{{ item.id }}" wx:if="{{ item.id !== 'eyepatch' }}">✕</text>
       </view>
-    </block>
-  </view>
 
+      <!-- 今日进度 -->
+      <view class="tc-progress-row">
+        <text class="tc-hours">{{ item.todayHours }}h</text>
+        <text class="tc-slash">/</text>
+        <text class="tc-target">{{ item.targetHours }}h</text>
+        <text class="tc-pct {{ item.progress >= 100 ? 'pct-done' : '' }}">{{ item.progress }}%</text>
+      </view>
+      <view class="progress-bar-container">
+        <view class="progress-bar {{ item.isWearing ? 'bar-orange' : 'bar-green' }}" style="width: {{ item.progress }}%"></view>
+      </view>
+
+      <!-- 开始/停止大按钮 -->
+      <button class="tc-action-btn {{ item.isWearing ? 'btn-stop' : 'btn-start' }}" bindtap="toggleTimer" data-id="{{ item.id }}">
+        {{ item.isWearing ? '⏹ 停止计时' : '▶ 开始计时' }}
+      </button>
+
+      <!-- 手动补录 -->
+      <view class="tc-manual-row">
+        <input class="tc-manual-input" type="number" placeholder="补录分钟数..."
+          value="{{ manualInputs[item.id] || '' }}"
+          bindinput="onManualInput" data-id="{{ item.id }}" />
+        <button class="tc-manual-btn" bindtap="addManual" data-id="{{ item.id }}">补录</button>
+      </view>
+
+      <!-- 历史记录折叠面板 -->
+      <view class="tc-history-toggle" bindtap="toggleHistory" data-id="{{ item.id }}">
+        📋 历史记录 ({{ item.logs.length }}条)
+        <text class="tc-chevron">{{ expandedId === item.id ? '▲' : '▼' }}</text>
+      </view>
+      <block wx:if="{{ expandedId === item.id }}">
+        <view wx:if="{{ item.logs.length === 0 }}" class="empty-placeholder">暂无历史记录</view>
+        <view class="tc-log-item" wx:for="{{ item.logs }}" wx:key="id" wx:for-item="log">
+          <view class="log-left">
+            <text class="log-date">{{ log.date }}</text>
+            <text class="log-mins">{{ log.durationMinutes }}分钟</text>
+            <text class="log-remark">{{ log.remark }}</text>
+          </view>
+          <text class="log-del" bindtap="deleteLog" data-id="{{ item.id }}" data-logid="{{ log.id }}">✕</text>
+        </view>
+      </block>
+    </view>
+  </block>
+
+  <!-- 底部空间（防止被 FAB 遮挡） -->
+  <view style="height: 160rpx;"></view>
+
+</view>
+
+<!-- 悬浮添加按钮（在page-transition容器外） -->
+<view class="floating-btn" bindtap="openAddModal">＋</view>
+
+<!-- 新增模块弹窗（在page-transition容器外） -->
+<view class="modal-overlay" wx:if="{{ showAddModal }}">
+  <view class="modal-card">
+    <view class="modal-header">
+      <text class="modal-title">添加记录模块</text>
+      <text class="modal-close" bindtap="closeAddModal">✕</text>
+    </view>
+    <view class="modal-body">
+
+      <!-- 图标选择 -->
+      <view class="form-item">
+        <text class="lbl">选择图标</text>
+        <scroll-view class="icon-picker" scroll-x="true">
+          <view class="icon-option {{ newIcon === item ? 'icon-selected' : '' }}"
+            wx:for="{{ iconOptions }}" wx:key="*this"
+            bindtap="selectIcon" data-icon="{{ item }}">
+            {{ item }}
+          </view>
+        </scroll-view>
+      </view>
+
+      <view class="form-item">
+        <text class="lbl">模块名称 *</text>
+        <input type="text" placeholder="如：睡眠、视觉训练、看电视" value="{{ newName }}" bindinput="onNewInput" data-field="newName" />
+      </view>
+
+      <view class="form-item">
+        <text class="lbl">功能描述</text>
+        <input type="text" placeholder="如：矫正训练、日常作息" value="{{ newDesc }}" bindinput="onNewInput" data-field="newDesc" />
+      </view>
+
+      <view class="form-item">
+        <text class="lbl">每日目标（小时）</text>
+        <input type="number" placeholder="如：2" value="{{ newTargetHours }}" bindinput="onNewInput" data-field="newTargetHours" />
+      </view>
+
+    </view>
+    <view class="modal-footer">
+      <button class="btn btn-primary btn-block" bindtap="saveNewTimer">保存模块</button>
+    </view>
+  </view>
 </view>
