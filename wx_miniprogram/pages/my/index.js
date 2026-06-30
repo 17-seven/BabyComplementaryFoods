@@ -451,25 +451,25 @@ Page({
               setStorage(localKey, dataArray);
             }
 
-            // 2. 尝试向云数据库中写入（如果写入失败，直接报错打红叉，不能进行静默降级）
+            // 2. 尝试向云数据库中写入（调用 syncData 覆盖式同步，去重且物理同步删除）
             let cloudSuccess = true;
             let cloudErrMsg = '';
             try {
-              // 逐条写入云数据库（每批最多20条并发，避免超限）
-              const BATCH_SIZE = 20;
-              for (let i = 0; i < dataArray.length; i += BATCH_SIZE) {
-                const batch = dataArray.slice(i, i + BATCH_SIZE);
-                const tasks = batch.map(item => {
-                  return db.collection(collectionName).add({
-                    data: {
-                      ...item,
-                      family_id: familyId,
-                      _import_time: new Date()
-                    }
-                  });
-                });
-
-                await Promise.all(tasks);
+              let uploadRecords = dataArray;
+              if (collectionName === 'classes') {
+                uploadRecords = dataArray.map(item => ({ ...item, institution_id: 'spring_rain' }));
+              }
+              const syncRes = await wx.cloud.callFunction({
+                name: 'syncData',
+                data: {
+                  collection: collectionName,
+                  familyId: familyId,
+                  records: uploadRecords
+                }
+              });
+              if (!syncRes.result || !syncRes.result.success) {
+                cloudSuccess = false;
+                cloudErrMsg = syncRes.result && syncRes.result.error || '云端同步处理失败';
               }
             } catch (cloudErr) {
               console.error(`同步写入云端数据库 ${collectionName} 失败：`, cloudErr);
