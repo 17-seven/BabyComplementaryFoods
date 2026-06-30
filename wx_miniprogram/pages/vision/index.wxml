@@ -64,8 +64,8 @@
     </view>
   </block>
 
-  <!-- 底部空间（防止被按钮遮挡） -->
-  <view style="height: 160rpx;"></view>
+  <!-- 底部空间（防止内容被安全区遮挡） -->
+  <view style="height: 80rpx;"></view>
 
   </block>
 
@@ -78,11 +78,6 @@
 
 </view>
 
-<!-- 悬浮添加按钮（在page-transition容器外） -->
-<view class="floating-add-btn" bindtap="openAddModal">
-  <text class="fab-icon">＋</text>
-  <text class="fab-label">新增模块</text>
-</view>
 
 <!-- 新增模块弹窗（在page-transition容器外） -->
 <view class="modal-overlay" wx:if="{{ showAddModal }}">

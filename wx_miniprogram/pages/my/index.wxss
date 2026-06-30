@@ -7,10 +7,30 @@
   justify-content: space-between;
   margin-bottom: 16rpx;
 }
-.shortcut-hint {
-  font-size: 20rpx;
+.shortcut-sub-hint {
+  font-size: 22rpx;
   color: #a0aec0;
+  display: block;
+  margin-bottom: 16rpx;
+  margin-top: -8rpx;
 }
+.shortcut-add-btn {
+  background: var(--accent-orange);
+  color: #ffffff;
+  font-size: 24rpx;
+  font-weight: 600;
+  border-radius: 32rpx;
+  padding: 10rpx 24rpx;
+}
+.shortcut-empty {
+  width: 100%;
+  text-align: center;
+  font-size: 24rpx;
+  color: #a0aec0;
+  padding: 24rpx 0;
+}
+/* 废弃旧提示文字样式 */
+.shortcut-hint { display: none; }
 .shortcut-grid {
   display: flex;
   flex-wrap: wrap;

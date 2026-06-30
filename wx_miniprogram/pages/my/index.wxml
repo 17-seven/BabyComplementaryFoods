@@ -85,8 +85,11 @@
   <!-- 自定义快捷入口 -->
   <view class="shortcut-header">
     <text class="section-title" style="margin-bottom:0">⚡ 自定义快捷入口</text>
-    <text class="shortcut-hint">按住可删除</text>
+    <view class="shortcut-add-btn" bindtap="openNewTimerModal">
+      <text>＋ 新增模块</text>
+    </view>
   </view>
+  <text class="shortcut-sub-hint">按住卡片可删除自定义模块</text>
   <view class="shortcut-grid">
     <!-- 用户自创的计时模块 -->
     <view class="shortcut-card" wx:for="{{ customTimers }}" wx:key="id"
@@ -96,10 +99,9 @@
       <text class="shortcut-name">{{ item.name }}</text>
       <text class="shortcut-subdesc">{{ item.todayHours }}h / {{ item.targetHours }}h</text>
     </view>
-    <!-- 新增计时模块按钮 -->
-    <view class="shortcut-card shortcut-add" bindtap="openNewTimerModal">
-      <text class="shortcut-icon">⏱️</text>
-      <text class="shortcut-name">新增计时</text>
+    <!-- 无自定义模块时的提示 -->
+    <view class="shortcut-empty" wx:if="{{ customTimers.length === 0 }}">
+      <text>点击“新增模块”创建自定义计时快捷入口</text>
     </view>
   </view>
 
