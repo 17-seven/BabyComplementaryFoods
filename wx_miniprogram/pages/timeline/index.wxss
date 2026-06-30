@@ -20,11 +20,28 @@
 }
 
 /* 分类标签横向滑动栏 */
-.cat-scroll {
-  white-space: nowrap;
-  width: 100%;
+.cat-bar-row {
+  display: flex;
+  align-items: center;
   margin-bottom: 28rpx;
+  gap: 12rpx;
+}
+.cat-scroll {
+  flex: 1;
+  white-space: nowrap;
   box-sizing: border-box;
+}
+.cat-manage-btn {
+  flex-shrink: 0;
+  width: 64rpx;
+  height: 64rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32rpx;
+  background: #f7f9fc;
+  border-radius: 50%;
+  border: 1rpx solid #edf2f7;
 }
 .cat-pill {
   display: inline-block;
@@ -215,4 +232,31 @@
 }
 .btn-block {
   width: 100%;
+}
+
+/* 分类管理列表 */
+.cat-mgr-list {
+  border: 1rpx solid #edf2f7;
+  border-radius: 12rpx;
+  overflow: hidden;
+}
+.cat-mgr-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx 24rpx;
+  border-bottom: 1rpx solid #f7f9fc;
+}
+.cat-mgr-name {
+  font-size: 28rpx;
+  color: #2d3748;
+  font-weight: 500;
+}
+.cat-mgr-del {
+  font-size: 24rpx;
+  color: #e53e3e;
+  padding: 4rpx 16rpx;
+}
+.del-disabled {
+  color: #a0aec0;
 }

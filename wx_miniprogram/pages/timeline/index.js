@@ -2,161 +2,176 @@
 const { getStorage, setStorage, today } = require('../../utils/storage.js');
 const { defaultTimelineEvents } = require('../../data/timeline.js');
 
+// 默认分类（去掉"评估/康复"，加"未分类"）
+const DEFAULT_CATEGORIES = ['大运动/发育', '辅食/便秘', '疾病用药', '日常医疗', '未分类'];
+
 Page({
   data: {
     events: [],
     filteredEvents: [],
-    
-    // 过滤与搜索条件
-    categories: ['全部', '大运动/发育', '辅食/便秘', '评估/康复', '疾病用药', '日常医疗'],
-    // 新增弹窗用的分类选项（去掉"全部"）
-    addCategories: ['大运动/发育', '辅食/便秘', '评估/康复', '疾病用药', '日常医疗'],
+
+    // 分类管理
+    categoryList: [],        // 用户分类列表（不含"全部"）
+    categories: [],          // 过滤标签 = ['全部', ...categoryList]
+    addCategories: [],       // 新增弹窗用
     activeCategory: '全部',
     searchKeyword: '',
 
-    // 录入新事件弹窗及字段
+    // 新增事件弹窗
     showModal: false,
     evtDate: '',
     evtCategory: '大运动/发育',
     evtTitle: '',
-    evtContent: ''
+    evtContent: '',
+
+    // 分类管理弹窗
+    showCatModal: false,
+    newCatName: ''
   },
 
   onShow: function () {
     this.setData({ evtDate: today() });
-    this.loadEvents();
+    this.loadCategories();
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 3 });
     }
   },
 
+  // 加载分类列表，再加载事件
+  loadCategories: function () {
+    const catList = getStorage('timeline_categories', DEFAULT_CATEGORIES);
+    this.setData({
+      categoryList: catList,
+      categories: ['全部', ...catList],
+      addCategories: catList
+    }, () => {
+      this.loadEvents();
+    });
+  },
+
   loadEvents: function () {
     const list = getStorage('baby_timeline_events', defaultTimelineEvents);
-    // 按日期倒序排列
     const sorted = [...list].sort((a, b) => b.date.localeCompare(a.date));
-    this.setData({
-      events: sorted
-    }, () => {
+    this.setData({ events: sorted }, () => {
       this.filterEvents();
     });
   },
 
-  // 类别点击
   selectCategory: function (e) {
     const cat = e.currentTarget.dataset.cat;
-    this.setData({ activeCategory: cat }, () => {
-      this.filterEvents();
-    });
+    this.setData({ activeCategory: cat }, () => { this.filterEvents(); });
   },
 
-  // 搜索关键字输入
   onSearchInput: function (e) {
     const keyword = e.detail.value.trim().toLowerCase();
-    this.setData({ searchKeyword: keyword }, () => {
-      this.filterEvents();
-    });
+    this.setData({ searchKeyword: keyword }, () => { this.filterEvents(); });
   },
 
-  // 组合过滤与搜索规则
   filterEvents: function () {
     let result = this.data.events;
     const cat = this.data.activeCategory;
     const keyword = this.data.searchKeyword;
-
-    // 1. 分类筛选
-    if (cat !== '全部') {
-      result = result.filter(item => item.category === cat);
-    }
-
-    // 2. 关键字筛选
-    if (keyword) {
-      result = result.filter(item => 
-        (item.title && item.title.toLowerCase().includes(keyword)) ||
-        (item.content && item.content.toLowerCase().includes(keyword))
-      );
-    }
-
-    this.setData({
-      filteredEvents: result
-    });
+    if (cat !== '全部') result = result.filter(item => item.category === cat);
+    if (keyword) result = result.filter(item =>
+      (item.title && item.title.toLowerCase().includes(keyword)) ||
+      (item.content && item.content.toLowerCase().includes(keyword))
+    );
+    this.setData({ filteredEvents: result });
   },
 
-  // 触发弹窗显示
+  // ===== 新增事件弹窗 =====
   openAddModal: function () {
-    // 未登录不允许添加内容
     if (!wx.getStorageSync('user_is_logged_in') && !wx.getStorageSync('user_openid')) {
       wx.showModal({
-        title: '请先登录',
-        content: '添加大事记需要先登录，以便数据云端同步保存。',
+        title: '请先登录', content: '添加大事记需要先登录，以便数据云端同步保存。',
         confirmText: '去登录',
         success: (res) => { if (res.confirm) wx.navigateTo({ url: '/pages/login/index' }); }
       });
       return;
     }
-    this.setData({ showModal: true, evtDate: today(), evtTitle: '', evtContent: '' });
+    const firstCat = this.data.addCategories[0] || '未分类';
+    this.setData({ showModal: true, evtDate: today(), evtTitle: '', evtContent: '', evtCategory: firstCat });
   },
+  closeAddModal: function () { this.setData({ showModal: false }); },
 
-  closeAddModal: function () {
-    this.setData({ showModal: false });
-  },
-
-  // 分类选择器专用处理器（弹窗内新增分类）
   onCategoryChange: function (e) {
     const idx = parseInt(e.detail.value);
     this.setData({ evtCategory: this.data.addCategories[idx] });
   },
-
-  // 输入绑定
   onEvtInput: function (e) {
     const field = e.currentTarget.dataset.field;
     this.setData({ [field]: e.detail.value });
   },
 
-  // 添加大事件保存
   saveEvent: function () {
-    const d = this.data.evtDate;
-    const cat = this.data.evtCategory;
     const t = this.data.evtTitle.trim();
-    const c = this.data.evtContent.trim();
-
-    if (!t) {
-      wx.showToast({ title: '标题不能为空', icon: 'error' });
-      return;
-    }
-
+    if (!t) { wx.showToast({ title: '标题不能为空', icon: 'error' }); return; }
     const list = [...this.data.events];
-    list.push({
-      id: Date.now(),
-      date: d,
-      category: cat,
-      title: t,
-      content: c
-    });
-
-    this.setData({
-      events: list,
-      showModal: false
-    }, () => {
+    list.push({ id: Date.now(), date: this.data.evtDate, category: this.data.evtCategory, title: t, content: this.data.evtContent.trim() });
+    this.setData({ events: list, showModal: false }, () => {
       setStorage('baby_timeline_events', list);
       this.loadEvents();
       wx.showToast({ title: '记录成功', icon: 'success' });
     });
   },
 
-  // 删除某条大事记
   deleteEvent: function (e) {
     const id = e.currentTarget.dataset.id;
-    const that = this;
-    wx.showModal({
-      title: '删除事件',
-      content: '确认要删除此条大事记吗？',
+    wx.showModal({ title: '删除事件', content: '确认要删除此条大事记吗？',
       success: (res) => {
         if (res.confirm) {
-          const list = that.data.events.filter(item => item.id !== id);
-          that.setData({ events: list }, () => {
+          const list = this.data.events.filter(item => item.id !== id);
+          this.setData({ events: list }, () => {
             setStorage('baby_timeline_events', list);
-            that.loadEvents();
+            this.loadEvents();
           });
+        }
+      }
+    });
+  },
+
+  // ===== 分类管理弹窗 =====
+  openCatModal: function () { this.setData({ showCatModal: true, newCatName: '' }); },
+  closeCatModal: function () { this.setData({ showCatModal: false }); },
+  onNewCatInput: function (e) { this.setData({ newCatName: e.detail.value }); },
+
+  addCategory: function () {
+    const name = this.data.newCatName.trim();
+    if (!name) { wx.showToast({ title: '请输入分类名称', icon: 'error' }); return; }
+    const catList = [...this.data.categoryList];
+    if (catList.includes(name)) { wx.showToast({ title: '分类已存在', icon: 'none' }); return; }
+    catList.push(name);
+    setStorage('timeline_categories', catList);
+    this.setData({ newCatName: '', categoryList: catList, categories: ['全部', ...catList], addCategories: catList });
+    wx.showToast({ title: '分类已添加', icon: 'success' });
+  },
+
+  deleteCategory: function (e) {
+    const name = e.currentTarget.dataset.name;
+    if (name === '未分类') { wx.showToast({ title: '"未分类"不可删除', icon: 'none' }); return; }
+    wx.showModal({
+      title: '删除分类',
+      content: `确定删除"${name}"？该分类下的事件将移入"未分类"。`,
+      confirmColor: '#e53e3e',
+      success: (res) => {
+        if (res.confirm) {
+          // 把该分类下的事件移入"未分类"
+          const events = getStorage('baby_timeline_events', []).map(ev =>
+            ev.category === name ? { ...ev, category: '未分类' } : ev
+          );
+          setStorage('baby_timeline_events', events);
+
+          const catList = this.data.categoryList.filter(c => c !== name);
+          // 确保"未分类"始终存在
+          if (!catList.includes('未分类')) catList.push('未分类');
+          setStorage('timeline_categories', catList);
+
+          const newActive = this.data.activeCategory === name ? '全部' : this.data.activeCategory;
+          this.setData({
+            categoryList: catList, categories: ['全部', ...catList], addCategories: catList,
+            activeCategory: newActive, events
+          }, () => { this.filterEvents(); });
+          wx.showToast({ title: '已删除，事件已移入未分类', icon: 'success' });
         }
       }
     });

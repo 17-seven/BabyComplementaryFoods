@@ -7,14 +7,17 @@
     <input type="text" placeholder="搜索大事记、用药、康复、大运动..." value="{{ searchKeyword }}" bindinput="onSearchInput" />
   </view>
 
-  <!-- 2. 分类标签滚动条 -->
-  <scroll-view class="cat-scroll" scroll-x="true">
-    <block wx:for="{{ categories }}" wx:key="*this">
-      <view class="cat-pill {{ activeCategory === item ? 'active' : '' }}" bindtap="selectCategory" data-cat="{{ item }}">
-        {{ item }}
-      </view>
-    </block>
-  </scroll-view>
+  <!-- 2. 分类标签滚动条 + 管理分类按钮 -->
+  <view class="cat-bar-row">
+    <scroll-view class="cat-scroll" scroll-x="true">
+      <block wx:for="{{ categories }}" wx:key="*this">
+        <view class="cat-pill {{ activeCategory === item ? 'active' : '' }}" bindtap="selectCategory" data-cat="{{ item }}">
+          {{ item }}
+        </view>
+      </block>
+    </scroll-view>
+    <view class="cat-manage-btn" bindtap="openCatModal">⚙️</view>
+  </view>
 
   <!-- 3. 时间线瀑布流列表 -->
   <view class="timeline-wrapper" wx:if="{{ filteredEvents.length > 0 }}">
@@ -88,6 +91,38 @@
 
     <view class="modal-footer">
       <button class="btn btn-primary btn-block" bindtap="saveEvent">保存记录</button>
+    </view>
+  </view>
+</view>
+
+<!-- 6. 分类管理弹窗 -->
+<view class="modal-overlay" wx:if="{{ showCatModal }}">
+  <view class="modal-card">
+    <view class="modal-header">
+      <text class="modal-title">⚙️ 管理分类</text>
+      <text class="modal-close" bindtap="closeCatModal">✕</text>
+    </view>
+    <view class="modal-body">
+      <!-- 现有分类列表 -->
+      <view class="cat-mgr-list">
+        <view class="cat-mgr-item" wx:for="{{ categoryList }}" wx:key="*this">
+          <text class="cat-mgr-name">{{ item }}</text>
+          <text class="cat-mgr-del {{ item === '未分类' ? 'del-disabled' : '' }}"
+            bindtap="deleteCategory" data-name="{{ item }}">
+            {{ item === '未分类' ? '保留' : '删除' }}
+          </text>
+        </view>
+      </view>
+      <!-- 新增分类 -->
+      <view class="form-item" style="margin-top: 24rpx;">
+        <text class="lbl">添加新分类</text>
+        <view style="display:flex; gap:16rpx; align-items:center; margin-top:12rpx;">
+          <input style="flex:1; background:#f7f9fc; border:1rpx solid #edf2f7; border-radius:12rpx; padding:0 20rpx; height:72rpx; font-size:26rpx;"
+            type="text" placeholder="输入分类名称..." value="{{ newCatName }}" bindinput="onNewCatInput" />
+          <button style="background:#38a169; color:#fff; font-size:24rpx; border-radius:12rpx; padding:0 28rpx; height:72rpx; line-height:72rpx; border:none;"
+            bindtap="addCategory">添加</button>
+        </view>
+      </view>
     </view>
   </view>
 </view>
