@@ -27,10 +27,16 @@ Page({
 
   onShow: function () {
     this.setData({ animKey: ((this.data.animKey || 0) + 1) % 2 });
-    this.initMealPlans();
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 1 });
     }
+    if (!wx.getStorageSync('user_is_logged_in') && !wx.getStorageSync('user_openid')) {
+      wx.showModal({ title: '请先登录', content: '此功能需要登录才能使用。', confirmText: '去登录', cancelText: '留在此页',
+        success: (res) => { if (res.confirm) wx.navigateTo({ url: '/pages/login/index' }); }
+      });
+      return;
+    }
+    this.initMealPlans();
   },
 
   initMealPlans: function () {

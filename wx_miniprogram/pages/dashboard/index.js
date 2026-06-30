@@ -178,7 +178,20 @@ Page({
     });
   },
 
+  _requireLogin: function () {
+    const ok = !!(wx.getStorageSync('user_is_logged_in') || wx.getStorageSync('user_openid'));
+    if (!ok) {
+      wx.showModal({
+        title: '请先登录', content: '此功能需要登录才能使用。',
+        confirmText: '去登录', cancelText: '取消',
+        success: (res) => { if (res.confirm) wx.navigateTo({ url: '/pages/login/index' }); }
+      });
+    }
+    return ok;
+  },
+
   onAvatarTap: function () {
+    if (!this._requireLogin()) return;
     const avatar = this.data.avatarUrl;
     if (!avatar || avatar === '/assets/avatar_default.png') {
       wx.navigateTo({ url: '/pages/album/index' });
@@ -188,10 +201,10 @@ Page({
   },
 
   goToLogin:    function() { wx.navigateTo({ url: '/pages/login/index' }); },
-  toMealPlan:   function() { wx.switchTab({ url: '/pages/mealplan/index' }); },
-  toHealthcare: function() { wx.switchTab({ url: '/pages/healthcare/index' }); },
-  toTimeline:   function() { wx.switchTab({ url: '/pages/timeline/index' }); },
-  toNutrition:  function() { wx.navigateTo({ url: '/pages/nutrition/index' }); },
-  toBowel:      function() { wx.navigateTo({ url: '/pages/bowel/index' }); },
-  toVision:     function() { wx.navigateTo({ url: '/pages/vision/index' }); }
+  toMealPlan:   function() { if (!this._requireLogin()) return; wx.switchTab({ url: '/pages/mealplan/index' }); },
+  toHealthcare: function() { if (!this._requireLogin()) return; wx.switchTab({ url: '/pages/healthcare/index' }); },
+  toTimeline:   function() { if (!this._requireLogin()) return; wx.switchTab({ url: '/pages/timeline/index' }); },
+  toNutrition:  function() { if (!this._requireLogin()) return; wx.navigateTo({ url: '/pages/nutrition/index' }); },
+  toBowel:      function() { if (!this._requireLogin()) return; wx.navigateTo({ url: '/pages/bowel/index' }); },
+  toVision:     function() { if (!this._requireLogin()) return; wx.navigateTo({ url: '/pages/vision/index' }); }
 });

@@ -154,7 +154,7 @@
 .floating-btn {
   position: fixed;
   right: 36rpx;
-  bottom: 160rpx;
+  bottom: 260rpx;
   width: 100rpx;
   height: 100rpx;
   background-color: var(--accent-orange);

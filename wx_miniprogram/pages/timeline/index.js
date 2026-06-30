@@ -31,10 +31,16 @@ Page({
 
   onShow: function () {
     this.setData({ evtDate: today(), animKey: ((this.data.animKey || 0) + 1) % 2 });
-    this.loadCategories();
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 3 });
     }
+    if (!wx.getStorageSync('user_is_logged_in') && !wx.getStorageSync('user_openid')) {
+      wx.showModal({ title: '请先登录', content: '此功能需要登录才能使用。', confirmText: '去登录', cancelText: '留在此页',
+        success: (res) => { if (res.confirm) wx.navigateTo({ url: '/pages/login/index' }); }
+      });
+      return;
+    }
+    this.loadCategories();
   },
 
   // 加载分类列表，再加载事件

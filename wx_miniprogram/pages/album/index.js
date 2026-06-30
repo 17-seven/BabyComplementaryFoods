@@ -9,6 +9,15 @@ Page({
   },
 
   onShow: function () {
+    if (!wx.getStorageSync('user_is_logged_in') && !wx.getStorageSync('user_openid')) {
+      wx.showModal({ title: '请先登录', content: '此功能需要登录才能使用。', confirmText: '去登录', cancelText: '返回',
+        success: (res) => {
+          if (res.confirm) wx.redirectTo({ url: '/pages/login/index' });
+          else wx.navigateBack({ fail: () => wx.switchTab({ url: '/pages/dashboard/index' }) });
+        }
+      });
+      return;
+    }
     this.loadAlbumData();
   },
 

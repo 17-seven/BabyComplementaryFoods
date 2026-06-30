@@ -132,8 +132,21 @@ Page({
     });
   },
 
+  _requireLogin: function () {
+    const ok = !!(wx.getStorageSync('user_is_logged_in') || wx.getStorageSync('user_openid'));
+    if (!ok) {
+      wx.showModal({
+        title: '请先登录', content: '此功能需要登录才能使用。',
+        confirmText: '去登录', cancelText: '取消',
+        success: (res) => { if (res.confirm) wx.navigateTo({ url: '/pages/login/index' }); }
+      });
+    }
+    return ok;
+  },
+
   // 快捷页面跳转
   navigateToPage: function (e) {
+    if (!this._requireLogin()) return;
     const page = e.currentTarget.dataset.page;
     wx.navigateTo({ url: `/pages/${page}/index` });
   },
@@ -155,9 +168,10 @@ Page({
     this.setData({ customShortcuts: shortcuts, customTimers });
   },
 
-  goTimer: function () { wx.navigateTo({ url: '/pages/vision/index' }); },
+  goTimer: function () { if (!this._requireLogin()) return; wx.navigateTo({ url: '/pages/vision/index' }); },
 
   goShortcut: function (e) {
+    if (!this._requireLogin()) return;
     wx.navigateTo({ url: `/pages/${e.currentTarget.dataset.page}/index` });
   },
 
