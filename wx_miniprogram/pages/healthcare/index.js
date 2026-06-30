@@ -53,7 +53,7 @@ Page({
   },
 
   onShow: function () {
-    this.setData({ hcDate: today(), cliDate: today(), asmDate: today() });
+    this.setData({ hcDate: today(), cliDate: today(), asmDate: today(), animKey: ((this.data.animKey || 0) + 1) % 2 });
     this.initData();
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 2 });

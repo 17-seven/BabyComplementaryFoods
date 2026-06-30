@@ -20,6 +20,7 @@ Page({
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 4 });
     }
+    this.setData({ animKey: ((this.data.animKey || 0) + 1) % 2 });
     const app = getApp();
     
     // 优先从本地缓存或全局对象中加载最新的微信登录信息

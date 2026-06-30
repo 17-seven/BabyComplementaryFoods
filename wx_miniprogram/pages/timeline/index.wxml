@@ -1,5 +1,5 @@
 <!--pages/timeline/index.wxml-->
-<view class="container page-transition">
+<view class="container page-anim-{{ animKey }}">
   
   <!-- 1. 搜索栏 -->
   <view class="search-bar">

@@ -26,6 +26,7 @@ Page({
   },
 
   onShow: function () {
+    this.setData({ animKey: ((this.data.animKey || 0) + 1) % 2 });
     this.initMealPlans();
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 1 });

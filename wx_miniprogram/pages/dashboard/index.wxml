@@ -1,5 +1,5 @@
 <!--pages/dashboard/index.wxml-->
-<view class="container page-transition">
+<view class="container page-anim-{{ animKey }}">
   
   <!-- 未登录柔和提示条（非强制，用户可忽略继续浏览） -->
   <view class="login-hint-bar" wx:if="{{ !isLoggedIn }}" bindtap="goToLogin">

@@ -123,19 +123,19 @@ input {
   font-size: 26rpx;
 }
 
-/* 全局页面切换淡入上浮过渡动效 */
-.page-transition {
-  animation: pageFadeInUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
-  will-change: transform, opacity;
+/* 页面切换动画：纯 opacity，无 will-change/transform，不产生新层叠上下文 */
+/* 奇偶交替 class 强制 DOM 重渲染，使动画在每次切换 tab 时重放 */
+.page-anim-0,
+.page-anim-1 {
+  animation: pageTabEnter 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-@keyframes pageFadeInUp {
-  0% {
-    opacity: 0;
-    transform: translateY(24rpx);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
+@keyframes pageTabEnter {
+  0%   { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+/* 保留旧 class 名向后兼容（其他未迁移页面用到） */
+.page-transition {
+  animation: pageTabEnter 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
 }

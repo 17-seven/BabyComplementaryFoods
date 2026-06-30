@@ -19,6 +19,7 @@ Page({
     babyInfo: { name: '小宝贝', birthDate: '', desc: '', isPremature: false },
     actualAge: '0月0天', correctedAge: '', isPremature: false,
     isLoggedIn: false,
+    animKey: 0,
     nextVaccine: null, nextCheckup: null, nextClinical: null,
     milkProgress: 0, milkVal: 0, waterVal: 0, bowelCount: 0,
     timerItems: [],
@@ -27,6 +28,7 @@ Page({
   },
 
   onShow: function () {
+    this.setData({ animKey: (this.data.animKey + 1) % 2 });
     this.loadBabyStatus();
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 0 });

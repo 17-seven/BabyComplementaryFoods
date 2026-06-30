@@ -1,5 +1,5 @@
 <!--pages/my/index.wxml-->
-<view class="container page-transition">
+<view class="container page-anim-{{ animKey }}">
   
   <!-- 1. 顶部小名片 -->
   <view class="my-profile-header">

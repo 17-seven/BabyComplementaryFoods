@@ -30,7 +30,7 @@ Page({
   },
 
   onShow: function () {
-    this.setData({ evtDate: today() });
+    this.setData({ evtDate: today(), animKey: ((this.data.animKey || 0) + 1) % 2 });
     this.loadCategories();
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 3 });

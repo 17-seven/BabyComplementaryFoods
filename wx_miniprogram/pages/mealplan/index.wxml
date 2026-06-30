@@ -1,5 +1,5 @@
 <!--pages/mealplan/index.wxml-->
-<view class="container page-transition">
+<view class="container page-anim-{{ animKey }}">
   
   <!-- 1. 顶部切换栏 -->
   <view class="week-header">
