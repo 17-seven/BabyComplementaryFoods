@@ -27,12 +27,41 @@ Page({
     avatarUrl: '/assets/avatar_default.png'
   },
 
+  _liveTimer: null,
+
   onShow: function () {
     this.setData({ animKey: (this.data.animKey + 1) % 2 });
     this.loadBabyStatus();
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 0 });
     }
+  },
+
+  onHide:   function () { this._stopLive(); },
+  onUnload: function () { this._stopLive(); },
+
+  _stopLive: function () {
+    if (this._liveTimer) { clearInterval(this._liveTimer); this._liveTimer = null; }
+  },
+
+  // 有计时进行时每秒刷新 timerItems 数据
+  _startLive: function () {
+    this._stopLive();
+    this._liveTimer = setInterval(() => {
+      const todayStr = require('../../utils/storage.js').today();
+      const items = this.data.timerItems;
+      let hasWearing = false;
+      const updated = items.map(t => {
+        if (!t.isWearing || !t.startTime) return t;
+        hasWearing = true;
+        const sessionSecs = Math.floor((Date.now() - t.startTime) / 1000);
+        const totalSecs   = (t.todayMins || 0) * 60 + sessionSecs;
+        return { ...t, todayHours: parseFloat((totalSecs / 3600).toFixed(1)),
+          progress: Math.min(Math.round((totalSecs / ((t.targetMins || 1) * 60)) * 100), 100) };
+      });
+      if (hasWearing) this.setData({ timerItems: updated });
+      else this._stopLive();
+    }, 1000);
   },
 
   onPullDownRefresh: function () {
@@ -71,19 +100,28 @@ Page({
     // 可扩展计时项（只展示用户自创的，排除默认眼罩模块）
     const defaultTimers = [{ id: 'eyepatch', name: '眼罩遮盖', icon: '👁️', targetMins: 240 }];
     const timerDefs = getStorage('vision_timer_items', defaultTimers)
-      .filter(t => t.id !== 'eyepatch');  // 首页不展示默认眼罩，保持简洁
+      .filter(t => t.id !== 'eyepatch');
     const timerItems = timerDefs.map(t => {
-      const key  = t.id === 'eyepatch' ? 'eyepatch_records' : `vision_records_${t.id}`;
-      const mins = getStorage(key, [])
+      const key  = `vision_records_${t.id}`;
+      const wearingData = getStorage(`vision_wearing_${t.id}`, { isWearing: false, startTime: null });
+      const savedMins = getStorage(key, [])
         .filter(r => r.date === todayStr)
         .reduce((s, r) => s + (r.durationMinutes || 0), 0);
+      const sessionSecs = wearingData.isWearing && wearingData.startTime
+        ? Math.floor((Date.now() - wearingData.startTime) / 1000) : 0;
+      const totalSecs = savedMins * 60 + sessionSecs;
       return {
         ...t,
-        todayHours:  parseFloat((mins / 60).toFixed(1)),
+        isWearing:   wearingData.isWearing,
+        startTime:   wearingData.startTime,
+        todayMins:   savedMins,
+        todayHours:  parseFloat((totalSecs / 3600).toFixed(1)),
         targetHours: Math.round(t.targetMins / 60),
-        progress:    Math.min(Math.round((mins / t.targetMins) * 100), 100)
+        progress:    Math.min(Math.round((totalSecs / ((t.targetMins || 1) * 60)) * 100), 100)
       };
     });
+    // 有正在进行的计时时，启动实时刷新
+    if (timerItems.some(t => t.isWearing)) this._startLive();
 
     // 疫苗提醒
     const dueVaccines = getStorage('baby_vaccines_list', []).filter(v => v.status === '需补种' || v.status === '推荐接种');

@@ -18,7 +18,40 @@ Page({
     iconOptions: ICON_OPTIONS
   },
 
-  onShow: function () { this.loadAllTimers(); },
+  _liveTimer: null,
+
+  onShow: function () {
+    this.loadAllTimers();
+    this._startLive();
+  },
+
+  onHide: function () { this._stopLive(); },
+  onUnload: function () { this._stopLive(); },
+
+  // 实时计时区间
+  _startLive: function () {
+    this._stopLive();
+    this._liveTimer = setInterval(() => {
+      const items = this.data.timerItems;
+      let hasWearing = false;
+      const updated = items.map(t => {
+        if (!t.isWearing || !t.startTime) return t;
+        hasWearing = true;
+        const sessionSecs = Math.floor((Date.now() - t.startTime) / 1000);
+        const totalSecs   = (t.todayMins || 0) * 60 + sessionSecs;
+        const h = Math.floor(totalSecs / 3600);
+        const m = Math.floor((totalSecs % 3600) / 60);
+        const s = totalSecs % 60;
+        const liveStr = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        const progress = Math.min(Math.round((totalSecs / ((t.targetMins || 1) * 60)) * 100), 100);
+        return { ...t, liveStr, progress };
+      });
+      if (hasWearing) this.setData({ timerItems: updated });
+    }, 1000);
+  },
+  _stopLive: function () {
+    if (this._liveTimer) { clearInterval(this._liveTimer); this._liveTimer = null; }
+  },
 
   loadAllTimers: function () {
     const defs     = getStorage('vision_timer_items', DEFAULT_TIMERS);
@@ -28,14 +61,22 @@ Page({
       const wearingData = getStorage(`vision_wearing_${t.id}`, { isWearing: false, startTime: null });
       const logs        = getStorage(recordsKey, []);
       const todayMins   = logs.filter(l => l.date === todayStr).reduce((s, r) => s + (r.durationMinutes || 0), 0);
+      const totalSecs   = wearingData.isWearing && wearingData.startTime
+        ? todayMins * 60 + Math.floor((Date.now() - wearingData.startTime) / 1000)
+        : todayMins * 60;
+      const h = Math.floor(totalSecs / 3600);
+      const m = Math.floor((totalSecs % 3600) / 60);
+      const s = totalSecs % 60;
       return {
         ...t,
         isWearing:  wearingData.isWearing,
         startTime:  wearingData.startTime,
+        todayMins,                        // 已完成的分钟数（供 live 计算基底用）
         logs:       [...logs].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 50),
-        todayHours:  parseFloat((todayMins / 60).toFixed(1)),
+        todayHours:  parseFloat((totalSecs / 3600).toFixed(1)),
         targetHours: Math.round(t.targetMins / 60),
-        progress:    Math.min(Math.round((todayMins / (t.targetMins || 1)) * 100), 100)
+        progress:    Math.min(Math.round((totalSecs / ((t.targetMins || 1) * 60)) * 100), 100),
+        liveStr:     `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`
       };
     });
     this.setData({ timerItems });

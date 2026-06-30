@@ -85,6 +85,12 @@
   color: #38a169;
   line-height: 1;
 }
+.tc-live {
+  font-size: 44rpx;
+  color: #ff7043;
+  letter-spacing: 2rpx;
+  font-variant-numeric: tabular-nums;
+}
 .tc-slash, .tc-target {
   font-size: 24rpx;
   color: #a0aec0;

@@ -23,9 +23,12 @@
 
       <!-- 今日进度 -->
       <view class="tc-progress-row">
-        <text class="tc-hours">{{ item.todayHours }}h</text>
-        <text class="tc-slash">/</text>
-        <text class="tc-target">{{ item.targetHours }}h</text>
+        <!-- 计时中显示实时 HH:MM:SS，否则显示小时数 -->
+        <text class="tc-hours {{ item.isWearing ? 'tc-live' : '' }}">
+          {{ item.isWearing ? item.liveStr : (item.todayHours + 'h') }}
+        </text>
+        <text class="tc-slash" wx:if="{{ !item.isWearing }}">/</text>
+        <text class="tc-target" wx:if="{{ !item.isWearing }}">{{ item.targetHours }}h</text>
         <text class="tc-pct {{ item.progress >= 100 ? 'pct-done' : '' }}">{{ item.progress }}%</text>
       </view>
       <view class="progress-bar-container">
