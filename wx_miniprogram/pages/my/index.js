@@ -2,18 +2,36 @@
 const { calculateBabyAge } = require('../../utils/babyHelper.js');
 const { getStorage, setStorage } = require('../../utils/storage.js');
 
+// 可添加为快捷入口的页面清单
+const AVAILABLE_PAGES = [
+  { page: 'vision',    name: '计时模块',   icon: '⏱️', desc: '自定义计时追踪管理' },
+  { page: 'bowel',     name: '排便记录',   icon: '💩', desc: '大便次数与性状打卡' },
+  { page: 'nutrition', name: '饮奶饮水',   icon: '🍼', desc: '奶量水量每日记账' },
+  { page: 'allergen',  name: '食材管理',   icon: '🥦', desc: '排敏食材安全池维护' },
+  { page: 'album',     name: '宝宝相册',   icon: '🖼️', desc: '萌照管理与头像设置' },
+  { page: 'baby',      name: '宝宝档案',   icon: '👶', desc: '基础信息与早产校正' },
+  { page: 'family',    name: '家庭协同',   icon: '🏡', desc: '多端共享同步码管理' },
+  { page: 'mealplan',  name: '辅食计划',   icon: '🥗', desc: '周历食谱与合规校验' },
+  { page: 'healthcare',name: '医疗儿保',   icon: '🩺', desc: '疫苗、儿保、就诊记录' },
+  { page: 'timeline',  name: '成长大事记', icon: '📋', desc: '里程碑时间轴记录' },
+];
+
 Page({
   data: {
-    babyInfo: null,       // 宝宝档案，null表示未设置
+    babyInfo: null,
     actualAge: "",
     correctedAge: "",
-    
-    // 登录授权状态
     isLoggedIn: false,
     userInfo: null,
     showLoginModal: false,
-    tempAvatarUrl: '', // 临时选取的头像
-    inputNickname: ''  // 输入的昵称
+    tempAvatarUrl: '',
+    inputNickname: '',
+
+    // 自定义快捷入口
+    customShortcuts: [],
+    showShortcutModal: false,
+    newShortcutPage: '',
+    availablePages: AVAILABLE_PAGES
   },
 
   onShow: function () {
@@ -48,13 +66,11 @@ Page({
       });
     } else {
       this.setData({
-        babyInfo: null,
-        actualAge: '',
-        correctedAge: '',
-        isLoggedIn: isLoggedIn,
-        userInfo: userInfo
+        babyInfo: null, actualAge: '', correctedAge: '',
+        isLoggedIn: isLoggedIn, userInfo: userInfo
       });
     }
+    this.loadCustomShortcuts();
   },
 
   // 触发授权登录（直接跳转至微信一键登录专属独立页面）
@@ -105,8 +121,57 @@ Page({
   // 快捷页面跳转
   navigateToPage: function (e) {
     const page = e.currentTarget.dataset.page;
-    wx.navigateTo({
-      url: `/pages/${page}/index`
+    wx.navigateTo({ url: `/pages/${page}/index` });
+  },
+
+  // ===== 自定义快捷入口 =====
+  loadCustomShortcuts: function () {
+    const shortcuts = getStorage('my_custom_shortcuts', []);
+    this.setData({ customShortcuts: shortcuts });
+  },
+
+  goShortcut: function (e) {
+    const page = e.currentTarget.dataset.page;
+    wx.navigateTo({ url: `/pages/${page}/index` });
+  },
+
+  openShortcutModal: function () {
+    const shortcuts = this.data.customShortcuts;
+    // 过滤掉已添加的页面
+    const available = AVAILABLE_PAGES.filter(p => !shortcuts.some(s => s.page === p.page));
+    if (available.length === 0) {
+      wx.showToast({ title: '所有页面均已添加', icon: 'none' });
+      return;
+    }
+    this.setData({ showShortcutModal: true, newShortcutPage: available[0].page, availablePages: available });
+  },
+  closeShortcutModal: function () { this.setData({ showShortcutModal: false }); },
+  selectShortcutPage: function (e) { this.setData({ newShortcutPage: e.currentTarget.dataset.page }); },
+
+  confirmAddShortcut: function () {
+    const pageDef = AVAILABLE_PAGES.find(p => p.page === this.data.newShortcutPage);
+    if (!pageDef) return;
+    const shortcuts = [...this.data.customShortcuts];
+    if (shortcuts.some(s => s.page === pageDef.page)) {
+      wx.showToast({ title: '已添加过该入口', icon: 'none' }); return;
+    }
+    shortcuts.push({ id: Date.now(), page: pageDef.page, name: pageDef.name, icon: pageDef.icon });
+    setStorage('my_custom_shortcuts', shortcuts);
+    this.setData({ customShortcuts: shortcuts, showShortcutModal: false });
+    wx.showToast({ title: '快捷入口已添加', icon: 'success' });
+  },
+
+  deleteShortcut: function (e) {
+    const id = e.currentTarget.dataset.id;
+    wx.showModal({
+      title: '移除快捷入口', content: '确定要移除这个快捷入口吗？',
+      success: (res) => {
+        if (res.confirm) {
+          const shortcuts = this.data.customShortcuts.filter(s => s.id !== id);
+          setStorage('my_custom_shortcuts', shortcuts);
+          this.setData({ customShortcuts: shortcuts });
+        }
+      }
     });
   },
 

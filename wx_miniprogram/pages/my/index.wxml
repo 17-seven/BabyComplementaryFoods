@@ -54,15 +54,6 @@
       <view class="menu-arrow">➔</view>
     </view>
 
-    <view class="menu-item" bindtap="navigateToPage" data-page="vision">
-      <view class="menu-icon">👁️</view>
-      <view class="menu-body">
-        <text class="menu-title">视力遮盖戴镜计时</text>
-        <text class="menu-desc">记录眼罩遮盖时长，每日4小时目标打卡</text>
-      </view>
-      <view class="menu-arrow">➔</view>
-    </view>
-
     <view class="menu-item" bindtap="navigateToPage" data-page="allergen">
       <view class="menu-icon">🥦</view>
       <view class="menu-body">
@@ -88,6 +79,24 @@
         <text class="menu-desc">获取家庭同步码邀请爱人，多端数据自动刷新同步</text>
       </view>
       <view class="menu-arrow">➔</view>
+    </view>
+  </view>
+
+  <!-- 自定义快捷入口 -->
+  <view class="shortcut-header">
+    <text class="section-title" style="margin-bottom:0">⚡ 自定义快捷入口</text>
+    <text class="shortcut-hint">按住可删除</text>
+  </view>
+  <view class="shortcut-grid">
+    <view class="shortcut-card" wx:for="{{ customShortcuts }}" wx:key="id"
+      bindtap="goShortcut" data-page="{{ item.page }}"
+      bindlongpress="deleteShortcut" data-id="{{ item.id }}">
+      <text class="shortcut-icon">{{ item.icon }}</text>
+      <text class="shortcut-name">{{ item.name }}</text>
+    </view>
+    <view class="shortcut-card shortcut-add" bindtap="openShortcutModal">
+      <text class="shortcut-icon">＋</text>
+      <text class="shortcut-name">添加</text>
     </view>
   </view>
 
@@ -132,3 +141,28 @@
 
 </view>
 
+<!-- 添加快捷入口弹窗（在page-anim容器外） -->
+<view class="modal-overlay" wx:if="{{ showShortcutModal }}">
+  <view class="modal-card">
+    <view class="modal-header">
+      <text class="modal-title">添加快捷入口</text>
+      <text class="modal-close" bindtap="closeShortcutModal">✕</text>
+    </view>
+    <view class="modal-body">
+      <block wx:for="{{ availablePages }}" wx:key="page">
+        <view class="shortcut-option {{ newShortcutPage === item.page ? 'option-selected' : '' }}"
+          bindtap="selectShortcutPage" data-page="{{ item.page }}">
+          <text class="option-icon">{{ item.icon }}</text>
+          <view class="option-body">
+            <text class="option-name">{{ item.name }}</text>
+            <text class="option-desc">{{ item.desc }}</text>
+          </view>
+          <text class="option-check" wx:if="{{ newShortcutPage === item.page }}">✓</text>
+        </view>
+      </block>
+    </view>
+    <view class="modal-footer">
+      <button class="btn btn-primary btn-block" bindtap="confirmAddShortcut">添加到快捷入口</button>
+    </view>
+  </view>
+</view>
