@@ -1,0 +1,80 @@
+/* custom-tab-bar/index.wxss */
+
+.tabbar-wrap {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 112rpx;
+  padding-bottom: env(safe-area-inset-bottom);
+  background: #ffffff;
+  display: flex;
+  align-items: stretch;
+  box-shadow: 0 -2rpx 20rpx rgba(0, 0, 0, 0.07);
+  border-top: 1rpx solid #f0f4f8;
+  z-index: 900;
+}
+
+.tab-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding-top: 12rpx;
+  padding-bottom: 8rpx;
+}
+
+/* 选中顶部指示小点 */
+.tab-dot {
+  position: absolute;
+  top: 6rpx;
+  left: 50%;
+  transform: translateX(-50%) scale(0);
+  width: 10rpx;
+  height: 10rpx;
+  border-radius: 50%;
+  background-color: #38a169;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.tab-dot.dot-show {
+  transform: translateX(-50%) scale(1);
+}
+
+/* 图标 */
+.tab-icon {
+  font-size: 44rpx;
+  line-height: 1;
+  transition: transform 0.2s ease, filter 0.2s ease;
+  filter: grayscale(40%) opacity(0.65);
+}
+.tab-icon.icon-active {
+  filter: grayscale(0%) opacity(1);
+  transform: scale(1.1) translateY(-4rpx);
+}
+
+/* 弹跳动画 */
+@keyframes tabBounce {
+  0%   { transform: scale(1) translateY(0); }
+  35%  { transform: scale(1.35) translateY(-10rpx); }
+  65%  { transform: scale(0.9) translateY(-2rpx); }
+  85%  { transform: scale(1.08) translateY(-5rpx); }
+  100% { transform: scale(1.1) translateY(-4rpx); }
+}
+.tab-icon.bounce {
+  animation: tabBounce 0.38s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* 文字标签 */
+.tab-label {
+  font-size: 20rpx;
+  margin-top: 6rpx;
+  color: #a0aec0;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+.tab-label.label-active {
+  color: #38a169;
+  font-weight: 700;
+}

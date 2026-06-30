@@ -23,10 +23,11 @@ Page({
   },
 
   onShow: function () {
-    this.setData({
-      evtDate: today()
-    });
+    this.setData({ evtDate: today() });
     this.loadEvents();
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+      this.getTabBar().setData({ selected: 3 });
+    }
   },
 
   loadEvents: function () {
@@ -82,12 +83,17 @@ Page({
 
   // 触发弹窗显示
   openAddModal: function () {
-    this.setData({
-      showModal: true,
-      evtDate: today(),
-      evtTitle: '',
-      evtContent: ''
-    });
+    // 未登录不允许添加内容
+    if (!wx.getStorageSync('user_is_logged_in') && !wx.getStorageSync('user_openid')) {
+      wx.showModal({
+        title: '请先登录',
+        content: '添加大事记需要先登录，以便数据云端同步保存。',
+        confirmText: '去登录',
+        success: (res) => { if (res.confirm) wx.navigateTo({ url: '/pages/login/index' }); }
+      });
+      return;
+    }
+    this.setData({ showModal: true, evtDate: today(), evtTitle: '', evtContent: '' });
   },
 
   closeAddModal: function () {

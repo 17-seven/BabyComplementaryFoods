@@ -17,6 +17,9 @@ Page({
   },
 
   onShow: function () {
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+      this.getTabBar().setData({ selected: 4 });
+    }
     const app = getApp();
     
     // 优先从本地缓存或全局对象中加载最新的微信登录信息

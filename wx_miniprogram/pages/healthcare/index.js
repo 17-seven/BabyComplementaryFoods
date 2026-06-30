@@ -47,11 +47,11 @@ Page({
   },
 
   onShow: function () {
-    this.setData({
-      hcDate: today(),
-      cliDate: today()
-    });
+    this.setData({ hcDate: today(), cliDate: today() });
     this.initData();
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+      this.getTabBar().setData({ selected: 2 });
+    }
   },
 
   initData: function () {

@@ -1,14 +1,14 @@
 // pages/baby/index.js
-const { getStorage, setStorage } = require('../../utils/storage.js');
+const { getStorage, setStorage, today } = require('../../utils/storage.js');
 
 Page({
   data: {
     name: '',
     birthDate: '',
     isPremature: false,
-    dueDate: '',          // 预产期
-    prematureDays: 0,     // 自动计算的早产天数
-    prematureDesc: ''     // 自动生成的描述（如 "29w+6 早产"）
+    dueDate: '',
+    prematureDays: 0,
+    prematureDesc: ''
   },
 
   onLoad: function () {
@@ -16,20 +16,20 @@ Page({
   },
 
   loadBabyProfile: function () {
-    // 读取宝宝的本地档案设置，新用户默认为空
     const profile = getStorage('baby_profile_info', null);
-
     if (profile) {
       this.setData({
         name: profile.name || '',
-        birthDate: profile.birthDate || '',
+        birthDate: profile.birthDate || today(),
         isPremature: profile.isPremature || false,
         dueDate: profile.dueDate || '',
         prematureDays: profile.prematureDays || 0,
         prematureDesc: profile.prematureDesc || ''
       });
+    } else {
+      // 新用户默认出生日期为今天
+      this.setData({ birthDate: today() });
     }
-    // 如果 profile 为 null，说明新用户，保持默认空值
   },
 
   // 1. 通用输入框字段修改监听

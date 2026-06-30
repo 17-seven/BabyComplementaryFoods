@@ -27,6 +27,9 @@ Page({
 
   onShow: function () {
     this.initMealPlans();
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+      this.getTabBar().setData({ selected: 1 });
+    }
   },
 
   initMealPlans: function () {
@@ -178,6 +181,16 @@ Page({
 
   // 就地修改特定辅食食谱菜品
   editMeal: function (e) {
+    // 未登录不允许编辑
+    if (!wx.getStorageSync('user_is_logged_in') && !wx.getStorageSync('user_openid')) {
+      wx.showModal({
+        title: '请先登录',
+        content: '修改辅食菜品需要先登录，以便数据云端同步保存。',
+        confirmText: '去登录',
+        success: (res) => { if (res.confirm) wx.navigateTo({ url: '/pages/login/index' }); }
+      });
+      return;
+    }
     const { date, mealtype, name } = e.currentTarget.dataset;
     const that = this;
 

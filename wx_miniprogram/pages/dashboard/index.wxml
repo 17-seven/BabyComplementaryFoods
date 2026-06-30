@@ -15,10 +15,11 @@
           <text class="name">{{ babyInfo.name }}</text>
           <text class="gender-icon">👶</text>
         </view>
-        <text class="birth-desc">出生：{{ babyInfo.birthDate }} ({{ babyInfo.desc }})</text>
+        <text class="birth-desc">出生：{{ babyInfo.birthDate || '未设置' }}{{ babyInfo.desc ? ' (' + babyInfo.desc + ')' : '' }}</text>
       </view>
     </view>
-    <view class="age-row">
+    <!-- 早产宝宝展示双月龄，非早产只展示实际月龄 -->
+    <view class="age-row" wx:if="{{ isPremature }}">
       <view class="age-box">
         <text class="age-lbl">实际月龄</text>
         <text class="age-val">{{ actualAge }}</text>
@@ -26,7 +27,13 @@
       <view class="age-line"></view>
       <view class="age-box">
         <text class="age-lbl">纠正月龄</text>
-        <text class="age-val">{{ correctedAge }}</text>
+        <text class="age-val">{{ correctedAge || '未到纠正预产期' }}</text>
+      </view>
+    </view>
+    <view class="age-row" wx:else>
+      <view class="age-box" style="flex:1;">
+        <text class="age-lbl">实际月龄</text>
+        <text class="age-val">{{ actualAge }}</text>
       </view>
     </view>
   </view>
@@ -96,13 +103,16 @@
       <text class="gauge-name">排便次数 ➔</text>
     </view>
 
-    <view class="gauge-card" bindtap="toVision">
-      <view class="gauge-ring ring-orange">
-        <text class="gauge-num">{{ eyepatchVal }}</text>
-        <text class="gauge-unit">h</text>
+    <!-- 可扩展计时项（来自 vision_timer_items） -->
+    <block wx:for="{{ timerItems }}" wx:key="id">
+      <view class="gauge-card" bindtap="toVision">
+        <view class="gauge-ring ring-orange">
+          <text class="gauge-num">{{ item.todayHours }}</text>
+          <text class="gauge-unit">h</text>
+        </view>
+        <text class="gauge-name">{{ item.icon }}{{ item.name }} ({{ item.targetHours }}h) ➔</text>
       </view>
-      <text class="gauge-name">眼罩佩戴 (目标4h) ➔</text>
-    </view>
+    </block>
   </view>
 
   <!-- 4. 最近大事记 -->

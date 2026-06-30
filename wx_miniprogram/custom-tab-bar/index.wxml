@@ -1,0 +1,21 @@
+<!-- custom-tab-bar/index.wxml -->
+<view class="tabbar-wrap">
+  <view
+    class="tab-item {{ selected === index ? 'active' : '' }}"
+    wx:for="{{ list }}"
+    wx:key="url"
+    data-index="{{ index }}"
+    bindtap="switchTab"
+  >
+    <!-- 选中指示点 -->
+    <view class="tab-dot {{ selected === index ? 'dot-show' : '' }}"></view>
+
+    <!-- 图标 emoji，选中 + 弹跳时加动画 class -->
+    <view class="tab-icon {{ bounceIndex === index ? 'bounce' : '' }} {{ selected === index ? 'icon-active' : '' }}">
+      {{ item.emoji }}
+    </view>
+
+    <!-- 文字标签 -->
+    <text class="tab-label {{ selected === index ? 'label-active' : '' }}">{{ item.name }}</text>
+  </view>
+</view>

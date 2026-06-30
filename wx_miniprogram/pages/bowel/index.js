@@ -69,6 +69,16 @@ Page({
 
   // 新增记录保存
   saveBowel: function () {
+    // 未登录不允许添加内容
+    if (!wx.getStorageSync('user_is_logged_in') && !wx.getStorageSync('user_openid')) {
+      wx.showModal({
+        title: '请先登录',
+        content: '保存排便记录需要先登录。',
+        confirmText: '去登录',
+        success: (res) => { if (res.confirm) wx.navigateTo({ url: '/pages/login/index' }); }
+      });
+      return;
+    }
     const item = {
       id: Date.now(),
       date: this.data.bowelDate,
