@@ -121,8 +121,8 @@ function handleNavClick() {
   cursor: pointer; border: none; background: transparent;
   width: 100%; transition: .15s;
 }
-.nav-item:hover { background: #fff5f2; color: #ff7043; }
-.nav-item.active { background: #fff5f2; color: #ff7043; font-weight: 600; }
+.nav-item:hover { background: #F3F8F0; color: #5A8D3D; }
+.nav-item.active { background: #F3F8F0; color: #5A8D3D; font-weight: 600; }
 .nav-icon { font-size: 18px; flex-shrink: 0; }
 .nav-label { white-space: nowrap; }
 

@@ -7,7 +7,7 @@
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-  background: #f0f4f8;
+  background: #F9FBF8;
   color: #2d3748;
   font-size: 14px;
 }
@@ -24,14 +24,14 @@ body {
   padding: 8px 16px; border-radius: 8px; border: none;
   cursor: pointer; font-size: 14px; font-weight: 500; transition: .2s;
 }
-.btn-primary { background: #ff7043; color: #fff; }
-.btn-primary:hover { background: #f4511e; }
-.btn-secondary { background: #e3f2fd; color: #1976d2; }
-.btn-secondary:hover { background: #bbdefb; }
+.btn-primary { background: #6CA847; color: #fff; }
+.btn-primary:hover { background: #5A8D3D; }
+.btn-secondary { background: #F3F8F0; color: #5A8D3D; }
+.btn-secondary:hover { background: #E2EDDE; }
 .btn-danger { background: #ffebee; color: #c62828; }
 .btn-danger:hover { background: #ffcdd2; }
-.btn-success { background: #e8f5e9; color: #2e7d32; }
-.btn-success:hover { background: #c8e6c9; }
+.btn-success { background: #F3F8F0; color: #5A8D3D; }
+.btn-success:hover { background: #E2EDDE; }
 .btn-sm { padding: 4px 10px; font-size: 12px; }
 
 .form-row { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
@@ -41,17 +41,17 @@ body {
   font-size: 14px; outline: none; transition: .2s; background: #fff;
   font-family: inherit;
 }
-.form-row input:focus, .form-row select:focus, .form-row textarea:focus { border-color: #ff7043; }
+.form-row input:focus, .form-row select:focus, .form-row textarea:focus { border-color: #6CA847; }
 .form-row textarea { resize: vertical; min-height: 70px; }
 
 .tag {
   display: inline-block; padding: 2px 8px; border-radius: 20px;
   font-size: 12px; font-weight: 500;
 }
-.tag-green  { background: #e8f5e9; color: #2e7d32; }
+.tag-green  { background: #F3F8F0; color: #5A8D3D; }
 .tag-red    { background: #ffebee; color: #c62828; }
 .tag-orange { background: #fff3e0; color: #e65100; }
-.tag-blue   { background: #e3f2fd; color: #1565c0; }
+.tag-blue   { background: #ebf8ff; color: #2b6cb0; }
 .tag-purple { background: #f3e5f5; color: #6a1b9a; }
 .tag-gray   { background: #f5f5f5; color: #616161; }
 

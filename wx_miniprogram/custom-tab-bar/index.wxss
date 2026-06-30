@@ -35,7 +35,7 @@
   width: 10rpx;
   height: 10rpx;
   border-radius: 50%;
-  background-color: #38a169;
+  background-color: #6CA847;
   transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .tab-dot.dot-show {
@@ -75,6 +75,6 @@
   transition: color 0.2s;
 }
 .tab-label.label-active {
-  color: #38a169;
+  color: #6CA847;
   font-weight: 700;
 }

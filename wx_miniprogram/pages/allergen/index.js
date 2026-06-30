@@ -98,6 +98,7 @@ Page({
     showAddDialog: false,
     addFoodName: '',
     addFoodCategory: '主食',
+    addFoodCategoryIndex: 0,
     addFoodType: 'safe', // 'safe' 已排敏 | 'risk' 未排敏
   },
 
@@ -384,11 +385,14 @@ Page({
   // ==================== 录入自定义食材弹窗 ====================
   openAddDialog: function (e) {
     const type = e.currentTarget.dataset.type || 'safe';
+    const cat = e.currentTarget.dataset.cat || '主食';
+    const idx = this.data.catOptions.indexOf(cat);
     this.setData({
       showAddDialog: true,
       addFoodType: type,
       addFoodName: '',
-      addFoodCategory: '主食'
+      addFoodCategory: cat,
+      addFoodCategoryIndex: idx >= 0 ? idx : 0
     });
   },
 
@@ -404,7 +408,10 @@ Page({
   // 食材分类 picker 专用（mode=selector 返回 index，需转成名称）
   onAddCategoryChange: function (e) {
     const idx = parseInt(e.detail.value);
-    this.setData({ addFoodCategory: this.data.catOptions[idx] });
+    this.setData({ 
+      addFoodCategory: this.data.catOptions[idx],
+      addFoodCategoryIndex: idx
+    });
   },
 
   saveCustomFood: function () {

@@ -2,11 +2,11 @@
   <div>
     <div class="page-header flex-header">
       <div style="display: flex; flex-direction: column; gap: 4px;">
-        <h2>辅食计划</h2>
+        <h2>辅食计划 ({{ formatPeriodToChinese(plan?.period) }})</h2>
         <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 4px;">
           <select v-model="currentWeekIndex" class="week-select">
             <option v-for="(wp, idx) in allWeekPlans" :key="wp.week" :value="idx">
-              {{ wp.week }} ({{ wp.period }})
+              {{ wp.week }} ({{ formatPeriodToChinese(wp.period) }})
             </option>
           </select>
           <button class="btn btn-secondary btn-sm" @click="addNewWeek" style="padding: 6px 12px;">➕ 新增下周计划</button>
@@ -22,6 +22,9 @@
       <!-- 规则校验 -->
       <div class="card rule-card">
         <h3 class="section-title">⚖️ 规则校验</h3>
+        <div class="compliance-banner" :class="allRulesStatus.passed ? 'banner-ok' : 'banner-err'">
+          {{ allRulesStatus.message }}
+        </div>
         <div class="rule-list">
           <div class="rule-item">
             <span class="rule-name">鱼类频次</span>
@@ -113,10 +116,13 @@
       <div class="day-tabs">
         <button
           v-for="day in plan.days" :key="day.date"
-          class="day-tab" :class="{ active: selectedDate === day.date }"
+          class="day-tab" :class="{ active: selectedDate === day.date, 'day-tab-passed': isPassed(day.date) }"
           @click="selectedDate = day.date"
         >
-          <div class="day-name">{{ day.dayName }}</div>
+          <div class="day-name">
+            <span v-if="isPassed(day.date)" class="passed-check">✓ </span>
+            {{ day.dayName }}
+          </div>
           <div class="day-date">{{ day.date.slice(5) }}</div>
           <div class="egg-dot" :style="{ background: day.eggTarget >= 2 ? '#ff7043' : '#fbc02d' }"></div>
         </button>
@@ -156,9 +162,12 @@
     <!-- 2. 周一到周日竖排周视图模式 -->
     <template v-else>
       <div class="weekly-list">
-        <div v-for="day in plan.days" :key="day.date" class="weekly-day-card card">
+        <div v-for="day in plan.days" :key="day.date" class="weekly-day-card card" :class="{ 'weekly-day-card-passed': isPassed(day.date) }">
           <div class="weekly-day-header">
-            <span class="weekly-day-title">{{ day.dayName }}（{{ day.date.slice(5) }}）</span>
+            <span class="weekly-day-title">
+              <span v-if="isPassed(day.date)" class="passed-check">✓ </span>
+              {{ day.dayName }}（{{ day.date.slice(5) }}）
+            </span>
             <span class="weekly-egg-target">🥚 鸡蛋目标：<strong>{{ day.eggTarget }} 个</strong></span>
           </div>
 
@@ -194,11 +203,11 @@
         <h3>{{ noteDialog.date }} {{ noteDialog.mealType }} 备注</h3>
         <div class="form-row" style="margin-top:14px;">
           <label>备注内容（如：加了乳果糖15ml，吃了大半碗）</label>
-          <textarea v-model="noteDialog.text" rows="3" placeholder="输入备注..." />
+          <textarea v-model="noteDialog.text" :disabled="isPassed(noteDialog.date)" rows="3" placeholder="输入备注..." />
         </div>
         <div style="display:flex;gap:8px;justify-content:flex-end;">
           <button class="btn btn-secondary" @click="noteDialog.show = false">取消</button>
-          <button class="btn btn-primary" @click="saveNote">保存</button>
+          <button class="btn btn-primary" :disabled="isPassed(noteDialog.date)" @click="saveNote">保存</button>
         </div>
       </div>
     </div>
@@ -210,7 +219,7 @@
         
         <div class="form-row" style="margin-top:14px;">
           <label>鸡蛋目标 (当天)</label>
-          <select v-model="mealDialog.eggTarget" style="width: 100%;">
+          <select v-model="mealDialog.eggTarget" :disabled="isPassed(mealDialog.date)" style="width: 100%;">
             <option :value="0">0 个</option>
             <option :value="1">1 个</option>
             <option :value="2">2 个</option>
@@ -250,6 +259,7 @@ const noteMap = reactive(getStorage('meal_notes', {}))
 
 // 视图模式：'daily' 表示单日视图，'weekly' 表示周一至周日竖排周视图
 const viewMode = ref('daily')
+const isPassed = (dateStr) => dateStr < today()
 
 const noteDialog = reactive({ show: false, date: '', mealType: '', text: '' })
 
@@ -296,6 +306,21 @@ function saveMeal() {
 }
 
 // 动态创建下周辅食计划
+// 格式化日期范围为中文形式
+function formatPeriodToChinese(period) {
+  if (!period) return ''
+  const matches = period.match(/(\d{2})[/\.](\d{2})\s*-\s*(\d{2})[/\.](\d{2})/)
+  if (matches) {
+    const m1 = parseInt(matches[1])
+    const d1 = parseInt(matches[2])
+    const m2 = parseInt(matches[3])
+    const d2 = parseInt(matches[4])
+    return `${m1}月${d1}日到${m2}月${d2}日`
+  }
+  return period
+}
+
+// 动态创建下周辅食计划（依据已排敏食材与排餐频次规则智能生成）
 function addNewWeek() {
   const list = allWeekPlans.value
   const lastWeek = list[list.length - 1]
@@ -308,7 +333,50 @@ function addNewWeek() {
   const lastDate = new Date(lastDateStr)
   const nextDays = []
   const weekDaysNames = ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
-  
+
+  // 获取本地已排敏食材池（与同步页面数据打通）
+  const localSafe = getStorage('baby_safe_foods', [])
+  const safeNames = localSafe.map(f => f.name)
+
+  const fishPool = ['鳕鱼', '比目鱼'].filter(f => safeNames.includes(f))
+  const shrimpPool = ['黑虎虾', '北极甜虾'].filter(f => safeNames.includes(f))
+  const liverPool = ['鹅肝', '猪肝'].filter(f => safeNames.includes(f))
+  const vegPool = ['山药', '红薯', '胡萝卜', '土豆', '莲藕', '西葫芦', '南瓜', '西红柿', '黄瓜'].filter(f => safeNames.includes(f))
+  const sidePool = ['蒸糕', '小饼', '馒头'].filter(f => safeNames.includes(f))
+
+  const getFish = () => selectIngredient(fishPool, '鳕鱼')
+  const getShrimp = () => selectIngredient(shrimpPool, '鲜虾')
+  const getLiver = () => selectIngredient(liverPool, '鹅肝')
+  const getSide = (type) => {
+    if (type === '蒸糕') return selectIngredient(sidePool.filter(s => s.includes('糕')), '蒸糕')
+    if (type === '小饼') return selectIngredient(sidePool.filter(s => s.includes('饼')), '小饼')
+    if (type === '馒头') return selectIngredient(sidePool.filter(s => s.includes('馒')), '馒头')
+    return selectIngredient(sidePool, type)
+  }
+
+  function selectIngredient(arr, fallback) {
+    if (arr && arr.length > 0) {
+      return arr[Math.floor(Math.random() * arr.length)]
+    }
+    return fallback
+  }
+
+  function getUniqueVeg(count, fallbacks) {
+    const result = []
+    const temp = [...vegPool]
+    for (let i = 0; i < count; i++) {
+      if (temp.length > 0) {
+        const idx = Math.floor(Math.random() * temp.length)
+        result.push(temp.splice(idx, 1)[0])
+      } else {
+        result.push(fallbacks[i % fallbacks.length])
+      }
+    }
+    return result
+  }
+
+  // 预生成7天的日期
+  const dateObjs = []
   for (let i = 1; i <= 7; i++) {
     const nextDate = new Date(lastDate.getTime() + i * 24 * 60 * 60 * 1000)
     const y = nextDate.getFullYear()
@@ -316,27 +384,134 @@ function addNewWeek() {
     let d = nextDate.getDate()
     if (m < 10) m = '0' + m
     if (d < 10) d = '0' + d
-    
-    const dateStr = `${y}-${m}-${d}`
+    dateObjs.push({ dateStr: `${y}-${m}-${d}`, dayName: weekDaysNames[i - 1] })
+  }
+
+  // 依据排餐逻辑生成每日菜单，确保符合 14 顿总量、频次以及无相同主蛋白规则
+  // 周一 (Mon): 蛋 1. 午餐: 猪肉 烩饭; 晚餐: 牛肉 小米粥 + 鸡蛋羹
+  {
+    const v = getUniqueVeg(1, ['香菇'])
+    const monLunch = [`猪肉`, v[0], `青菜`, `烩饭`].join('')
+    const monDinner = [`牛肉`, `青菜`, `小米粥`].join('')
     nextDays.push({
-      date: dateStr,
-      dayName: weekDaysNames[i - 1],
-      eggTarget: 1,
+      date: dateObjs[0].dateStr, dayName: dateObjs[0].dayName, eggTarget: 1,
       meals: [
-        { type: '午餐', items: [] },
-        { type: '晚餐', items: [] }
+        { type: '午餐', items: [monLunch] },
+        { type: '晚餐', items: [monDinner, '鸡蛋羹'] }
       ]
     })
   }
 
-  const nextWeekNum = list.length + 1
+  // 周二 (Tue): 蛋 2. 午餐: 鲜虾 粗面 + 蛋花; 晚餐: 鱼 烩饭 + 蛋饼小块
+  {
+    const v = getUniqueVeg(2, ['西葫芦', '南瓜'])
+    const tueLunch = [v[0], `青菜`, getShrimp(), `粗面（含蛋花）`].join('')
+    const tueDinner = [getFish(), v[1], `青菜`, `烩饭`].join('')
+    nextDays.push({
+      date: dateObjs[1].dateStr, dayName: dateObjs[1].dayName, eggTarget: 2,
+      meals: [
+        { type: '午餐', items: [tueLunch] },
+        { type: '晚餐', items: [tueDinner, '蛋饼小块'] }
+      ]
+    })
+  }
+
+  // 周三 (Wed): 蛋 1. 午餐: 鹅肝 烩饭 + 蒸糕; 晚餐: 牛肉 烩饭
+  {
+    const v = getUniqueVeg(3, ['胡萝卜', '西红柿', '土豆'])
+    const wedLunch = [getLiver(), v[0], `青菜`, `烩饭`].join('')
+    const wedDinner = [`牛肉`, v[1], v[2], `青菜`, `烩饭`].join('')
+    const sideCake = `${getSide('蒸糕')}（含蛋）`
+    nextDays.push({
+      date: dateObjs[2].dateStr, dayName: dateObjs[2].dayName, eggTarget: 1,
+      meals: [
+        { type: '午餐', items: [wedLunch, sideCake] },
+        { type: '晚餐', items: [wedDinner] }
+      ]
+    })
+  }
+
+  // 周四 (Thu): 蛋 1. 午餐: 鱼 烩饭; 晚餐: 猪肉 燕麦米粥 + 鸡蛋羹
+  {
+    const v = getUniqueVeg(1, ['山药'])
+    const thuLunch = [getFish(), v[0], `青菜`, `烩饭`].join('')
+    const thuDinner = [`猪肉`, `青菜`, `燕麦米粥`].join('')
+    nextDays.push({
+      date: dateObjs[3].dateStr, dayName: dateObjs[3].dayName, eggTarget: 1,
+      meals: [
+        { type: '午餐', items: [thuLunch] },
+        { type: '晚餐', items: [thuDinner, '鸡蛋羹'] }
+      ]
+    })
+  }
+
+  // 周五 (Fri): 蛋 2. 午餐: 牛肉 烩饭 + 小饼; 晚餐: 鲜虾 粗面 + 蛋花
+  {
+    const v = getUniqueVeg(2, ['莲藕', '玉米'])
+    const friLunch = [`牛肉`, v[0], `青菜`, `烩饭`].join('')
+    const friDinner = [v[1], `青菜`, getShrimp(), `粗面（含蛋花）`].join('')
+    const sideCookie = `${getSide('小饼')}（含蛋）`
+    nextDays.push({
+      date: dateObjs[4].dateStr, dayName: dateObjs[4].dayName, eggTarget: 2,
+      meals: [
+        { type: '午餐', items: [friLunch, sideCookie] },
+        { type: '晚餐', items: [friDinner] }
+      ]
+    })
+  }
+
+  // 周六 (Sat): 蛋 1. 午餐: 猪肉 豆腐 烩饭 + 蛋黄小块; 晚餐: 鱼 烩饭
+  {
+    const v = getUniqueVeg(2, ['红薯', '黄瓜'])
+    const satLunch = [`猪肉`, v[0], `豆腐`, `青菜`, `烩饭`].join('')
+    const satDinner = [getFish(), v[1], `青菜`, `烩饭`].join('')
+    nextDays.push({
+      date: dateObjs[5].dateStr, dayName: dateObjs[5].dayName, eggTarget: 1,
+      meals: [
+        { type: '午餐', items: [satLunch, '蛋黄小块'] },
+        { type: '晚餐', items: [satDinner] }
+      ]
+    })
+  }
+
+  // 周日 (Sun): 蛋 1. 午餐: 鲜虾 粗面 + 馒头小块; 晚餐: 鹅肝 烩饭 + 鸡蛋羹
+  {
+    const v = getUniqueVeg(2, ['胡萝卜', '南瓜'])
+    const sunLunch = [v[0], `青菜`, getShrimp(), `粗面`].join('')
+    const sunDinner = [getLiver(), v[1], `青菜`, `烩饭`].join('')
+    const sideBread = `${getSide('馒头')}小块`
+    nextDays.push({
+      date: dateObjs[6].dateStr, dayName: dateObjs[6].dayName, eggTarget: 1,
+      meals: [
+        { type: '午餐', items: [sunLunch, sideBread] },
+        { type: '晚餐', items: [sunDinner, '鸡蛋羹'] }
+      ]
+    })
+  }
+
+  let nextWeekName = '2026-W28'
+  if (lastWeek && lastWeek.week) {
+    const match = lastWeek.week.match(/^(\d{4})-W(\d{1,2})$/)
+    if (match) {
+      let year = parseInt(match[1])
+      let weekNum = parseInt(match[2])
+      weekNum++
+      if (weekNum > 52) {
+        weekNum = 1
+        year++
+      }
+      nextWeekName = `${year}-W${weekNum < 10 ? '0' + weekNum : weekNum}`
+    } else {
+      nextWeekName = `第 ${list.length + 1} 周辅食计划`
+    }
+  }
   const startPeriod = nextDays[0].date.slice(5).replace('-', '.')
   const endPeriod = nextDays[6].date.slice(5).replace('-', '.')
   
   const newWeekObj = {
-    week: `第 ${nextWeekNum} 周辅食计划`,
+    week: nextWeekName,
     period: `${startPeriod} - ${endPeriod}`,
-    note: '待填写备忘',
+    note: '系统自动生成排餐',
     days: nextDays
   }
 
@@ -345,6 +520,59 @@ function addNewWeek() {
   currentWeekIndex.value = list.length - 1
   selectedDate.value = nextDays[0].date
 }
+
+// 顶部综合规则合规校验计算
+const allRulesStatus = computed(() => {
+  const errors = []
+  if (!fishCount.value.status) errors.push(`鱼类频次不合规（当前 ${fishCount.value.count} 次，目标 2-3 次）`)
+  if (!shrimpCount.value.status) errors.push(`虾类频次不合规（当前 ${shrimpCount.value.count} 次，目标 2-3 次）`)
+  if (!liverCount.value.status) errors.push(`鹅肝频次不合规（当前 ${liverCount.value.count} 次，目标 2-3 次）`)
+  if (!porridgeCount.value.status) errors.push(`粥频次不合规（当前 ${porridgeCount.value.count} 次，目标固定 2 次）`)
+  if (!noodleCount.value.status) errors.push(`粗面频次不合规（当前 ${noodleCount.value.count} 次，目标固定 3 次）`)
+  if (!eggValidation.value.status) errors.push(`每日鸡蛋配额不合规（应全周每天 1-2 个）`)
+  if (!greenVegCount.value.status) errors.push(`绿叶菜覆盖度不合规（应全周每餐 14 顿均含绿叶菜）`)
+  
+  // 检查拼写命名 (不能含 + 号)
+  let hasPlus = false
+  plan.value.days.forEach(d => {
+    d.meals.forEach(m => {
+      if (m.items && m.items.some(item => item.includes('+'))) {
+        hasPlus = true
+      }
+    })
+  })
+  if (hasPlus) errors.push('菜品命名包含非法字符（禁止使用"+"号拼接，请以"猪肉香菇青菜烩饭"形式命名）')
+
+  // 检查未排敏食材防护
+  const defaultRiskNames = ['芋头', '芦笋', '白萝卜', '紫薯', '芹菜', '紫甘蓝', '卷心菜', '菜花', '冬瓜', '丝瓜', '苦瓜', '荷兰豆', '芸豆', '豇豆', '毛豆', '金针菇', '平菇', '杏鲍菇', '口蘑', '大蒜', '洋葱', '木耳', '梨', '蓝莓', '桃', '杏', '草莓', '芒果', '猕猴桃', '西梅', '菠萝', '鸭胸肉', '三文鱼', '龙利鱼', '鲈鱼', '带鱼', '黄花鱼', '基围虾', '螃蟹', '豆腐', '奶酪', '酸奶', '芝麻']
+  const localRiskList = getStorage('baby_risk_foods', [])
+  const riskNames = localRiskList.length ? localRiskList.map(f => f.name) : defaultRiskNames
+  const bannedList = []
+  
+  plan.value.days.forEach(d => {
+    d.meals.forEach(m => {
+      if (m.items) {
+        m.items.forEach(item => {
+          riskNames.forEach(riskName => {
+            if (item.includes(riskName)) {
+              bannedList.push(`${d.dayName}${m.type}：${item}（含未排敏食材：${riskName}）`)
+            }
+          })
+        })
+      }
+    })
+  })
+  if (bannedList.length > 0) {
+    errors.push(`检测到引入未排敏的风险食材：${bannedList.join('；')}`)
+  }
+
+  if (errors.length === 0) {
+    return { passed: true, message: '🎉 恭喜！当前辅食排餐完全符合所有营养频次及违禁排敏规则，全部达标！' }
+  } else {
+    return { passed: false, message: `⚠️ 警报：当前辅食计划存在以下不合规，请检查调整：\n` + errors.map((e, idx) => `（${idx + 1}）${e}`).join('\n') }
+  }
+}
+)
 
 // 规则校验：鱼类频次
 const fishCount = computed(() => {
@@ -434,7 +662,7 @@ const greenVegCount = computed(() => {
   plan.value.days.forEach(d => {
     d.meals.forEach(m => {
       totalMeals++
-      if (m.items && m.items.some(item => item.includes('青菜') || item.includes('绿叶菜') || item.includes('菠菜') || item.includes('西兰花') || item.includes('小白菜') || item.includes('油菜'))) {
+      if (m.items && m.items.some(item => item.includes('青菜') || item.includes('绿叶菜') || item.includes('菠菜') || item.includes('西兰花') || item.includes('小白菜') || item.includes('油菜') || item.includes('生菜') || item.includes('油麦菜') || item.includes('上海青') || item.includes('菜心') || item.includes('奶白菜'))) {
         okCount++
       }
     })
@@ -575,7 +803,7 @@ function saveNote() {
 .summary-stat-val {
   font-size: 18px;
   font-weight: 700;
-  color: #ff7043;
+  color: #5A8D3D;
 }
 .summary-stat-label {
   font-size: 11px;
@@ -591,8 +819,8 @@ function saveNote() {
   background: #fff; cursor: pointer; text-align: center; min-width: 64px;
   transition: .15s; position: relative;
 }
-.day-tab:hover { border-color: #ff7043; }
-.day-tab.active { border-color: #ff7043; background: #fff5f2; }
+.day-tab:hover { border-color: #6CA847; }
+.day-tab.active { border-color: #6CA847; background: #F3F8F0; }
 .day-name { font-weight: 600; font-size: 14px; color: #2d3748; }
 .day-date { font-size: 11px; color: #a0aec0; margin-top: 2px; }
 .egg-dot {
@@ -627,7 +855,7 @@ function saveNote() {
 .meal-card { padding: 16px; }
 .meal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
 .meal-badge {
-  background: #ff7043; color: #fff;
+  background: #6CA847; color: #fff;
   padding: 3px 10px; border-radius: 20px; font-size: 13px; font-weight: 600;
 }
 
@@ -686,7 +914,7 @@ function saveNote() {
   padding-bottom: 0;
 }
 .weekly-meal-badge {
-  background: #ff7043;
+  background: #6CA847;
   color: #fff;
   padding: 2px 8px;
   border-radius: 20px;
@@ -747,6 +975,38 @@ function saveNote() {
   transition: border-color 0.2s;
 }
 .week-select:focus {
-  border-color: #ff7043;
+  border-color: #6CA847;
+}
+
+/* 规则校验反馈 Banner 样式 */
+.compliance-banner {
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 14px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+.banner-ok {
+  background-color: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+.banner-err {
+  background-color: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+}
+
+.day-tab-passed {
+  background-color: #f5f7fa !important;
+}
+.weekly-day-card-passed {
+  background-color: #f5f7fa !important;
+}
+.passed-check {
+  color: #38a169;
+  font-weight: bold;
 }
 </style>

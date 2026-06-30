@@ -1,5 +1,5 @@
 // pages/mealplan/index.js
-const { getStorage, setStorage } = require('../../utils/storage.js');
+const { getStorage, setStorage, today } = require('../../utils/storage.js');
 const { defaultWeekPlans } = require('../../data/mealPlan.js'); // 获取小程序的周种子数据
 
 Page({
@@ -8,6 +8,8 @@ Page({
     currentWeekIndex: 0,
     currentWeek: null,
     notes: {}, // 每日食谱大备注存储对象
+    isWeekGenerated: false, // 本周食谱是否已经生成
+    isLoggedIn: false,      // 用户是否已经登录
     
     // 规则校验结果
     rules: {
@@ -39,10 +41,26 @@ Page({
     const activeIndex = this.data.currentWeekIndex;
     const currentWeek = list[activeIndex] || list[0] || null;
 
+    let isWeekGenerated = false;
+    if (currentWeek && currentWeek.days) {
+      const todayStr = today();
+      currentWeek.days.forEach(day => {
+        day.isPassed = day.date < todayStr;
+      });
+      isWeekGenerated = currentWeek.days.some(day => 
+        day.meals && day.meals.some(meal => meal.name && meal.name.trim() !== '')
+      );
+    }
+
+    const isLoggedIn = !!(wx.getStorageSync('user_is_logged_in') || wx.getStorageSync('user_openid'));
+
     this.setData({
       weekPlans: list,
       currentWeek: currentWeek,
-      notes: getStorage('meal_day_notes', {})
+      currentWeekPeriodChinese: this.formatPeriodToChinese(currentWeek ? currentWeek.period : ''),
+      notes: getStorage('meal_day_notes', {}),
+      isWeekGenerated: isWeekGenerated,
+      isLoggedIn: isLoggedIn
     }, () => {
       this.validateRules();
     });
@@ -58,9 +76,23 @@ Page({
       index++;
     }
 
+    const currentWeek = this.data.weekPlans[index];
+    let isWeekGenerated = false;
+    if (currentWeek && currentWeek.days) {
+      const todayStr = today();
+      currentWeek.days.forEach(day => {
+        day.isPassed = day.date < todayStr;
+      });
+      isWeekGenerated = currentWeek.days.some(day => 
+        day.meals && day.meals.some(meal => meal.name && meal.name.trim() !== '')
+      );
+    }
+
     this.setData({
       currentWeekIndex: index,
-      currentWeek: this.data.weekPlans[index]
+      currentWeek: currentWeek,
+      currentWeekPeriodChinese: this.formatPeriodToChinese(currentWeek ? currentWeek.period : ''),
+      isWeekGenerated: isWeekGenerated
     }, () => {
       this.validateRules();
     });
@@ -71,11 +103,14 @@ Page({
     const week = this.data.currentWeek;
     if (!week) return;
 
-    let redMeatCount = 0;
-    let fishShrimpLiverCount = 0;
-    let totalMealsCount = 0;
-    let grainMealsCount = 0;
-    let eggDays = 0;
+    let fishCount = 0;
+    let shrimpCount = 0;
+    let liverCount = 0;
+    let porridgeCount = 0;
+    let noodleCount = 0;
+    let eggPassed = true;
+    let greenVegOkCount = 0;
+    let totalMeals = 0;
     let namingPassed = true;
     let allergenPassed = true;
     let allergenLogs = [];
@@ -97,62 +132,81 @@ Page({
     const bannedFoods = riskList.map(f => f.name);
 
     week.days.forEach(day => {
-      let dayHasEgg = false;
+      // 校验全周每天鸡蛋配额是否在 1-2 个之间
+      if (day.eggTarget < 1 || day.eggTarget > 2) {
+        eggPassed = false;
+      }
       day.meals.forEach(meal => {
         if (!meal.name) return;
-        totalMealsCount++;
+        totalMeals++;
 
         // 1. 校验拼写命名 (不能含 + 号)
         if (meal.name.includes('+')) {
           namingPassed = false;
         }
 
-        // 2. 统计红肉 (猪/牛)
-        if (meal.name.includes('猪') || meal.name.includes('牛') || meal.name.includes('排骨')) {
-          redMeatCount++;
+        // 2. 统计各种食材频次
+        if (meal.name.includes('鱼')) fishCount++;
+        if (meal.name.includes('虾')) shrimpCount++;
+        if (meal.name.includes('肝')) liverCount++;
+        if (meal.name.includes('粥')) porridgeCount++;
+        if (meal.name.includes('面')) noodleCount++;
+
+        // 3. 校验每餐是否含绿叶菜/青菜
+        const greenKeywords = ['青菜', '绿叶菜', '菠菜', '西兰花', '小白菜', '油菜', '生菜', '油麦菜', '上海青', '菜心', '奶白菜'];
+        if (greenKeywords.some(kw => meal.name.includes(kw))) {
+          greenVegOkCount++;
         }
 
-        // 3. 统计鱼/虾/鹅肝
-        if (meal.name.includes('鱼') || meal.name.includes('虾') || meal.name.includes('鹅肝')) {
-          fishShrimpLiverCount++;
-        }
-
-        // 4. 统计粗粮比例
-        if (meal.name.includes('小米') || meal.name.includes('胚芽米') || meal.name.includes('燕麦')) {
-          grainMealsCount++;
-        }
-
-        // 5. 统计鸡蛋
-        if (meal.name.includes('蛋') || meal.name.includes('蛋黄') || meal.name.includes('蛋清') || meal.name.includes('蒸糕')) {
-          dayHasEgg = true;
-        }
-
-        // 6. 排查未排敏违禁食物
+        // 4. 排查未排敏违禁食物
         bannedFoods.forEach(banned => {
           if (meal.name.includes(banned)) {
             allergenPassed = false;
-            allergenLogs.push(`${day.dayName}：${meal.name} (含未排敏：${banned})`);
+            allergenLogs.push(`${day.dayName}${meal.type}：${meal.name}（含未排敏食材：${banned}）`);
           }
         });
       });
-
-      if (dayHasEgg) {
-        eggDays++;
-      }
     });
 
-    const grainPercent = totalMealsCount > 0 ? Math.round((grainMealsCount / totalMealsCount) * 100) : 0;
+    const fishPassed = fishCount >= 2 && fishCount <= 3;
+    const shrimpPassed = shrimpCount >= 2 && shrimpCount <= 3;
+    const liverPassed = liverCount >= 2 && liverCount <= 3;
+    const porridgePassed = porridgeCount === 2;
+    const noodlePassed = noodleCount === 3;
+    const greenVegPassed = greenVegOkCount === totalMeals;
+
+    // 动态装配顶部综合规则合规反馈报告
+    const errors = [];
+    if (!fishPassed) errors.push(`鱼类频次不合规（当前 ${fishCount} 次，目标 2-3 次）`);
+    if (!shrimpPassed) errors.push(`虾类频次不合规（当前 ${shrimpCount} 次，目标 2-3 次）`);
+    if (!liverPassed) errors.push(`鹅肝频次不合规（当前 ${liverCount} 次，目标 2-3 次）`);
+    if (!porridgePassed) errors.push(`粥频次不合规（当前 ${porridgeCount} 次，目标固定 2 次）`);
+    if (!noodlePassed) errors.push(`粗面频次不合规（当前 ${noodleCount} 次，目标固定 3 次）`);
+    if (!eggPassed) errors.push(`每日鸡蛋配额不合规（应全周每天 1-2 个）`);
+    if (!greenVegPassed) errors.push(`绿叶菜覆盖度不合规（应全周每餐均含绿叶菜）`);
+    if (!namingPassed) errors.push('菜品命名包含非法字符（禁止使用"+"号，请以"猪肉香菇青菜烩饭"形式命名）');
+    if (!allergenPassed) errors.push('检测到引入了未排敏的风险食材');
+
+    let passed = errors.length === 0;
+    let message = '';
+    if (passed) {
+      message = '🎉 恭喜！当前辅食排餐完全符合所有营养及安全排敏规则，全部达标！';
+    } else {
+      message = '⚠️ 警报：当前计划存在以下不合规，请检查调整：\n' + errors.map((e, idx) => `（${idx + 1}）${e}`).join('\n');
+    }
 
     this.setData({
       rules: {
-        meatCount: redMeatCount,
-        meatPassed: redMeatCount >= 5,
-        fishShrimpLiverCount: fishShrimpLiverCount,
-        fishShrimpLiverPassed: fishShrimpLiverCount >= 2 && fishShrimpLiverCount <= 6,
-        grainPercent: grainPercent,
-        grainPassed: grainPercent <= 30,
-        eggDays: eggDays,
-        eggPassed: eggDays >= 6,
+        passed: passed,
+        message: message,
+        meatCount: fishCount + shrimpCount,
+        meatPassed: fishPassed && shrimpPassed,
+        fishShrimpLiverCount: fishCount + shrimpCount + liverCount,
+        fishShrimpLiverPassed: fishPassed && shrimpPassed && liverPassed,
+        grainPercent: totalMeals > 0 ? Math.round((porridgeCount / totalMeals) * 100) : 0,
+        grainPassed: porridgePassed,
+        eggDays: eggPassed ? 7 : 0,
+        eggPassed: eggPassed,
         namingPassed: namingPassed,
         allergenPassed: allergenPassed,
         allergenLogs: allergenLogs
@@ -173,6 +227,10 @@ Page({
   // 更新并保存每日大备注
   updateDayNote: function (e) {
     const date = e.currentTarget.dataset.date;
+    const todayStr = today();
+    if (date < todayStr) {
+      return;
+    }
     const val = e.detail.value;
     const notes = { ...this.data.notes };
     notes[date] = val;
@@ -240,10 +298,18 @@ Page({
           // 写回本地缓存
           setStorage('baby_week_plans', list);
           
+          let isWeekGenerated = false;
+          if (currentWeek && currentWeek.days) {
+            isWeekGenerated = currentWeek.days.some(day => 
+              day.meals && day.meals.some(meal => meal.name && meal.name.trim() !== '')
+            );
+          }
+
           // 更新页面状态并重新校验
           that.setData({
             weekPlans: list,
-            currentWeek: currentWeek
+            currentWeek: currentWeek,
+            isWeekGenerated: isWeekGenerated
           }, () => {
             that.validateRules();
             wx.showToast({ title: '菜品已修改', icon: 'success' });
@@ -253,8 +319,18 @@ Page({
     });
   },
 
-  // 动态创建下周辅食食谱
+  // 动态创建下周辅食食谱（依据已排敏食材与营养规则自动智能规划）
   addNewWeek: function () {
+    // 未登录不允许新增
+    if (!wx.getStorageSync('user_is_logged_in') && !wx.getStorageSync('user_openid')) {
+      wx.showModal({
+        title: '请先登录',
+        content: '新增下周食谱需要先登录，以便数据同步保存至云端数据库。',
+        confirmText: '去登录',
+        success: (res) => { if (res.confirm) wx.navigateTo({ url: '/pages/login/index' }); }
+      });
+      return;
+    }
     const list = [...this.data.weekPlans];
     const lastWeek = list[list.length - 1];
     
@@ -266,7 +342,50 @@ Page({
     const lastDate = new Date(lastDateStr);
     const nextDays = [];
     const weekDaysNames = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
-    
+
+    // 获取小程序已排敏食材（打通 allergen 页面）
+    const localSafe = getStorage('mp_safe_foods_list', []);
+    const safeNames = localSafe.map(f => f.name);
+
+    const fishPool = ['鳕鱼', '比目鱼'].filter(f => safeNames.includes(f));
+    const shrimpPool = ['黑虎虾', '北极甜虾'].filter(f => safeNames.includes(f));
+    const liverPool = ['鹅肝', '猪肝'].filter(f => safeNames.includes(f));
+    const vegPool = ['山药', '红薯', '胡萝卜', '土豆', '莲藕', '西葫芦', '南瓜', '西红柿', '黄瓜'].filter(f => safeNames.includes(f));
+    const sidePool = ['蒸糕', '小饼', '馒头'].filter(f => safeNames.includes(f));
+
+    const getFish = () => selectIngredient(fishPool, '鳕鱼');
+    const getShrimp = () => selectIngredient(shrimpPool, '鲜虾');
+    const getLiver = () => selectIngredient(liverPool, '鹅肝');
+    const getSide = (type) => {
+      if (type === '蒸糕') return selectIngredient(sidePool.filter(s => s.includes('糕')), '蒸糕');
+      if (type === '小饼') return selectIngredient(sidePool.filter(s => s.includes('饼')), '小饼');
+      if (type === '馒头') return selectIngredient(sidePool.filter(s => s.includes('馒')), '馒头');
+      return selectIngredient(sidePool, type);
+    };
+
+    function selectIngredient(arr, fallback) {
+      if (arr && arr.length > 0) {
+        return arr[Math.floor(Math.random() * arr.length)];
+      }
+      return fallback;
+    }
+
+    function getUniqueVeg(count, fallbacks) {
+      const result = [];
+      const temp = [...vegPool];
+      for (let i = 0; i < count; i++) {
+        if (temp.length > 0) {
+          const idx = Math.floor(Math.random() * temp.length);
+          result.push(temp.splice(idx, 1)[0]);
+        } else {
+          result.push(fallbacks[i % fallbacks.length]);
+        }
+      }
+      return result;
+    }
+
+    // 预生成7天的日期对象
+    const dateObjs = [];
     for (let i = 1; i <= 7; i++) {
       const nextDate = new Date(lastDate.getTime() + i * 24 * 60 * 60 * 1000);
       const y = nextDate.getFullYear();
@@ -274,28 +393,137 @@ Page({
       let d = nextDate.getDate();
       if (m < 10) m = '0' + m;
       if (d < 10) d = '0' + d;
-      
-      const dateStr = `${y}-${m}-${d}`;
+      dateObjs.push({ dateStr: `${y}-${m}-${d}`, dayName: weekDaysNames[i - 1] });
+    }
+
+    // 智能配方逻辑与小程序结构 meals: { type: '午餐', name: '...' } 适配
+    // 周一 (Mon): 蛋 1
+    {
+      const v = getUniqueVeg(1, ['香菇']);
+      const monLunch = `猪肉${v[0]}青菜烩饭`;
+      const monDinner = `牛肉青菜小米粥、鸡蛋羹`;
       nextDays.push({
-        date: dateStr,
-        dayName: weekDaysNames[i - 1],
-        eggTarget: 1,
+        date: dateObjs[0].dateStr, dayName: dateObjs[0].dayName, eggTarget: 1,
         meals: [
-          { type: '午餐', name: '' },
-          { type: '晚餐', name: '' }
+          { type: '午餐', name: monLunch },
+          { type: '晚餐', name: monDinner }
         ]
       });
     }
 
-    const nextWeekNum = list.length + 1;
+    // 周二 (Tue): 蛋 2
+    {
+      const v = getUniqueVeg(2, ['西葫芦', '南瓜']);
+      const tueLunch = `${v[0]}青菜${getShrimp()}粗面（含蛋花）`;
+      const tueDinner = `${getFish()}${v[1]}青菜烩饭、蛋饼小块`;
+      nextDays.push({
+        date: dateObjs[1].dateStr, dayName: dateObjs[1].dayName, eggTarget: 2,
+        meals: [
+          { type: '午餐', name: tueLunch },
+          { type: '晚餐', name: tueDinner }
+        ]
+      });
+    }
+
+    // 周三 (Wed): 蛋 1
+    {
+      const v = getUniqueVeg(3, ['胡萝卜', '西红柿', '土豆']);
+      const wedLunch = `${getLiver()}${v[0]}青菜烩饭、${getSide('蒸糕')}（含蛋）`;
+      const wedDinner = `牛肉${v[1]}${v[2]}青菜烩饭`;
+      nextDays.push({
+        date: dateObjs[2].dateStr, dayName: dateObjs[2].dayName, eggTarget: 1,
+        meals: [
+          { type: '午餐', name: wedLunch },
+          { type: '晚餐', name: wedDinner }
+        ]
+      });
+    }
+
+    // 周四 (Thu): 蛋 1
+    {
+      const v = getUniqueVeg(1, ['山药']);
+      const thuLunch = `${getFish()}${v[0]}青菜烩饭`;
+      const thuDinner = `猪肉青菜燕麦米粥、鸡蛋羹`;
+      nextDays.push({
+        date: dateObjs[3].dateStr, dayName: dateObjs[3].dayName, eggTarget: 1,
+        meals: [
+          { type: '午餐', name: thuLunch },
+          { type: '晚餐', name: thuDinner }
+        ]
+      });
+    }
+
+    // 周五 (Fri): 蛋 2
+    {
+      const v = getUniqueVeg(2, ['莲藕', '玉米']);
+      const friLunch = `牛肉${v[0]}青菜烩饭、${getSide('小饼')}（含蛋）`;
+      const friDinner = `${v[1]}青菜${getShrimp()}粗面（含蛋花）`;
+      nextDays.push({
+        date: dateObjs[4].dateStr, dayName: dateObjs[4].dayName, eggTarget: 2,
+        meals: [
+          { type: '午餐', name: friLunch },
+          { type: '晚餐', name: friDinner }
+        ]
+      });
+    }
+
+    // 周六 (Sat): 蛋 1
+    {
+      const v = getUniqueVeg(2, ['红薯', '黄瓜']);
+      const satLunch = `猪肉${v[0]}豆腐青菜烩饭、蛋黄小块`;
+      const satDinner = `${getFish()}${v[1]}青菜烩饭`;
+      nextDays.push({
+        date: dateObjs[5].dateStr, dayName: dateObjs[5].dayName, eggTarget: 1,
+        meals: [
+          { type: '午餐', name: satLunch },
+          { type: '晚餐', name: satDinner }
+        ]
+      });
+    }
+
+    // 周日 (Sun): 蛋 1
+    {
+      const v = getUniqueVeg(2, ['胡萝卜', '南瓜']);
+      const sunLunch = `${v[0]}青菜${getShrimp()}粗面、${getSide('馒头')}小块`;
+      const sunDinner = `${getLiver()}${v[1]}青菜烩饭、鸡蛋羹`;
+      nextDays.push({
+        date: dateObjs[6].dateStr, dayName: dateObjs[6].dayName, eggTarget: 1,
+        meals: [
+          { type: '午餐', name: sunLunch },
+          { type: '晚餐', name: sunDinner }
+        ]
+      });
+    }
+
+    let nextWeekName = '2026-W28';
+    if (lastWeek && lastWeek.week) {
+      const match = lastWeek.week.match(/^(\d{4})-W(\d{1,2})$/);
+      if (match) {
+        let year = parseInt(match[1]);
+        let weekNum = parseInt(match[2]);
+        weekNum++;
+        if (weekNum > 52) {
+          weekNum = 1;
+          year++;
+        }
+        nextWeekName = `${year}-W${weekNum < 10 ? '0' + weekNum : weekNum}`;
+      } else {
+        nextWeekName = `第 ${list.length + 1} 周辅食计划`;
+      }
+    }
     const startPeriod = nextDays[0].date.slice(5).replace('-', '.');
     const endPeriod = nextDays[6].date.slice(5).replace('-', '.');
     
     const newWeekObj = {
-      week: `第 ${nextWeekNum} 周辅食计划`,
+      week: nextWeekName,
       period: `${startPeriod}-${endPeriod}`,
       days: nextDays
     };
+
+    const todayStr = today();
+    newWeekObj.days.forEach(day => {
+      day.isPassed = day.date < todayStr;
+    });
 
     list.push(newWeekObj);
     
@@ -305,10 +533,280 @@ Page({
     this.setData({
       weekPlans: list,
       currentWeekIndex: list.length - 1,
-      currentWeek: newWeekObj
+      currentWeek: newWeekObj,
+      currentWeekPeriodChinese: this.formatPeriodToChinese(newWeekObj.period),
+      isWeekGenerated: true
     }, () => {
       this.validateRules();
       wx.showToast({ title: '已开通下周食谱', icon: 'success' });
+    });
+  },
+
+  // 就地修改特定一天的鸡蛋配额目标
+  adjustEggTarget: function (e) {
+    // 未登录不允许修改
+    if (!wx.getStorageSync('user_is_logged_in') && !wx.getStorageSync('user_openid')) {
+      wx.showModal({
+        title: '请先登录',
+        content: '修改鸡蛋配额需要先登录，以便数据同步保存至云端数据库。',
+        confirmText: '去登录',
+        success: (res) => { if (res.confirm) wx.navigateTo({ url: '/pages/login/index' }); }
+      });
+      return;
+    }
+    const { date, current } = e.currentTarget.dataset;
+    const todayStr = today();
+    if (date < todayStr) {
+      wx.showToast({ title: '已过期的日期无法修改鸡蛋配额', icon: 'none' });
+      return;
+    }
+    const currentTarget = parseInt(current) || 1;
+    const nextTarget = currentTarget === 1 ? 2 : 1; // 在 1 个与 2 个之间切换
+
+    const list = [...this.data.weekPlans];
+    const activeIndex = this.data.currentWeekIndex;
+    const currentWeek = list[activeIndex];
+    if (!currentWeek) return;
+
+    const dayObj = currentWeek.days.find(d => d.date === date);
+    if (dayObj) {
+      dayObj.eggTarget = nextTarget;
+    }
+
+    setStorage('baby_week_plans', list);
+    this.setData({
+      weekPlans: list,
+      currentWeek: currentWeek
+    }, () => {
+      this.validateRules();
+      wx.showToast({ title: `鸡蛋已设为 ${nextTarget}个`, icon: 'success' });
+    });
+  },
+
+  // 格式化日期范围为中文形式
+  formatPeriodToChinese: function (period) {
+    if (!period) return '';
+    const matches = period.match(/(\d{2})[/\.](\d{2})\s*[-—]\s*(\d{2})[/\.](\d{2})/);
+    if (matches) {
+      const m1 = parseInt(matches[1]);
+      const d1 = parseInt(matches[2]);
+      const m2 = parseInt(matches[3]);
+      const d2 = parseInt(matches[4]);
+      return `${m1}月${d1}日到${m2}月${d2}日`;
+    }
+    const parts = period.split(/[-—]/);
+    if (parts.length === 2) {
+      const p1 = parts[0].trim().replace('.', '/').split('/');
+      const p2 = parts[1].trim().replace('.', '/').split('/');
+      if (p1.length === 2 && p2.length === 2) {
+        return `${parseInt(p1[0])}月${parseInt(p1[1])}日到${parseInt(p2[0])}月${parseInt(p2[1])}日`;
+      }
+    }
+    return period;
+  },
+
+  // 跳转至登录页
+  goToLogin: function () {
+    wx.navigateTo({ url: '/pages/login/index' });
+  },
+
+  // 触发食谱智能生成或重置提示
+  triggerRecipeGeneration: function () {
+    if (!this.data.isLoggedIn) {
+      wx.showModal({
+        title: '请先登录',
+        content: '智能自动规划本周食谱需要先登录，以便数据同步保存至云端数据库。',
+        confirmText: '去登录',
+        success: (res) => {
+          if (res.confirm) {
+            wx.navigateTo({ url: '/pages/login/index' });
+          }
+        }
+      });
+      return;
+    }
+    const that = this;
+    wx.showModal({
+      title: this.data.isWeekGenerated ? '确定要重置本周食谱吗？' : '确定要智能生成本周食谱吗？',
+      content: this.data.isWeekGenerated ? '重置后，本周所有已填写的辅食菜品将被清空并重新智能规划。' : '系统将依据已排敏食材和营养摄入频次规则，自动规划并填满本周辅食菜单。',
+      success: (res) => {
+        if (res.confirm) {
+          that.generateWeekRecipe();
+        }
+      }
+    });
+  },
+
+  // 智能生成本周食谱逻辑并同步到数据库
+  generateWeekRecipe: function () {
+    const list = [...this.data.weekPlans];
+    const activeIndex = this.data.currentWeekIndex;
+    const currentWeek = list[activeIndex];
+    if (!currentWeek) return;
+
+    // 获取小程序已排敏食材（打通 allergen 页面）
+    const localSafe = getStorage('mp_safe_foods_list', []);
+    const safeNames = localSafe.map(f => f.name);
+
+    const fishPool = ['鳕鱼', '比目鱼'].filter(f => safeNames.includes(f));
+    const shrimpPool = ['黑虎虾', '北极甜虾'].filter(f => safeNames.includes(f));
+    const liverPool = ['鹅肝', '猪肝'].filter(f => safeNames.includes(f));
+    const vegPool = ['山药', '红薯', '胡萝卜', '土豆', '莲藕', '西葫芦', '南瓜', '西红柿', '黄瓜'].filter(f => safeNames.includes(f));
+    const sidePool = ['蒸糕', '小饼', '馒头'].filter(f => safeNames.includes(f));
+
+    const getFish = () => selectIngredient(fishPool, '鳕鱼');
+    const getShrimp = () => selectIngredient(shrimpPool, '鲜虾');
+    const getLiver = () => selectIngredient(liverPool, '鹅肝');
+    const getSide = (type) => {
+      if (type === '蒸糕') return selectIngredient(sidePool.filter(s => s.includes('糕')), '蒸糕');
+      if (type === '小饼') return selectIngredient(sidePool.filter(s => s.includes('饼')), '小饼');
+      if (type === '馒头') return selectIngredient(sidePool.filter(s => s.includes('馒')), '馒头');
+      return selectIngredient(sidePool, type);
+    };
+
+    function selectIngredient(arr, fallback) {
+      if (arr && arr.length > 0) {
+        return arr[Math.floor(Math.random() * arr.length)];
+      }
+      return fallback;
+    }
+
+    function getUniqueVeg(count, fallbacks) {
+      const result = [];
+      const temp = [...vegPool];
+      for (let i = 0; i < count; i++) {
+        if (temp.length > 0) {
+          const idx = Math.floor(Math.random() * temp.length);
+          result.push(temp.splice(idx, 1)[0]);
+        } else {
+          result.push(fallbacks[i % fallbacks.length]);
+        }
+      }
+      return result;
+    }
+
+    const nextDays = [];
+    const daysData = currentWeek.days;
+
+    // 周一 (Mon): 蛋 1
+    {
+      const v = getUniqueVeg(1, ['香菇']);
+      const monLunch = `猪肉${v[0]}青菜烩饭`;
+      const monDinner = `牛肉青菜小米粥、鸡蛋羹`;
+      const d = daysData[0] || { date: '', dayName: '周一' };
+      nextDays.push({
+        date: d.date, dayName: d.dayName || '周一', eggTarget: 1,
+        meals: [
+          { type: '午餐', name: monLunch },
+          { type: '晚餐', name: monDinner }
+        ]
+      });
+    }
+
+    // 周二 (Tue): 蛋 2
+    {
+      const v = getUniqueVeg(2, ['西葫芦', '南瓜']);
+      const tueLunch = `${v[0]}青菜${getShrimp()}粗面（含蛋花）`;
+      const tueDinner = `${getFish()}${v[1]}青菜烩饭、蛋饼小块`;
+      const d = daysData[1] || { date: '', dayName: '周二' };
+      nextDays.push({
+        date: d.date, dayName: d.dayName || '周二', eggTarget: 2,
+        meals: [
+          { type: '午餐', name: tueLunch },
+          { type: '晚餐', name: tueDinner }
+        ]
+      });
+    }
+
+    // 周三 (Wed): 蛋 1
+    {
+      const v = getUniqueVeg(3, ['胡萝卜', '西红柿', '土豆']);
+      const wedLunch = `${getLiver()}${v[0]}青菜烩饭、${getSide('蒸糕')}（含蛋）`;
+      const wedDinner = `牛肉${v[1]}${v[2]}青菜烩饭`;
+      const d = daysData[2] || { date: '', dayName: '周三' };
+      nextDays.push({
+        date: d.date, dayName: d.dayName || '周三', eggTarget: 1,
+        meals: [
+          { type: '午餐', name: wedLunch },
+          { type: '晚餐', name: wedDinner }
+        ]
+      });
+    }
+
+    // 周四 (Thu): 蛋 1
+    {
+      const v = getUniqueVeg(1, ['山药']);
+      const thuLunch = `${getFish()}${v[0]}青菜烩饭`;
+      const thuDinner = `猪肉青菜燕麦米粥、鸡蛋羹`;
+      const d = daysData[3] || { date: '', dayName: '周四' };
+      nextDays.push({
+        date: d.date, dayName: d.dayName || '周四', eggTarget: 1,
+        meals: [
+          { type: '午餐', name: thuLunch },
+          { type: '晚餐', name: thuDinner }
+        ]
+      });
+    }
+
+    // 周五 (Fri): 蛋 2
+    {
+      const v = getUniqueVeg(2, ['莲藕', '玉米']);
+      const friLunch = `牛肉${v[0]}青菜烩饭、${getSide('小饼')}（含蛋）`;
+      const friDinner = `${v[1]}青菜${getShrimp()}粗面（含蛋花）`;
+      const d = daysData[4] || { date: '', dayName: '周五' };
+      nextDays.push({
+        date: d.date, dayName: d.dayName || '周五', eggTarget: 2,
+        meals: [
+          { type: '午餐', name: friLunch },
+          { type: '晚餐', name: friDinner }
+        ]
+      });
+    }
+
+    // 周六 (Sat): 蛋 1
+    {
+      const v = getUniqueVeg(2, ['红薯', '黄瓜']);
+      const satLunch = `猪肉${v[0]}豆腐青菜烩饭、蛋黄小块`;
+      const satDinner = `${getFish()}${v[1]}青菜烩饭`;
+      const d = daysData[5] || { date: '', dayName: '周六' };
+      nextDays.push({
+        date: d.date, dayName: d.dayName || '周六', eggTarget: 1,
+        meals: [
+          { type: '午餐', name: satLunch },
+          { type: '晚餐', name: satDinner }
+        ]
+      });
+    }
+
+    // 周日 (Sun): 蛋 1
+    {
+      const v = getUniqueVeg(2, ['胡萝卜', '南瓜']);
+      const sunLunch = `${v[0]}青菜${getShrimp()}粗面、${getSide('馒头')}小块`;
+      const sunDinner = `${getLiver()}${v[1]}青菜烩饭、鸡蛋羹`;
+      const d = daysData[6] || { date: '', dayName: '周日' };
+      nextDays.push({
+        date: d.date, dayName: d.dayName || '周日', eggTarget: 1,
+        meals: [
+          { type: '午餐', name: sunLunch },
+          { type: '晚餐', name: sunDinner }
+        ]
+      });
+    }
+
+    const todayStr = today();
+    nextDays.forEach(day => {
+      day.isPassed = day.date < todayStr;
+    });
+    currentWeek.days = nextDays;
+    setStorage('baby_week_plans', list); // 会自动触发静默云同步同步到数据库
+
+    this.setData({
+      weekPlans: list,
+      currentWeek: currentWeek,
+      isWeekGenerated: true
+    }, () => {
+      this.validateRules();
+      wx.showToast({ title: '食谱已智能生成', icon: 'success' });
     });
   }
 });

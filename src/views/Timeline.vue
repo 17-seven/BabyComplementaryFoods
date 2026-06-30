@@ -205,7 +205,7 @@ function getCategoryTagClass(cat) {
   transition: .2s;
 }
 .search-bar input:focus {
-  border-color: #ff7043;
+  border-color: #6CA847;
 }
 .category-tags {
   display: flex;
@@ -223,9 +223,9 @@ function getCategoryTagClass(cat) {
   transition: .2s;
 }
 .tag-btn:hover, .tag-btn.active {
-  border-color: #ff7043;
-  color: #ff7043;
-  background: #fff5f2;
+  border-color: #6CA847;
+  color: #5A8D3D;
+  background: #F3F8F0;
 }
 
 /* 时间线结构 */

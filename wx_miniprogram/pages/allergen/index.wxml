@@ -258,7 +258,7 @@
       </view>
       <view class="form-item" style="margin-top:20rpx">
         <text class="lbl">食物大类分类</text>
-        <picker mode="selector" range="{{ catOptions }}" value="{{ catOptions.indexOf(addFoodCategory) }}" bindchange="onAddCategoryChange">
+        <picker mode="selector" range="{{ catOptions }}" value="{{ addFoodCategoryIndex }}" bindchange="onAddCategoryChange">
           <view class="date-picker-btn">{{ addFoodCategory }}</view>
         </picker>
       </view>

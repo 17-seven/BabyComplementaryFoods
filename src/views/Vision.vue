@@ -266,8 +266,8 @@ onMounted(() => {
         {
           label: '实际戴眼罩时间（小时）',
           data,
-          borderColor: '#ff7043',
-          backgroundColor: '#ff704322',
+          borderColor: '#6CA847',
+          backgroundColor: '#6CA84722',
           tension: 0.3,
           pointRadius: 3,
           fill: true

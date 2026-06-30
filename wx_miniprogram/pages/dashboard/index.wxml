@@ -15,7 +15,7 @@
           <text class="name">{{ babyInfo.name }}</text>
           <text class="gender-icon">👶</text>
         </view>
-        <text class="birth-desc">出生：{{ babyInfo.birthDate || '未设置' }}{{ babyInfo.desc ? ' (' + babyInfo.desc + ')' : '' }}</text>
+        <text class="birth-desc">出生：{{ babyInfo.birthDate || '未设置' }}</text><text class="birth-desc" wx:if="{{ babyInfo.desc }}"> ({{ babyInfo.desc }})</text>
       </view>
     </view>
     <!-- 早产宝宝展示双月龄，非早产只展示实际月龄 -->
@@ -130,7 +130,7 @@
       <text class="wc-label">🍼 奶量(ml)</text>
       <view class="wc-bars">
         <view class="wc-col" wx:for="{{ weekStats }}" wx:key="date">
-          <view class="wc-bar-wrap"><view class="wc-bar wc-milk" style="height: {{ item.milkH }}rpx"></view></view>
+          <view class="wc-bar-wrap"><view class="wc-bar wc-milk" style="height: {{ item.milkH }}rpx;"></view></view>
           <text class="wc-day">{{ item.label }}</text>
           <text class="wc-val">{{ item.milk }}</text>
         </view>
@@ -140,7 +140,7 @@
       <text class="wc-label">💧 水量(ml)</text>
       <view class="wc-bars">
         <view class="wc-col" wx:for="{{ weekStats }}" wx:key="date">
-          <view class="wc-bar-wrap"><view class="wc-bar wc-water" style="height: {{ item.waterH }}rpx"></view></view>
+          <view class="wc-bar-wrap"><view class="wc-bar wc-water" style="height: {{ item.waterH }}rpx;"></view></view>
           <text class="wc-day">{{ item.label }}</text>
           <text class="wc-val">{{ item.water }}</text>
         </view>
@@ -150,7 +150,7 @@
       <text class="wc-label">💩 排便(次)</text>
       <view class="wc-bars">
         <view class="wc-col" wx:for="{{ weekStats }}" wx:key="date">
-          <view class="wc-bar-wrap"><view class="wc-bar wc-bowel" style="height: {{ item.bowelH }}rpx"></view></view>
+          <view class="wc-bar-wrap"><view class="wc-bar wc-bowel" style="height: {{ item.bowelH }}rpx;"></view></view>
           <text class="wc-day">{{ item.label }}</text>
           <text class="wc-val">{{ item.bowel }}</text>
         </view>

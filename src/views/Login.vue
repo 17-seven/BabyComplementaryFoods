@@ -63,4 +63,6 @@ function handleLogin() {
 h1 { font-size: 20px; font-weight: 700; color: #2d3748; }
 .sub { color: #a0aec0; font-size: 13px; margin: 6px 0 28px; }
 .error { color: #e53e3e; font-size: 13px; margin: -6px 0 10px; text-align: left; }
+.btn-primary { background: #ff7043 !important; color: #fff !important; }
+.btn-primary:hover { background: #f4511e !important; }
 </style>

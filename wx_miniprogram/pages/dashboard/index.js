@@ -9,7 +9,7 @@ const GUEST_DATA = {
   isLoggedIn: false,
   nextVaccine: null, nextCheckup: null, nextClinical: null,
   milkVal: 0, milkProgress: 0, waterVal: 0, bowelCount: 0, sleepVal: 0, sleepTarget: 12,
-  timerItems: [{ id: 'sleep_demo', name: '睡眠记录', icon: '😴', targetHours: 12, todayHours: 0, progress: 0 }],
+  timerItems: [],
   latestMilestone: null,
   avatarUrl: '/assets/avatar_default.png',
   weekStats: []

@@ -21,6 +21,7 @@ Page({
     showModal: false,
     evtDate: '',
     evtCategory: '大运动/发育',
+    evtCategoryIndex: 0,
     evtTitle: '',
     evtContent: '',
 
@@ -90,13 +91,24 @@ Page({
       return;
     }
     const firstCat = this.data.addCategories[0] || '未分类';
-    this.setData({ showModal: true, evtDate: today(), evtTitle: '', evtContent: '', evtCategory: firstCat });
+    const catIdx = this.data.addCategories.indexOf(firstCat);
+    this.setData({ 
+      showModal: true, 
+      evtDate: today(), 
+      evtTitle: '', 
+      evtContent: '', 
+      evtCategory: firstCat,
+      evtCategoryIndex: catIdx >= 0 ? catIdx : 0
+    });
   },
   closeAddModal: function () { this.setData({ showModal: false }); },
 
   onCategoryChange: function (e) {
     const idx = parseInt(e.detail.value);
-    this.setData({ evtCategory: this.data.addCategories[idx] });
+    this.setData({ 
+      evtCategory: this.data.addCategories[idx],
+      evtCategoryIndex: idx
+    });
   },
   onEvtInput: function (e) {
     const field = e.currentTarget.dataset.field;

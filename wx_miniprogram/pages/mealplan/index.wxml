@@ -6,15 +6,36 @@
     <view class="arrow-btn" bindtap="switchWeek" data-dir="prev">◀</view>
     <view class="week-title">
       <text class="week-name">{{ currentWeek.week }}</text>
-      <text class="week-date">{{ currentWeek.period }}</text>
+      <text class="week-date">{{ currentWeekPeriodChinese }}</text>
     </view>
     <view class="arrow-btn" bindtap="switchWeek" data-dir="next">▶</view>
+  </view>
+
+  <!-- 登录提示 Banner -->
+  <view class="login-tip-banner" wx:if="{{ !isLoggedIn }}">
+    <view class="tip-content">
+      <text class="tip-icon">💡</text>
+      <text class="tip-text">提示：登录后可自动生成并备份本周食谱。</text>
+    </view>
+    <button class="btn-login-inline" bindtap="goToLogin">去登录</button>
+  </view>
+
+  <!-- 本周食谱智能操作 Bar -->
+  <view class="recipe-action-card card">
+    <button class="btn-recipe-action" bindtap="triggerRecipeGeneration">
+      {{ isWeekGenerated ? '🔄 重置本周食谱' : '✨ 智能生成本周食谱' }}
+    </button>
   </view>
 
   <!-- 2. 营养校验 Card -->
   <view class="card validation-card">
     <view class="section-title">
       <text>📊 本周营养校验合规报告</text>
+    </view>
+    
+    <!-- 动态合规反馈 Banner -->
+    <view class="compliance-banner {{ rules.passed ? 'banner-ok' : 'banner-err' }}">
+      <text class="compliance-message">{{ rules.message }}</text>
     </view>
     
     <view class="rule-list">
@@ -64,29 +85,32 @@
   </view>
 
   <block wx:for="{{ currentWeek.days }}" wx:key="date">
-    <view class="card day-card">
+    <view class="card day-card {{ item.isPassed ? 'day-card-passed' : '' }}">
       <view class="day-side">
-        <text class="day-name">{{ item.dayName }}</text>
+        <view class="day-name-wrapper" style="display: flex; align-items: center; justify-content: center; gap: 4rpx;">
+          <text class="passed-check" wx:if="{{ item.isPassed }}">✓</text>
+          <text class="day-name">{{ item.dayName }}</text>
+        </view>
         <text class="day-date">{{ item.date }}</text>
       </view>
       
       <view class="meals-side">
         <block wx:for="{{ item.meals }}" wx:for-item="meal" wx:key="type">
-          <view class="meal-row" bindtap="editMeal" data-date="{{ item.date }}" data-mealtype="{{ meal.type }}" data-name="{{ meal.name }}">
+          <view class="meal-row" bindtap="{{ item.isPassed ? '' : 'editMeal' }}" data-date="{{ item.date }}" data-mealtype="{{ meal.type }}" data-name="{{ meal.name }}">
             <text class="meal-label">{{ meal.type }}</text>
-            <text class="meal-name">{{ meal.name || '点击录入辅食菜品...' }} ✍️</text>
+            <text class="meal-name">{{ meal.name || (item.isPassed ? '未录入' : '点击录入辅食菜品...') }} <text wx:if="{{ !item.isPassed }}">✍️</text></text>
           </view>
         </block>
         
         <!-- 每日鸡蛋目标提示 -->
-        <view class="egg-target-hint">
-          🥚 今日鸡蛋配额：<text class="highlight">{{ item.eggTarget }} 个</text>
+        <view class="egg-target-hint {{ item.isPassed ? 'disabled' : '' }}" bindtap="{{ item.isPassed ? '' : 'adjustEggTarget' }}" data-date="{{ item.date }}" data-current="{{ item.eggTarget }}">
+          🥚 今日鸡蛋配额：<text class="highlight">{{ item.eggTarget }} 个 <text wx:if="{{ !item.isPassed }}" class="edit-link">(点击修改)</text></text>
         </view>
-
+ 
         <!-- 每日大备注栏 -->
         <view class="day-note-row">
           <text class="note-label">📝 备注：</text>
-          <input class="note-input" type="text" placeholder="记录今日喂养状态、便便情况等..." value="{{ notes[item.date] || '' }}" bindinput="updateDayNote" data-date="{{ item.date }}" placeholder-class="note-placeholder" />
+          <input class="note-input" type="text" placeholder="{{ item.isPassed ? '无备注' : '记录今日喂养状态、便便情况等...' }}" value="{{ notes[item.date] || '' }}" bindinput="updateDayNote" data-date="{{ item.date }}" placeholder-class="note-placeholder" disabled="{{ item.isPassed }}" />
         </view>
       </view>
     </view>

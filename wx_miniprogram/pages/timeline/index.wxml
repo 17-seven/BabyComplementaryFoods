@@ -71,7 +71,7 @@
 
       <view class="form-item">
         <text class="lbl">分类</text>
-        <picker mode="selector" range="{{ addCategories }}" value="{{ addCategories.indexOf(evtCategory) }}" bindchange="onCategoryChange">
+        <picker mode="selector" range="{{ addCategories }}" value="{{ evtCategoryIndex }}" bindchange="onCategoryChange">
           <view class="date-picker-btn">
             {{ evtCategory || '选择类别' }}
           </view>
@@ -119,7 +119,7 @@
         <view style="display:flex; gap:16rpx; align-items:center; margin-top:12rpx;">
           <input style="flex:1; background:#f7f9fc; border:1rpx solid #edf2f7; border-radius:12rpx; padding:0 20rpx; height:72rpx; font-size:26rpx;"
             type="text" placeholder="输入分类名称..." value="{{ newCatName }}" bindinput="onNewCatInput" />
-          <button style="background:#38a169; color:#fff; font-size:24rpx; border-radius:12rpx; padding:0 28rpx; height:72rpx; line-height:72rpx; border:none;"
+          <button style="background:#6CA847; color:#fff; font-size:24rpx; border-radius:12rpx; padding:0 28rpx; height:72rpx; line-height:72rpx; border:none;"
             bindtap="addCategory">添加</button>
         </view>
       </view>

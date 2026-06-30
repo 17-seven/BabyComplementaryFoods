@@ -28,7 +28,7 @@
         <text class="lbl">⚠️ 是否为早产宝宝</text>
         <text class="sub-lbl">早产宝宝将按矫正胎龄智能规避不规范接种风险</text>
       </view>
-      <switch checked="{{ isPremature }}" color="#38a169" bindchange="onPrematureChange" />
+      <switch checked="{{ isPremature }}" color="#6CA847" bindchange="onPrematureChange" />
     </view>
 
     <!-- 早产细节 (早产时展示) -->

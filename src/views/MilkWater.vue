@@ -148,7 +148,7 @@ onMounted(() => {
   const labels = days.map(d => d.slice(5))
   milkChart = new Chart(milkChartRef.value, {
     type: 'bar',
-    data: { labels, datasets: [{ data: getMilkByDay(days), backgroundColor: '#ff704366', borderColor: '#ff7043', borderWidth: 1.5 }] },
+    data: { labels, datasets: [{ data: getMilkByDay(days), backgroundColor: '#6CA84766', borderColor: '#6CA847', borderWidth: 1.5 }] },
     options: chartOpts
   })
   waterChart = new Chart(waterChartRef.value, {
@@ -163,7 +163,7 @@ onMounted(() => {
 .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
 @media (max-width: 700px) { .two-col { grid-template-columns: 1fr; } }
 .section-title { font-size: 15px; font-weight: 600; margin-bottom: 14px; }
-.big-num { font-size: 40px; font-weight: 700; color: #ff7043; }
+.big-num { font-size: 40px; font-weight: 700; color: #5A8D3D; }
 .big-num.blue { color: #4fc3f7; }
 .big-num small { font-size: 16px; font-weight: 400; }
 .chart-card { margin-top: 16px; }

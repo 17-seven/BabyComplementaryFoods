@@ -434,13 +434,13 @@ async function syncToLocal() {
 }
 
 .header-card {
-  background: linear-gradient(135deg, #ffe5dc 0%, #fff0ea 100%);
-  border-left: 5px solid #ff7043;
+  background: linear-gradient(135deg, #eaf2e6 0%, #f4faf2 100%);
+  border-left: 5px solid #6CA847;
   padding: 20px;
   margin-bottom: 20px;
 }
 .header-card-content h3 {
-  color: #c62828;
+  color: #3d6a24;
   font-size: 16px;
   margin-bottom: 6px;
 }
@@ -527,7 +527,7 @@ async function syncToLocal() {
   border-radius: 4px;
 }
 .highlight-count {
-  color: #ff7043;
+  color: #5A8D3D;
   font-weight: 700;
 }
 

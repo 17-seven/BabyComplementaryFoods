@@ -176,3 +176,107 @@
   color: #cbd5e0;
   font-size: 20rpx;
 }
+
+/* 顶部规则校验合规 Banner 样式 */
+.compliance-banner {
+  padding: 16rpx 20rpx;
+  border-radius: 12rpx;
+  margin-bottom: 20rpx;
+  font-size: 24rpx;
+  line-height: 1.5;
+  border-width: 1rpx;
+  border-style: solid;
+}
+.banner-ok {
+  background-color: #f0fdf4;
+  color: #166534;
+  border-color: #bbf7d0;
+}
+.banner-err {
+  background-color: #fef2f2;
+  color: #991b1b;
+  border-color: #fca5a5;
+}
+.compliance-message {
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+/* 登录提示 Banner */
+.login-tip-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #fffaf0;
+  border: 1rpx solid #feebc8;
+  border-radius: 16rpx;
+  padding: 16rpx 24rpx;
+  margin-bottom: 20rpx;
+}
+.tip-content {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+.tip-icon {
+  font-size: 28rpx;
+  margin-right: 12rpx;
+}
+.tip-text {
+  font-size: 22rpx;
+  color: #dd6b20;
+  font-weight: 500;
+}
+.btn-login-inline {
+  font-size: 20rpx;
+  color: #ffffff;
+  background-color: var(--accent-orange);
+  padding: 8rpx 16rpx;
+  border-radius: 8rpx;
+  margin: 0;
+  line-height: 1.5;
+  font-weight: 600;
+  border: none;
+}
+
+/* 智能操作 Bar */
+.recipe-action-card {
+  padding: 20rpx;
+  margin-bottom: 20rpx;
+  display: flex;
+  justify-content: center;
+}
+.btn-recipe-action {
+  width: 100% !important;
+  background-color: var(--primary-color);
+  color: #ffffff;
+  font-size: 26rpx;
+  border-radius: 12rpx;
+  font-weight: 600;
+  padding: 12rpx 0;
+  line-height: 1.8;
+}
+
+/* 已过期的卡片及元素样式 */
+.day-card-passed {
+  background-color: #f5f7fa !important;
+}
+.day-card-passed .day-side {
+  background-color: #eef2f6 !important;
+}
+.passed-check {
+  color: #38a169;
+  font-weight: bold;
+  font-size: 30rpx;
+}
+.egg-target-hint.disabled {
+  color: #a0aec0;
+}
+.egg-target-hint.disabled .highlight {
+  color: #a0aec0;
+}
+.note-input[disabled] {
+  color: #a0aec0;
+}
+
+

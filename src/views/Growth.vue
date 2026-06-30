@@ -143,7 +143,7 @@ function updateCharts() {
 
 onMounted(() => {
   const data = chartData.value
-  weightChart = buildChart(weightChartRef.value, '体重', '#ff7043', data)
+  weightChart = buildChart(weightChartRef.value, '体重', '#6CA847', data)
   heightChart  = buildChart(heightChartRef.value,  '身高', '#4fc3f7', data)
 })
 </script>
@@ -155,7 +155,7 @@ onMounted(() => {
 .section-title { font-size: 15px; font-weight: 600; margin-bottom: 14px; }
 .form-card { }
 .latest-card { display: flex; flex-direction: column; justify-content: center; }
-.big-val { font-size: 36px; font-weight: 700; color: #ff7043; }
+.big-val { font-size: 36px; font-weight: 700; color: #5A8D3D; }
 .big-val.blue { color: #4fc3f7; }
 .big-val small { font-size: 16px; font-weight: 400; }
 

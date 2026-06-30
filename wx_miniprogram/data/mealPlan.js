@@ -1,59 +1,58 @@
 // wx_miniprogram/data/mealPlan.js
 
-// 脱敏处理：将辅食食谱变更为空白模板，用户可通过轻触餐别卡片随时随地自主规划与编辑
 const defaultWeekPlans = [
   {
-    week: '第 1 周辅食计划',
-    period: '请设置辅食周期',
-    note: '点击膳食行可直接录入或修改辅食菜品',
-    days: [
+    "week": "2026-W27",
+    "period": "06/29 - 07/05",
+    "note": "碎碎面、疙瘩汤暂停",
+    "days": [
       {
-        date: '2026-06-29', dayName: '周一', eggTarget: 1,
-        meals: [
-          { type: '午餐', name: '' },
-          { type: '晚餐', name: '' }
+        "date": "2026-06-29", "dayName": "周一", "eggTarget": 1,
+        "meals": [
+          { "type": "午餐", "name": "猪肉香菇青菜烩饭" },
+          { "type": "晚餐", "name": "牛肉青菜小米粥" }
         ]
       },
       {
-        date: '2026-06-30', dayName: '周二', eggTarget: 1,
-        meals: [
-          { type: '午餐', name: '' },
-          { type: '晚餐', name: '' }
+        "date": "2026-06-30", "dayName": "周二", "eggTarget": 2,
+        "meals": [
+          { "type": "午餐", "name": "西葫芦青菜鲜虾粗面" },
+          { "type": "晚餐", "name": "鳕鱼南瓜青菜烩饭" }
         ]
       },
       {
-        date: '2026-07-01', dayName: '周三', eggTarget: 1,
-        meals: [
-          { type: '午餐', name: '' },
-          { type: '晚餐', name: '' }
+        "date": "2026-07-01", "dayName": "周三", "eggTarget": 1,
+        "meals": [
+          { "type": "午餐", "name": "鹅肝胡萝卜青菜烩饭" },
+          { "type": "晚餐", "name": "牛肉西红柿土豆青菜烩饭" }
         ]
       },
       {
-        date: '2026-07-02', dayName: '周四', eggTarget: 1,
-        meals: [
-          { type: '午餐', name: '' },
-          { type: '晚餐', name: '' }
+        "date": "2026-07-02", "dayName": "周四", "eggTarget": 1,
+        "meals": [
+          { "type": "午餐", "name": "比目鱼山药青菜烩饭" },
+          { "type": "晚餐", "name": "猪肉青菜燕麦米粥" }
         ]
       },
       {
-        date: '2026-07-03', dayName: '周五', eggTarget: 1,
-        meals: [
-          { type: '午餐', name: '' },
-          { type: '晚餐', name: '' }
+        "date": "2026-07-03", "dayName": "周五", "eggTarget": 2,
+        "meals": [
+          { "type": "午餐", "name": "牛肉莲藕青菜烩饭" },
+          { "type": "晚餐", "name": "玉米青菜鲜虾粗面" }
         ]
       },
       {
-        date: '2026-07-04', dayName: '周六', eggTarget: 1,
-        meals: [
-          { type: '午餐', name: '' },
-          { type: '晚餐', name: '' }
+        "date": "2026-07-04", "dayName": "周六", "eggTarget": 1,
+        "meals": [
+          { "type": "午餐", "name": "猪肉红薯豆腐青菜烩饭" },
+          { "type": "晚餐", "name": "鳕鱼黄瓜青菜烩饭" }
         ]
       },
       {
-        date: '2026-07-05', dayName: '周日', eggTarget: 1,
-        meals: [
-          { type: '午餐', name: '' },
-          { type: '晚餐', name: '' }
+        "date": "2026-07-05", "dayName": "周日", "eggTarget": 1,
+        "meals": [
+          { "type": "午餐", "name": "胡萝卜青菜鲜虾粗面" },
+          { "type": "晚餐", "name": "鹅肝南瓜青菜烩饭" }
         ]
       }
     ]

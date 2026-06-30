@@ -686,7 +686,7 @@ function deleteClinicalLog(id) {
   background: #f7f9fc;
 }
 .tab-nav-btn.active {
-  background: #ff7043;
+  background: #6CA847;
   color: #fff;
 }
 @media (max-width: 600px) {
@@ -766,8 +766,8 @@ function deleteClinicalLog(id) {
   width: 90px;
   height: 90px;
   border-radius: 50%;
-  border: 5px solid #ff7043;
-  background: #fff5f2;
+  border: 5px solid #6CA847;
+  background: #F3F8F0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -777,7 +777,7 @@ function deleteClinicalLog(id) {
 .days-num {
   font-size: 24px;
   font-weight: 800;
-  color: #ff7043;
+  color: #5A8D3D;
 }
 .days-unit {
   font-size: 10px;
@@ -804,7 +804,7 @@ function deleteClinicalLog(id) {
 .metric-val {
   font-size: 20px;
   font-weight: 700;
-  color: #ff7043;
+  color: #5A8D3D;
 }
 .metric-val small {
   font-size: 12px;
@@ -907,9 +907,9 @@ tr.status-danger td[data-label="状态"] .tag {
   color: #718096;
 }
 .filter-btn.active {
-  background: #ff7043;
+  background: #6CA847;
   color: #fff;
-  border-color: #ff7043;
+  border-color: #6CA847;
 }
 
 /* 发育评估样式 */
