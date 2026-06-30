@@ -88,29 +88,18 @@
     <text class="shortcut-hint">按住可删除</text>
   </view>
   <view class="shortcut-grid">
-    <!-- 自定义计时模块 -->
+    <!-- 用户自创的计时模块 -->
     <view class="shortcut-card" wx:for="{{ customTimers }}" wx:key="id"
-      bindtap="goTimer" data-id="{{ item.id }}"
+      bindtap="goTimer"
       bindlongpress="deleteCustomTimer" data-id="{{ item.id }}">
       <text class="shortcut-icon">{{ item.icon }}</text>
       <text class="shortcut-name">{{ item.name }}</text>
       <text class="shortcut-subdesc">{{ item.todayHours }}h / {{ item.targetHours }}h</text>
     </view>
-    <!-- 页面快捷方式 -->
-    <view class="shortcut-card shortcut-link" wx:for="{{ customShortcuts }}" wx:key="id"
-      bindtap="goShortcut" data-page="{{ item.page }}"
-      bindlongpress="deleteShortcut" data-id="{{ item.id }}">
-      <text class="shortcut-icon">{{ item.icon }}</text>
-      <text class="shortcut-name">{{ item.name }}</text>
-    </view>
-    <!-- 新增按钮 -->
+    <!-- 新增计时模块按钮 -->
     <view class="shortcut-card shortcut-add" bindtap="openNewTimerModal">
       <text class="shortcut-icon">⏱️</text>
       <text class="shortcut-name">新增计时</text>
-    </view>
-    <view class="shortcut-card shortcut-add shortcut-add-link" bindtap="openShortcutModal">
-      <text class="shortcut-icon">🔗</text>
-      <text class="shortcut-name">页面快捷</text>
     </view>
   </view>
 
@@ -190,32 +179,6 @@
     </view>
     <view class="modal-footer">
       <button class="btn btn-primary btn-block" bindtap="saveNewTimerModule">创建模块</button>
-    </view>
-  </view>
-</view>
-
-<!-- 添加页面快捷方式弹窗 -->
-<view class="modal-overlay" wx:if="{{ showShortcutModal }}">
-  <view class="modal-card">
-    <view class="modal-header">
-      <text class="modal-title">添加快捷入口</text>
-      <text class="modal-close" bindtap="closeShortcutModal">✕</text>
-    </view>
-    <view class="modal-body">
-      <block wx:for="{{ availablePages }}" wx:key="page">
-        <view class="shortcut-option {{ newShortcutPage === item.page ? 'option-selected' : '' }}"
-          bindtap="selectShortcutPage" data-page="{{ item.page }}">
-          <text class="option-icon">{{ item.icon }}</text>
-          <view class="option-body">
-            <text class="option-name">{{ item.name }}</text>
-            <text class="option-desc">{{ item.desc }}</text>
-          </view>
-          <text class="option-check" wx:if="{{ newShortcutPage === item.page }}">✓</text>
-        </view>
-      </block>
-    </view>
-    <view class="modal-footer">
-      <button class="btn btn-primary btn-block" bindtap="confirmAddShortcut">添加到快捷入口</button>
     </view>
   </view>
 </view>

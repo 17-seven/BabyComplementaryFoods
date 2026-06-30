@@ -205,11 +205,7 @@ Page({
     });
   },
 
-  openShortcutModal: function () {
-    const shortcuts = this.data.customShortcuts;
-    const available = AVAILABLE_PAGES.filter(p => !shortcuts.some(s => s.page === p.page));
-    if (available.length === 0) { wx.showToast({ title: '所有页面均已添加', icon: 'none' }); return; }
-    this.setData({ showShortcutModal: true, newShortcutPage: available[0].page, availablePages: available });
+  openShortcutModal: function () { wx.showToast({ title: '功能已移除', icon: 'none' }); },
   },
   closeShortcutModal: function () { this.setData({ showShortcutModal: false }); },
   selectShortcutPage: function (e) { this.setData({ newShortcutPage: e.currentTarget.dataset.page }); },
