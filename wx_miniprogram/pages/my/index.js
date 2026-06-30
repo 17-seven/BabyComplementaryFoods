@@ -163,6 +163,14 @@ Page({
 
   // ===== 新增计时模块弹窗 =====
   openNewTimerModal: function () {
+    if (!wx.getStorageSync('user_is_logged_in') && !wx.getStorageSync('user_openid')) {
+      wx.showModal({
+        title: '请先登录', content: '新增模块需要登录后才能保存，以便数据云端同步。',
+        confirmText: '去登录',
+        success: (res) => { if (res.confirm) wx.navigateTo({ url: '/pages/login/index' }); }
+      });
+      return;
+    }
     this.setData({ showNewTimerModal: true, newTimerName: '', newTimerDesc: '', newTimerTargetHours: '1', newTimerIcon: '⏱️', newTimerType: 'timer' });
   },
   closeNewTimerModal: function () { this.setData({ showNewTimerModal: false }); },
@@ -187,7 +195,11 @@ Page({
     if (familyId && wx.cloud) {
       wx.cloud.callFunction({ name: 'updateFamily', data: { action: 'update', familyId, data: { timer_items: defs } } });
     }
-    this.setData({ showNewTimerModal: false }, () => { this.loadCustomShortcuts(); wx.showToast({ title: '计时模块已创建', icon: 'success' }); });
+    this.setData({ showNewTimerModal: false }, () => {
+      this.loadCustomShortcuts();
+      wx.showToast({ title: '计时模块已创建', icon: 'success' });
+      setTimeout(() => { wx.navigateTo({ url: '/pages/vision/index' }); }, 800);
+    });
   },
 
   deleteCustomTimer: function (e) {

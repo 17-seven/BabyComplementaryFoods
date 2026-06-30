@@ -143,7 +143,17 @@ Page({
 
   selectIcon: function (e) { this.setData({ newIcon: e.currentTarget.dataset.icon }); },
   setNewType: function (e) { this.setData({ newType: e.currentTarget.dataset.type }); },
-  openAddModal: function () { this.setData({ showAddModal: true, newName: '', newDesc: '', newIcon: '⏱️', newTargetHours: '4', newType: 'timer' }); },
+  openAddModal: function () {
+    if (!wx.getStorageSync('user_is_logged_in') && !wx.getStorageSync('user_openid')) {
+      wx.showModal({
+        title: '请先登录', content: '新增模块需要登录后才能保存，以便数据云端同步。',
+        confirmText: '去登录',
+        success: (res) => { if (res.confirm) wx.navigateTo({ url: '/pages/login/index' }); }
+      });
+      return;
+    }
+    this.setData({ showAddModal: true, newName: '', newDesc: '', newIcon: '⏱️', newTargetHours: '4', newType: 'timer' });
+  },
   closeAddModal: function () { this.setData({ showAddModal: false }); },
   onNewInput: function (e) { this.setData({ [e.currentTarget.dataset.field]: e.detail.value }); },
 
@@ -160,6 +170,10 @@ Page({
     const defs = getStorage('vision_timer_items', DEFAULT_TIMERS);
     defs.push(newItem);
     setStorage('vision_timer_items', defs);
+    const familyId = wx.getStorageSync('user_family_id');
+    if (familyId && wx.cloud) {
+      wx.cloud.callFunction({ name: 'updateFamily', data: { action: 'update', familyId, data: { timer_items: defs } } });
+    }
     this.setData({ showAddModal: false }, () => { this.loadAllTimers(); wx.showToast({ title: '模块已添加', icon: 'success' }); });
   },
 

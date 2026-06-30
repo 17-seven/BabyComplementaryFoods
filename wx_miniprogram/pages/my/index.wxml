@@ -45,6 +45,15 @@
       <view class="menu-arrow">➔</view>
     </view>
 
+    <view class="menu-item" bindtap="navigateToPage" data-page="vision">
+      <view class="menu-icon">😴</view>
+      <view class="menu-body">
+        <text class="menu-title">宝宝睡眠记录</text>
+        <text class="menu-desc">记录每日睡眠时段、统计睡眠总时长</text>
+      </view>
+      <view class="menu-arrow">➔</view>
+    </view>
+
     <view class="menu-item" bindtap="navigateToPage" data-page="nutrition">
       <view class="menu-icon">🍼</view>
       <view class="menu-body">
