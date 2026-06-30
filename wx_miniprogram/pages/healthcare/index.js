@@ -32,6 +32,12 @@ Page({
 
     // 3. 发育评估
     assessments: [],
+    // 评估表单
+    asmDate: '',
+    asmName: '',
+    asmDoctor: '',
+    asmResult: '',
+    asmIntervention: '',
 
     // 4. 临床就诊
     clinicalLogs: [],
@@ -47,7 +53,7 @@ Page({
   },
 
   onShow: function () {
-    this.setData({ hcDate: today(), cliDate: today() });
+    this.setData({ hcDate: today(), cliDate: today(), asmDate: today() });
     this.initData();
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 2 });
@@ -191,6 +197,52 @@ Page({
   onHcInput: function (e) {
     const field = e.currentTarget.dataset.field;
     this.setData({ [field]: e.detail.value });
+  },
+
+  // ==================== 2.5 发育评估逻辑 ====================
+  onAsmInput: function (e) {
+    const field = e.currentTarget.dataset.field;
+    this.setData({ [field]: e.detail.value });
+  },
+
+  addAssessment: function () {
+    const name = this.data.asmName.trim();
+    const date = this.data.asmDate;
+    const result = this.data.asmResult.trim();
+    if (!name || !date || !result) {
+      wx.showToast({ title: '请填写评估名称、日期和结果', icon: 'error' });
+      return;
+    }
+    const list = [...this.data.assessments];
+    list.push({
+      id: Date.now(),
+      date,
+      name,
+      doctor:       this.data.asmDoctor.trim(),
+      result,
+      intervention: this.data.asmIntervention.trim()
+    });
+    this.setData({
+      assessments: list,
+      asmName: '', asmDoctor: '', asmResult: '', asmIntervention: ''
+    }, () => {
+      setStorage('baby_assessments', list);
+      wx.showToast({ title: '评估记录已保存', icon: 'success' });
+    });
+  },
+
+  deleteAssessment: function (e) {
+    const id = e.currentTarget.dataset.id;
+    wx.showModal({
+      title: '确认删除',
+      content: '确定要删除这条发育评估记录吗？',
+      success: (res) => {
+        if (res.confirm) {
+          const list = this.data.assessments.filter(a => a.id !== id);
+          this.setData({ assessments: list }, () => setStorage('baby_assessments', list));
+        }
+      }
+    });
   },
 
   // 添加儿保记录

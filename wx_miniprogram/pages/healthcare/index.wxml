@@ -122,13 +122,52 @@
 
   <!-- ==================== Tab 3: 发育评估面板 ==================== -->
   <view wx:if="{{ activeTab === 'assessment' }}">
+
+    <!-- 录入评估表单 -->
+    <view class="card form-card">
+      <view class="section-title">➕ 录入发育评估报告</view>
+      <view class="form-grid">
+        <view class="form-row">
+          <text class="label">评估名称</text>
+          <input type="text" placeholder="如 Timp、AIMS、格里菲斯" value="{{ asmName }}" bindinput="onAsmInput" data-field="asmName" />
+        </view>
+        <view class="form-row">
+          <text class="label">评估日期</text>
+          <picker mode="date" value="{{ asmDate }}" bindchange="onAsmInput" data-field="asmDate">
+            <view class="date-picker-btn">{{ asmDate }}</view>
+          </picker>
+        </view>
+        <view class="form-row">
+          <text class="label">主测医生</text>
+          <input type="text" placeholder="如 毛健、朱登纳" value="{{ asmDoctor }}" bindinput="onAsmInput" data-field="asmDoctor" />
+        </view>
+        <view class="form-row full-width">
+          <text class="label">诊断结果 *</text>
+          <textarea placeholder="输入评估评分与结论..." value="{{ asmResult }}" bindinput="onAsmInput" data-field="asmResult" auto-height />
+        </view>
+        <view class="form-row full-width">
+          <text class="label">干预意见</text>
+          <textarea placeholder="医生建议的干预或康复方向..." value="{{ asmIntervention }}" bindinput="onAsmInput" data-field="asmIntervention" auto-height />
+        </view>
+      </view>
+      <button class="btn btn-primary" style="margin-top:20rpx" bindtap="addAssessment">保存评估记录</button>
+    </view>
+
+    <!-- 历史评估列表 -->
+    <view class="section-title">📊 历史评估档案</view>
+
+    <view class="empty-placeholder" wx:if="{{ assessments.length === 0 }}">
+      暂无发育评估记录，点击上方表单添加第一条 📋
+    </view>
+
     <block wx:for="{{ assessments }}" wx:key="id">
       <view class="card asm-card">
         <view class="asm-header">
           <text class="asm-name">{{ item.name }}</text>
           <text class="tag tag-purple">{{ item.date }}</text>
+          <text class="btn-delete-lbl" bindtap="deleteAssessment" data-id="{{ item.id }}">删除</text>
         </view>
-        <view class="asm-row"><text class="lbl">主测医生：</text><text class="val">{{ item.doctor }}</text></view>
+        <view class="asm-row" wx:if="{{ item.doctor }}"><text class="lbl">主测医生：</text><text class="val">{{ item.doctor }}</text></view>
         <view class="asm-row"><text class="lbl">诊断结果：</text><text class="val desc">{{ item.result }}</text></view>
         <view class="asm-row highlight-box" wx:if="{{ item.intervention }}">
           <text class="lbl red-text">干预意见：</text>
