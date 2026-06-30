@@ -27,14 +27,16 @@
   gap: 12rpx;
 }
 .cat-scroll {
-  flex: 1;
+  /* scroll-view 在微信里 flex:1 不可靠，用 calc 固定宽度 */
+  width: calc(100% - 88rpx);
   white-space: nowrap;
+  flex-shrink: 0;
   box-sizing: border-box;
 }
 .cat-manage-btn {
   flex-shrink: 0;
-  width: 64rpx;
-  height: 64rpx;
+  width: 68rpx;
+  height: 68rpx;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -152,7 +154,7 @@
 .floating-btn {
   position: fixed;
   right: 36rpx;
-  bottom: 140rpx;
+  bottom: 160rpx;
   width: 100rpx;
   height: 100rpx;
   background-color: var(--accent-orange);
