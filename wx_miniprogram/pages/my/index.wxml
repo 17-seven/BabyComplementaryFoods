@@ -6,7 +6,7 @@
     <block wx:if="{{ isLoggedIn }}">
       <view class="avatar-edit-wrap" bindtap="openEditModal">
         <image class="avatar-img" src="{{ userInfo.avatarUrl }}" mode="aspectFill"></image>
-        <view class="avatar-edit-badge">✏️</view>
+        <!-- <view class="avatar-edit-badge">✏️</view> -->
       </view>
       <view class="baby-info-box">
         <view class="profile-name-row">
@@ -63,6 +63,24 @@
       <view class="menu-body">
         <text class="menu-title">饮奶与饮水记录</text>
         <text class="menu-desc">管理每日奶量限制、补充水分打卡</text>
+      </view>
+      <view class="menu-arrow">➔</view>
+    </view>
+
+    <view class="menu-item" bindtap="navigateToPage" data-page="classes">
+      <view class="menu-icon">🏫</view>
+      <view class="menu-body">
+        <text class="menu-title">宝宝上课打卡</text>
+        <text class="menu-desc">管理课程出勤打卡、余额充值与扣费记录</text>
+      </view>
+      <view class="menu-arrow">➔</view>
+    </view>
+
+    <view class="menu-item" bindtap="navigateToPage" data-page="growth">
+      <view class="menu-icon">📈</view>
+      <view class="menu-body">
+        <text class="menu-title">身高体重与发育</text>
+        <text class="menu-desc">记录身高、体重、头围、脚长，生成成长发育曲线</text>
       </view>
       <view class="menu-arrow">➔</view>
     </view>
@@ -139,6 +157,8 @@
       <text class="dev-mapping-item">🥦 safe_foods.json → safe_foods</text>
       <text class="dev-mapping-item">🍊 risk_foods.json → risk_foods</text>
       <text class="dev-mapping-item">🍽️ meal_plans.json → meal_plans</text>
+      <text class="dev-mapping-item">🏫 classes.json → classes</text>
+      <text class="dev-mapping-item">📈 growth.json → growth</text>
     </view>
 
     <button class="btn btn-primary btn-block" style="margin-top: 20rpx;" bindtap="selectAndImportJsonFiles">

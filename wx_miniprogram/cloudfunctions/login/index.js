@@ -18,7 +18,10 @@ const BUSINESS_COLLECTIONS = [
   'meal_plans',
   'bowel_records',
   'milk_water_records',
-  'eyepatch_records'
+  'eyepatch_records',
+  'growth',
+  'classes',
+  'class_customers'
 ];
 
 /**

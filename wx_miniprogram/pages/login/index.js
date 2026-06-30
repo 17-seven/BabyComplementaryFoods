@@ -130,15 +130,44 @@ Page({
         'meal_plans':         'baby_week_plans',
         'bowel_records':      'bowel_records',
         'milk_water_records': 'milk_water_records',
-        'eyepatch_records':   'eyepatch_records'
+        'eyepatch_records':   'eyepatch_records',
+        'growth':             'baby_growth_records',
+        'class_customers':    'class_customers'
       };
       Object.entries(CLOUD_TO_LOCAL).forEach(function(entry) {
         const collName = entry[0], localKey = entry[1];
         if (businessData[collName] && businessData[collName].length > 0) {
           wx.setStorageSync(localKey, businessData[collName]);
           console.log('[数据恢复]', collName, businessData[collName].length, '条 ->', localKey);
+          
+          if (collName === 'meal_plans') {
+            wx.setStorageSync('meal_plan_auto_generated', true);
+          }
+          if (collName === 'safe_foods' || collName === 'risk_foods') {
+            wx.setStorageSync('allergen_setup_completed', true);
+          }
         }
       });
+
+      // 恢复多机构上课打卡明细
+      if (businessData['classes'] && businessData['classes'].length > 0) {
+        const classesGrouped = {};
+        businessData['classes'].forEach(item => {
+          const instId = item.institution_id || 'spring_rain';
+          if (!classesGrouped[instId]) {
+            classesGrouped[instId] = [];
+          }
+          // 去除在同步上传时产生的辅助冗余字段
+          const cleanItem = { ...item };
+          delete cleanItem.institution_id;
+          classesGrouped[instId].push(cleanItem);
+        });
+        
+        Object.entries(classesGrouped).forEach(([instId, list]) => {
+          wx.setStorageSync(`class_records_${instId}`, list);
+          console.log('[数据恢复] classes ->', `class_records_${instId}`, list.length, '条');
+        });
+      }
 
       if (app) {
         app.globalData.userInfo = userInfo;
@@ -230,57 +259,80 @@ Page({
       return;
     }
 
-    // 构造完整的登录看护人信息
-    const userInfo = {
-      nickName: nickname,
-      avatarUrl: avatar || '/assets/avatar_default.png'
-    };
-    setStorage('user_info', userInfo);
-    wx.setStorageSync('user_is_logged_in', true);
+    const finishSubmit = (cloudUrl) => {
+      // 构造完整的登录看护人信息
+      const userInfo = {
+        nickName: nickname,
+        avatarUrl: cloudUrl || avatar || '/assets/avatar_default.png'
+      };
+      setStorage('user_info', userInfo);
+      wx.setStorageSync('user_is_logged_in', true);
 
-    const app = getApp();
-    if (app) {
-      app.globalData.userInfo = userInfo;
-    }
+      const app = getApp();
+      if (app) {
+        app.globalData.userInfo = userInfo;
+      }
 
-    // 实时同步更新至云数据库备份里（以防未来被清除缓存）
-    // 通过云函数同步看护人昵称到云端（familyId 有则更新，无则等家庭组创建时自动带入）
-    const familyId = wx.getStorageSync('user_family_id');
-    if (wx.cloud && familyId) {
-      wx.cloud.callFunction({
-        name: 'updateFamily',
-        data: {
-          action: 'update',
-          familyId: familyId,
+      // 实时同步更新至云数据库备份里（以防未来被清除缓存）
+      // 通过云函数同步看护人昵称到云端（familyId 有则更新，无则等家庭组创建时自动带入）
+      const familyId = wx.getStorageSync('user_family_id');
+      if (wx.cloud && familyId) {
+        wx.cloud.callFunction({
+          name: 'updateFamily',
           data: {
-            creator_nickname: nickname,
-            creator_avatar: avatar || '/assets/avatar_default.png'
+            action: 'update',
+            familyId: familyId,
+            data: {
+              creator_nickname: nickname,
+              creator_avatar: cloudUrl || avatar || '/assets/avatar_default.png'
+            }
+          },
+          fail: (err) => {
+            console.warn('同步昵称至云端失败（本地已保存）:', err);
           }
-        },
-        fail: (err) => {
-          console.warn('同步昵称至云端失败（本地已保存）:', err);
+        });
+      }
+
+      this.setData({
+        showProfileDrawer: false
+      });
+
+      wx.showToast({
+        title: '登录成功',
+        icon: 'success',
+        duration: 1500,
+        success: () => {
+          setTimeout(() => {
+            wx.navigateBack({
+              fail: () => {
+                wx.switchTab({ url: '/pages/dashboard/index' });
+              }
+            });
+          }, 1500);
         }
       });
+    };
+
+    // 如果头像是一个本地临时路径并且开通了云开发，先上传云端
+    if (avatar && (avatar.startsWith('wxfile://') || avatar.startsWith('http://tmp/')) && wx.cloud) {
+      wx.showLoading({ title: '正在保存资料...', mask: true });
+      const cloudPath = `user_avatars/avatar_${Date.now()}_${Math.floor(Math.random() * 1000)}.jpg`;
+      wx.cloud.uploadFile({
+        cloudPath: cloudPath,
+        filePath: avatar,
+        success: (uploadRes) => {
+          wx.hideLoading();
+          finishSubmit(uploadRes.fileID);
+        },
+        fail: (err) => {
+          wx.hideLoading();
+          console.warn('头像上传云存储失败，采用本地路径兜底:', err);
+          finishSubmit(null);
+        }
+      });
+    } else {
+      finishSubmit(null);
     }
-
-    this.setData({
-      showProfileDrawer: false
-    });
-
-    wx.showToast({
-      title: '登录成功',
-      icon: 'success',
-      duration: 1500,
-      success: () => {
-        setTimeout(() => {
-          wx.navigateBack({
-            fail: () => {
-              wx.switchTab({ url: '/pages/dashboard/index' });
-            }
-          });
-        }, 1500);
-      }
-    });
   },
 
   /**

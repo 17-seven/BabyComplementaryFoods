@@ -48,16 +48,28 @@ function triggerAutoCloudSync(key, data) {
     'mp_safe_foods_list':   'safe_foods',
     'mp_risk_foods_list':   'risk_foods',
     'baby_week_plans':      'meal_plans',
-    'baby_assessments':     'assessments'
+    'baby_assessments':     'assessments',
+    'baby_growth_records':  'growth',
+    'class_customers':      'class_customers'
   };
 
-  const collName = KEY_TO_COLLECTION[key];
-  if (!collName || !Array.isArray(data) || data.length === 0) return;
+  let collName = KEY_TO_COLLECTION[key];
+  let syncDataArray = data;
+
+  // 针对 class_records_ 开头的动态键（多机构打卡记录）做特殊云同步识别
+  if (!collName && typeof key === 'string' && key.startsWith('class_records_')) {
+    collName = 'classes';
+    const instId = key.replace('class_records_', '');
+    // 附加机构 ID 到每条记录中以作云端区分
+    syncDataArray = data.map(item => ({ ...item, institution_id: instId }));
+  }
+
+  if (!collName || !Array.isArray(syncDataArray)) return;
 
   try {
     wx.cloud.callFunction({
       name: 'syncData',
-      data: { collection: collName, familyId: familyId, records: data },
+      data: { collection: collName, familyId: familyId, records: syncDataArray },
       fail: (err) => {
         console.warn('[syncData] 静默云同步失败，本地数据已保存:', err.errMsg || err);
       }

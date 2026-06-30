@@ -235,6 +235,7 @@ Page({
           }, () => {
             setStorage('mp_safe_foods_list', safeList);
             setStorage('mp_risk_foods_list', riskList);
+            wx.setStorageSync('allergen_setup_completed', true);
             that.loadAllergenData();
             wx.showToast({ title: '已标记为安全', icon: 'success' });
           });
@@ -277,6 +278,7 @@ Page({
           }, () => {
             setStorage('mp_safe_foods_list', safeList);
             setStorage('mp_risk_foods_list', riskList);
+            wx.setStorageSync('allergen_setup_completed', true);
             that.loadAllergenData();
             wx.showToast({ title: '已移回未排敏', icon: 'success' });
           });
@@ -445,9 +447,26 @@ Page({
       setStorage('mp_risk_foods_list', list);
     }
 
+    wx.setStorageSync('allergen_setup_completed', true);
+
     this.setData({ showAddDialog: false }, () => {
       this.loadAllergenData();
       wx.showToast({ title: '食材添加成功', icon: 'success' });
+    });
+  },
+
+  // 确认排敏食材完成，并切回辅食计划菜单
+  confirmAllergenComplete: function () {
+    wx.setStorageSync('allergen_setup_completed', true);
+    wx.showToast({
+      title: '排敏食材已确认',
+      icon: 'success',
+      duration: 1200,
+      success: () => {
+        setTimeout(() => {
+          wx.switchTab({ url: '/pages/mealplan/index' });
+        }, 1200);
+      }
     });
   }
 });

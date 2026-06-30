@@ -4,7 +4,7 @@
   <!-- 1. 搜索栏 -->
   <view class="search-bar">
     <icon type="search" size="16" class="search-icon" />
-    <input type="text" placeholder="搜索大事记、用药、康复、大运动..." value="{{ searchKeyword }}" bindinput="onSearchInput" />
+    <input type="text" placeholder="搜索大事记、用药、大运动..." value="{{ searchKeyword }}" bindinput="onSearchInput" />
   </view>
 
   <!-- 2. 分类标签滚动条 + 管理分类按钮 -->
@@ -27,7 +27,7 @@
     <block wx:for="{{ filteredEvents }}" wx:key="id">
       <view class="timeline-node-item">
         <!-- 侧边小圆圈 -->
-        <view class="node-bullet {{ item.category === '大运动/发育' ? 'bullet-green' : (item.category === '辅食/便秘' ? 'bullet-orange' : (item.category === '评估/康复' ? 'bullet-purple' : (item.category === '疾病用药' ? 'bullet-red' : 'bullet-blue'))) }}"></view>
+        <view class="node-bullet {{ item.category === '大运动/发育' ? 'bullet-green' : (item.category === '辅食/便秘' ? 'bullet-orange' : (item.category === '评估' ? 'bullet-purple' : (item.category === '疾病用药' ? 'bullet-red' : 'bullet-blue'))) }}"></view>
         
         <!-- 大卡片 -->
         <view class="node-card card">

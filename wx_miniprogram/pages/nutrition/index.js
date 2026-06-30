@@ -73,9 +73,9 @@ Page({
     wx.showToast({ title: `成功记入 +${amount}ml`, icon: 'success' });
   },
 
-  // 表单变更
-  onTypeChange: function (e) {
-    this.setData({ selectedType: e.detail.value ? 'water' : 'milk' });
+  // 表单类型选择变更
+  selectType: function (e) {
+    this.setData({ selectedType: e.currentTarget.dataset.type });
   },
   onAmountInput: function (e) {
     this.setData({ amountVal: e.detail.value });

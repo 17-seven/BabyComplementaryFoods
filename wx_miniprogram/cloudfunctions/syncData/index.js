@@ -17,8 +17,33 @@ exports.main = async (event, context) => {
   }
 
   const db = cloud.database();
+  const _ = db.command;
   let successCount = 0;
   const errors = [];
+
+  // 同步物理删除：删除云端存在但客户端已删除的历史数据
+  try {
+    const activeSyncIds = records
+      .map(item => {
+        const rawId = item.id !== undefined ? item.id : item.name;
+        return rawId !== undefined && rawId !== null ? String(rawId) : null;
+      })
+      .filter(Boolean);
+
+    if (activeSyncIds.length > 0) {
+      await db.collection(collection).where({
+        family_id: familyId,
+        sync_id: _.nin(activeSyncIds)
+      }).remove();
+    } else {
+      // 客户端如果数据全删，则清空云端该家庭的对应记录
+      await db.collection(collection).where({
+        family_id: familyId
+      }).remove();
+    }
+  } catch (err) {
+    console.warn('[syncData] 同步物理删除失败:', err);
+  }
 
   for (const item of records) {
     // 唯一标识：优先 id 字段，其次用 name（食材等场景）

@@ -1,0 +1,195 @@
+<!--pages/classes/index.wxml-->
+<view class="container">
+  
+  <!-- 1. 机构选择与管理控制卡片 -->
+  <view class="card control-bar">
+    <view class="control-row">
+      <view class="picker-wrap">
+        <text class="bar-label">机构：</text>
+        <picker mode="selector" range="{{ customers }}" range-key="name" bindchange="onCustomerChange">
+          <view class="picker-btn">
+            {{ activeCustomerName || '暂无机构 (点击新建)' }} ▾
+          </view>
+        </picker>
+      </view>
+      <view class="btn-group-sm">
+        <view class="btn-sm-primary" hover-class="btn-hover" bindtap="openAddCustomerModal">➕ 新建机构</view>
+        <view class="btn-sm-danger" hover-class="btn-hover" bindtap="deleteActiveCustomer" wx:if="{{ activeCustomerId }}">🗑️ 删除机构</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 已创建机构：显示完整看板、表单与账目明细 -->
+  <block wx:if="{{ customers.length > 0 }}">
+    <!-- 2. 统计看板 -->
+    <view class="stats-grid">
+      <view class="card balance-card {{ currentBalance < 0 ? 'card-danger' : currentBalance < 500 ? 'card-warn' : 'card-success' }}">
+        <text class="stat-lbl">当前余额</text>
+        <text class="stat-val">¥ {{ currentBalance }}</text>
+        <text class="stat-tip" wx:if="{{ currentBalance < 500 }}">⚠️ 余额不足，请及时充值</text>
+      </view>
+      
+      <view class="stat-right-grid">
+        <view class="card mini-card">
+          <text class="mini-val text-green">{{ attendedCount }}</text>
+          <text class="mini-lbl">本月上课</text>
+        </view>
+        <view class="card mini-card">
+          <text class="mini-val text-red">{{ absentCount }}</text>
+          <text class="mini-lbl">本月请假</text>
+        </view>
+        <view class="card mini-card full-width">
+          <text class="mini-val text-blue">¥{{ monthCost }}</text>
+          <text class="mini-lbl">本月消费额</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 3. 添加上课与收支记录 -->
+    <view class="card form-card">
+      <view class="form-title">➕ 录入上课与充值明细</view>
+      
+      <view class="form-grid">
+        <view class="form-item">
+          <text class="lbl">日期</text>
+          <picker mode="date" value="{{ formDate }}" bindchange="onDateChange">
+            <view class="picker-field">{{ formDate }}</view>
+          </picker>
+        </view>
+
+        <view class="form-item">
+          <text class="lbl">星期</text>
+          <input type="text" value="{{ formDayName }}" disabled class="disabled-input" />
+        </view>
+      </view>
+
+      <view class="form-row switch-row" style="margin-top: 24rpx;">
+        <text class="lbl-row">是否上课 (出勤打卡)</text>
+        <switch checked="{{ formAttended }}" bindchange="onAttendedChange" color="#6CA847" />
+      </view>
+
+      <!-- 上课时展示的表单项 -->
+      <block wx:if="{{ formAttended }}">
+        <view class="form-grid" style="margin-top: 24rpx;">
+          <view class="form-item">
+            <text class="lbl">授课老师</text>
+            <input type="text" placeholder="请输入授课老师姓名" value="{{ formTeacher }}" data-field="formTeacher" bindinput="onTextInput" />
+          </view>
+
+          <view class="form-item">
+            <text class="lbl">课节数</text>
+            <picker mode="selector" range="{{ sessionsOptions }}" bindchange="onSessionsChange">
+              <view class="picker-field">{{ formSessions }} 节 ▾</view>
+            </picker>
+          </view>
+        </view>
+
+        <view class="form-grid" style="margin-top: 24rpx;">
+          <view class="form-item">
+            <text class="lbl">扣减费用 (元)</text>
+            <input type="number" placeholder="240" value="{{ formCost }}" data-field="formCost" bindinput="onTextInput" />
+          </view>
+          <view class="form-item">
+            <text class="lbl">单节均价 (自动计算)</text>
+            <text class="info-tip">{{ formAveragePrice > 0 ? formAveragePrice + ' 元 / 节' : '--' }}</text>
+          </view>
+        </view>
+      </block>
+
+      <!-- 充值与最终余额 -->
+      <view class="form-grid" style="margin-top: 24rpx;">
+        <view class="form-item">
+          <text class="lbl">充值金额 (元，没有填0)</text>
+          <input type="number" placeholder="0" value="{{ formTopup }}" data-field="formTopup" bindinput="onTextInput" />
+        </view>
+
+        <view class="form-item">
+          <text class="lbl">预计算最终余额 (元)</text>
+          <input type="number" placeholder="预计算余额" value="{{ formBalance }}" data-field="formBalance" bindinput="onTextInput" />
+        </view>
+      </view>
+
+      <view class="form-item" style="margin-top: 24rpx;">
+        <text class="lbl">备注说明</text>
+        <input type="text" placeholder="如：冲2000送200，或者请假事由" value="{{ formNote }}" data-field="formNote" bindinput="onTextInput" />
+      </view>
+
+      <view class="save-btn" hover-class="btn-hover" bindtap="addRecord">保存打卡记录</view>
+    </view>
+
+    <!-- 4. 历史记录台账 -->
+    <view class="list-header-row">
+      <text class="section-title-bold">📜 历史明细台账</text>
+      <picker mode="selector" range="{{ filterMonthsOptions }}" bindchange="onFilterMonthChange">
+        <view class="month-filter-btn">
+          {{ filterMonth || '全部月份' }} ▾
+        </view>
+      </picker>
+    </view>
+
+    <view class="history-list">
+      <view class="card log-card-classes {{ item.attended ? 'border-green' : 'border-red' }}" wx:for="{{ filteredRecords }}" wx:key="id">
+        <view class="log-top">
+          <view class="log-tag-row">
+            <text class="tag {{ item.attended ? 'tag-green' : 'tag-red' }}">{{ item.attended ? '✓ 上课' : '✗ 未去' }}</text>
+            <text class="teacher-lbl" wx:if="{{ item.attended }}">{{ item.teacher }} ({{ item.sessions }}节)</text>
+          </view>
+          <text class="date-lbl">{{ item.date }} ({{ item.dayName }})</text>
+        </view>
+        
+        <view class="log-mid">
+          <view class="flow-item" wx:if="{{ item.topup > 0 }}">
+            <text class="flow-lbl">充值：</text>
+            <text class="flow-val text-green">+¥{{ item.topup }}</text>
+          </view>
+          <view class="flow-item" wx:if="{{ item.cost > 0 }}">
+            <text class="flow-lbl">扣费：</text>
+            <text class="flow-val text-red">-¥{{ item.cost }}</text>
+          </view>
+          <view class="flow-item">
+            <text class="flow-lbl font-semibold">余额：</text>
+            <text class="flow-val font-semibold {{ item.balance < 0 ? 'text-red' : 'text-dark' }}">¥{{ item.balance }}</text>
+          </view>
+        </view>
+
+        <view class="log-bot">
+          <text class="note-lbl">{{ item.note || '无备注' }}</text>
+          <text class="delete-btn" bindtap="deleteRecord" data-id="{{ item.id }}">删除</text>
+        </view>
+      </view>
+      
+      <view class="empty-list" wx:if="{{ filteredRecords.length === 0 }}">
+        <text>暂无该月份上课打卡记录</text>
+      </view>
+    </view>
+  </block>
+
+  <!-- 未创建机构：显示空状态 onboarding 引导 -->
+  <view class="empty-state-container" wx:else>
+    <view class="empty-state-card">
+      <text class="empty-emoji">🏫</text>
+      <text class="empty-title">暂无机构档案</text>
+      <text class="empty-desc">请先点击右上方“➕ 新建机构”添加您的第一个上课机构，开启消课打卡与充值记账管理吧！</text>
+    </view>
+  </view>
+
+</view>
+
+<!-- 新建机构模态窗口 -->
+<view class="modal-overlay" wx:if="{{ showAddCustomerModal }}">
+  <view class="modal-card">
+    <view class="modal-header">
+      <text class="modal-title">➕ 新增机构档案</text>
+      <text class="modal-close" bindtap="closeAddCustomerModal">✕</text>
+    </view>
+    <view class="modal-body">
+      <view class="form-item">
+        <text class="lbl">机构名称 *</text>
+        <input type="text" placeholder="输入机构名称" value="{{ newCustomerName }}" bindinput="onNewCustomerInput" />
+      </view>
+    </view>
+    <view class="modal-footer">
+      <view class="btn-modal-primary" hover-class="btn-hover" bindtap="saveCustomer">保存机构</view>
+    </view>
+  </view>
+</view>

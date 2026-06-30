@@ -56,6 +56,10 @@
     <button class="btn btn-outline-primary btn-block" bindtap="openAddDialog" data-type="safe">
       ➕ 添加自定义食材
     </button>
+
+    <button class="btn btn-primary btn-block" style="margin-top:20rpx; background: linear-gradient(135deg, #7cb342 0%, #689f38 100%); border:none; box-shadow: 0 4rpx 12rpx rgba(104, 159, 56, 0.2);" bindtap="confirmAllergenComplete">
+      我已确认排敏食材 (开启辅食计划)
+    </button>
   </view>
 
 

@@ -11,6 +11,8 @@
     "pages/nutrition/index",
     "pages/allergen/index",
     "pages/my/index",
+    "pages/classes/index",
+    "pages/growth/index",
     "pages/album/index",
     "pages/family/index",
     "pages/baby/index"

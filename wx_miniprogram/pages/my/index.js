@@ -13,6 +13,8 @@ const AVAILABLE_PAGES = [
   { page: 'vision',    name: '计时模块',   icon: '⏱️', desc: '自定义计时追踪管理' },
   { page: 'bowel',     name: '排便记录',   icon: '💩', desc: '大便次数与性状打卡' },
   { page: 'nutrition', name: '饮奶饮水',   icon: '🍼', desc: '奶量水量每日记账' },
+  { page: 'classes',   name: '上课打卡',   icon: '🏫', desc: '课程考勤与余额记账' },
+  { page: 'growth',    name: '成长发育',   icon: '📈', desc: '身高体重头围脚长记录' },
   { page: 'allergen',  name: '食材管理',   icon: '🥦', desc: '排敏食材安全池维护' },
   { page: 'album',     name: '宝宝相册',   icon: '🖼️', desc: '萌照管理与头像设置' },
   { page: 'baby',      name: '宝宝档案',   icon: '👶', desc: '基础信息与早产校正' },
@@ -158,20 +160,68 @@ Page({
     const name = this.data.editNickname.trim();
     if (!name) { wx.showToast({ title: '昵称不能为空', icon: 'error' }); return; }
     const userInfo = { ...(this.data.userInfo || {}), nickName: name };
-    const finish = (url) => {
-      if (url) userInfo.avatarUrl = url;
+    
+    const finish = (cloudUrl, localUrl) => {
+      if (localUrl) userInfo.avatarUrl = localUrl;
       wx.setStorageSync('user_info', userInfo);
       const app = getApp(); if (app) app.globalData.userInfo = userInfo;
       this.setData({ userInfo, showEditModal: false });
+
+      // 同步更新至云数据库 families 记录中
+      const familyId = wx.getStorageSync('user_family_id');
+      if (familyId && wx.cloud) {
+        // 如果有云存储 URL，则同步云端 URL；否则如果原有头像已经是合法的非本地路径，使用之
+        const syncAvatar = cloudUrl || (userInfo.avatarUrl && !userInfo.avatarUrl.startsWith('wxfile://') && !userInfo.avatarUrl.includes('profile_avatar') ? userInfo.avatarUrl : '');
+        wx.cloud.callFunction({
+          name: 'updateFamily',
+          data: {
+            action: 'update',
+            familyId: familyId,
+            data: {
+              creator_nickname: userInfo.nickName,
+              ...(syncAvatar ? { creator_avatar: syncAvatar } : {})
+            }
+          },
+          fail: (err) => { console.warn('同步个人信息到云端失败:', err); }
+        });
+      }
       wx.showToast({ title: '已保存', icon: 'success' });
     };
+
     if (this.data.editAvatarTemp) {
+      // 如果有新选择的头像，先拷贝到本地持久缓存目录以防微信临时路径失效
       const dest = `${wx.env.USER_DATA_PATH}/profile_avatar.jpg`;
       wx.getFileSystemManager().copyFile({
         srcPath: this.data.editAvatarTemp, destPath: dest,
-        success: () => finish(dest), fail: () => finish(this.data.editAvatarTemp)
+        success: () => {
+          // 本地拷贝成功后，若开通了云开发，上传到云端存储
+          if (wx.cloud) {
+            wx.showLoading({ title: '正在上传头像...', mask: true });
+            const cloudPath = `user_avatars/avatar_${Date.now()}_${Math.floor(Math.random() * 1000)}.jpg`;
+            wx.cloud.uploadFile({
+              cloudPath: cloudPath,
+              filePath: dest,
+              success: (uploadRes) => {
+                wx.hideLoading();
+                finish(uploadRes.fileID, dest);
+              },
+              fail: (err) => {
+                wx.hideLoading();
+                console.warn('头像上传云端失败，采用本地路径兜底:', err);
+                finish(null, dest);
+              }
+            });
+          } else {
+            finish(null, dest);
+          }
+        },
+        fail: () => {
+          finish(null, this.data.editAvatarTemp);
+        }
       });
-    } else { finish(null); }
+    } else {
+      finish(null, null);
+    }
   },
 
   // 快捷页面跳转
@@ -336,7 +386,9 @@ Page({
       'clinical_logs': 'clinical_logs',
       'safe_foods': 'safe_foods',
       'risk_foods': 'risk_foods',
-      'meal_plans': 'meal_plans'
+      'meal_plans': 'meal_plans',
+      'classes': 'classes',
+      'growth': 'growth'
     };
 
     // 微信文件管理器选取文件（支持多选）
@@ -390,7 +442,9 @@ Page({
               'clinical_logs': 'baby_clinical_logs',
               'safe_foods': 'mp_safe_foods_list',
               'risk_foods': 'mp_risk_foods_list',
-              'meal_plans': 'baby_week_plans'
+              'meal_plans': 'baby_week_plans',
+              'classes': 'class_records_spring_rain',
+              'growth': 'baby_growth_records'
             };
             const localKey = LOCAL_STORAGE_KEY_MAP[collectionName];
             if (localKey) {

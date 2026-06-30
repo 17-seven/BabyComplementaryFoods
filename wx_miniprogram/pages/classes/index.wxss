@@ -1,0 +1,436 @@
+/* pages/classes/index.wxss */
+
+/* 控制面板与切换条 */
+.control-bar {
+  padding: 24rpx 28rpx;
+  margin-bottom: 24rpx;
+  background-color: #ffffff;
+}
+.control-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.picker-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+.bar-label {
+  font-size: 26rpx;
+  font-weight: 700;
+  color: #4a5568;
+}
+.picker-btn {
+  font-size: 26rpx;
+  color: #3182ce;
+  font-weight: 700;
+  padding: 8rpx 16rpx;
+  background-color: #ebf8ff;
+  border-radius: 12rpx;
+}
+.btn-group-sm {
+  display: flex;
+  gap: 12rpx;
+}
+.btn-sm-primary {
+  font-size: 22rpx;
+  font-weight: 700;
+  color: #ffffff;
+  background: linear-gradient(135deg, #7cb342 0%, #689f38 100%);
+  padding: 10rpx 16rpx;
+  border-radius: 12rpx;
+  box-shadow: 0 4rpx 8rpx rgba(104, 159, 56, 0.2);
+}
+.btn-sm-danger {
+  font-size: 22rpx;
+  font-weight: 700;
+  color: #ffffff;
+  background-color: #e53e3e;
+  padding: 10rpx 16rpx;
+  border-radius: 12rpx;
+}
+.divider {
+  height: 1rpx;
+  background-color: #edf2f7;
+  margin: 18rpx 0;
+}
+.data-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+.btn-sm-secondary {
+  flex: 1;
+  text-align: center;
+  font-size: 22rpx;
+  font-weight: 700;
+  color: #4a5568;
+  background-color: #f7fafc;
+  border: 1rpx solid #e2e8f0;
+  padding: 12rpx 0;
+  border-radius: 14rpx;
+}
+
+/* 统计看板网格 */
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 20rpx;
+  margin-bottom: 24rpx;
+}
+.balance-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 24rpx 28rpx;
+  border-radius: 24rpx;
+  border-left: 8rpx solid transparent;
+}
+.card-success {
+  background: linear-gradient(135deg, #f0fdf4 0%, #e6fffa 100%);
+  border-left-color: #38a169;
+}
+.card-warn {
+  background: linear-gradient(135deg, #fffaf0 0%, #fffbeb 100%);
+  border-left-color: #dd6b20;
+}
+.card-danger {
+  background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%);
+  border-left-color: #e53e3e;
+}
+.stat-lbl {
+  font-size: 22rpx;
+  color: #718096;
+  font-weight: 600;
+}
+.stat-val {
+  font-size: 42rpx;
+  font-weight: 800;
+  color: #2d3748;
+  margin-top: 10rpx;
+}
+.stat-tip {
+  font-size: 18rpx;
+  color: #e53e3e;
+  font-weight: 700;
+  margin-top: 10rpx;
+}
+.stat-right-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16rpx;
+}
+.mini-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 16rpx 10rpx;
+  border-radius: 20rpx;
+  background-color: #ffffff;
+}
+.mini-val {
+  font-size: 32rpx;
+  font-weight: 800;
+}
+.mini-lbl {
+  font-size: 18rpx;
+  color: #a0aec0;
+  font-weight: 600;
+  margin-top: 4rpx;
+}
+.full-width {
+  grid-column: span 2;
+  flex-direction: row;
+  justify-content: space-between;
+  padding: 12rpx 20rpx;
+  align-items: center;
+}
+.full-width .mini-lbl {
+  margin-top: 0;
+}
+
+/* 表单卡片 */
+.form-card {
+  padding: 28rpx 32rpx;
+  margin-bottom: 24rpx;
+}
+.form-title {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #2d3748;
+  margin-bottom: 24rpx;
+}
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20rpx;
+}
+.form-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+.form-item .lbl {
+  font-size: 22rpx;
+  color: #718096;
+  font-weight: 600;
+}
+.picker-field, .form-item input, .disabled-input {
+  background-color: #f8fafc;
+  border: 1rpx solid #edf2f7;
+  border-radius: 16rpx;
+  padding: 18rpx 24rpx;
+  font-size: 24rpx;
+  color: #334155;
+  height: 38rpx;
+  line-height: 38rpx;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+}
+.disabled-input {
+  background-color: #f1f5f9;
+  color: #94a3b8;
+}
+.switch-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.lbl-row {
+  font-size: 24rpx;
+  font-weight: 700;
+  color: #4a5568;
+}
+.info-tip {
+  font-size: 22rpx;
+  color: #a0aec0;
+  font-weight: 600;
+  height: 38rpx;
+  display: flex;
+  align-items: center;
+}
+.save-btn {
+  background: linear-gradient(135deg, #7cb342 0%, #689f38 100%);
+  color: #ffffff;
+  text-align: center;
+  padding: 22rpx 0;
+  font-size: 26rpx;
+  font-weight: 700;
+  border-radius: 20rpx;
+  margin-top: 30rpx;
+  box-shadow: 0 4rpx 12rpx rgba(104, 159, 56, 0.2);
+  transition: all 0.2s ease;
+}
+
+/* 历史账目列表 */
+.list-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 32rpx;
+  margin-bottom: 16rpx;
+}
+.section-title-bold {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #2d3748;
+}
+.month-filter-btn {
+  font-size: 24rpx;
+  color: #4a5568;
+  font-weight: 600;
+  border: 1rpx solid #cbd5e1;
+  border-radius: 12rpx;
+  padding: 6rpx 16rpx;
+  background-color: #ffffff;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+.log-card-classes {
+  display: flex;
+  flex-direction: column;
+  padding: 24rpx 28rpx;
+  background-color: #ffffff;
+  border-radius: 24rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.01);
+  border: 1rpx solid #edf2f7;
+  border-left: 8rpx solid transparent;
+}
+.border-green {
+  border-left-color: #38a169;
+}
+.border-red {
+  border-left-color: #e53e3e;
+}
+.log-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.log-tag-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+.tag {
+  font-size: 18rpx;
+  font-weight: 700;
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+}
+.tag-green {
+  background-color: #e6f4ea;
+  color: #137333;
+}
+.tag-red {
+  background-color: #fce8e6;
+  color: #c5221f;
+}
+.teacher-lbl {
+  font-size: 22rpx;
+  font-weight: 700;
+  color: #334155;
+}
+.date-lbl {
+  font-size: 20rpx;
+  color: #94a3b8;
+  font-weight: 500;
+}
+.log-mid {
+  display: flex;
+  justify-content: space-between;
+  background-color: #f8fafc;
+  padding: 12rpx 20rpx;
+  border-radius: 16rpx;
+  margin: 16rpx 0;
+}
+.flow-item {
+  display: flex;
+  align-items: center;
+  font-size: 22rpx;
+}
+.flow-lbl {
+  color: #718096;
+}
+.flow-val {
+  font-weight: 700;
+}
+.font-semibold {
+  font-weight: 700;
+}
+.text-dark {
+  color: #2d3748;
+}
+.log-bot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.note-lbl {
+  font-size: 20rpx;
+  color: #94a3b8;
+  max-width: 80%;
+}
+.delete-btn {
+  font-size: 22rpx;
+  color: #94a3b8;
+  font-weight: 600;
+}
+.delete-btn:active {
+  color: #e53e3e;
+}
+.empty-list {
+  padding: 60rpx 0;
+  text-align: center;
+  color: #a0aec0;
+  font-size: 24rpx;
+}
+
+/* 模态框蒙层 */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex; justify-content: center; align-items: center;
+  z-index: 1000;
+}
+.modal-card {
+  width: 80%;
+  background-color: #ffffff;
+  border-radius: 28rpx;
+  padding: 32rpx;
+  box-shadow: 0 10rpx 30rpx rgba(0, 0, 0, 0.15);
+}
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24rpx;
+}
+.modal-title {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #2d3748;
+}
+.modal-close {
+  font-size: 28rpx;
+  color: #cbd5e1;
+  font-weight: 600;
+  padding: 8rpx;
+}
+.btn-modal-primary {
+  background: linear-gradient(135deg, #7cb342 0%, #689f38 100%);
+  color: #ffffff;
+  text-align: center;
+  padding: 18rpx 0;
+  font-size: 24rpx;
+  font-weight: 700;
+  border-radius: 16rpx;
+  margin-top: 16rpx;
+}
+
+.btn-hover {
+  opacity: 0.7;
+  transform: scale(0.97);
+}
+
+/* 空状态引导 */
+.empty-state-container {
+  padding: 80rpx 40rpx;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.empty-state-card {
+  background-color: #ffffff;
+  border-radius: 32rpx;
+  padding: 60rpx 40rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.02);
+  border: 1rpx solid #edf2f7;
+}
+.empty-emoji {
+  font-size: 80rpx;
+  margin-bottom: 24rpx;
+}
+.empty-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #2d3748;
+  margin-bottom: 16rpx;
+}
+.empty-desc {
+  font-size: 24rpx;
+  color: #718096;
+  line-height: 1.6;
+}

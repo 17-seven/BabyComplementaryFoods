@@ -1,0 +1,145 @@
+<!--pages/growth/index.wxml-->
+<view class="container">
+
+  <!-- 1. 最新测量数据看板 -->
+  <view class="section-title">📊 最新成长数据</view>
+  
+  <view class="card latest-summary-card">
+    <view class="latest-grid" wx:if="{{ latestRecord }}">
+      <view class="latest-item item-green">
+        <text class="lbl">🍼 体重</text>
+        <view class="val-box">
+          <text class="val">{{ latestRecord.weight || '-' }}</text>
+          <text class="unit" wx:if="{{ latestRecord.weight }}">kg</text>
+        </view>
+      </view>
+
+      <view class="latest-item item-blue">
+        <text class="lbl">📏 身高</text>
+        <view class="val-box">
+          <text class="val">{{ latestRecord.height || '-' }}</text>
+          <text class="unit" wx:if="{{ latestRecord.height }}">cm</text>
+        </view>
+      </view>
+
+      <view class="latest-item item-orange">
+        <text class="lbl">💆 头围</text>
+        <view class="val-box">
+          <text class="val">{{ latestRecord.head || '-' }}</text>
+          <text class="unit" wx:if="{{ latestRecord.head }}">cm</text>
+        </view>
+      </view>
+
+      <view class="latest-item item-purple">
+        <text class="lbl">👣 脚长</text>
+        <view class="val-box">
+          <text class="val">{{ latestRecord.foot || '-' }}</text>
+          <text class="unit" wx:if="{{ latestRecord.foot }}">cm</text>
+        </view>
+      </view>
+    </view>
+    <view class="empty-tip" wx:else>暂无测量数据，请在下方录入</view>
+    
+    <view class="latest-footer" wx:if="{{ latestRecord }}">
+      <text class="date-hint">最后测量日期：{{ latestRecord.date }}</text>
+    </view>
+  </view>
+
+  <!-- 2. 手动录入表单 -->
+  <view class="card form-card">
+    <view class="form-title">➕ 记录新测量值</view>
+
+    <view class="form-item">
+      <text class="lbl">测量日期</text>
+      <picker mode="date" value="{{ formDate }}" bindchange="onDateChange">
+        <view class="date-picker-btn">{{ formDate }}</view>
+      </picker>
+    </view>
+
+    <view class="form-grid" style="margin-top: 20rpx;">
+      <view class="form-item">
+        <text class="lbl">体重 (kg)</text>
+        <input type="digit" placeholder="如 8.50" value="{{ formWeight }}" data-field="formWeight" bindinput="onInputChange" placeholder-class="input-placeholder" />
+      </view>
+
+      <view class="form-item">
+        <text class="lbl">身高 (cm)</text>
+        <input type="digit" placeholder="如 72.5" value="{{ formHeight }}" data-field="formHeight" bindinput="onInputChange" placeholder-class="input-placeholder" />
+      </view>
+    </view>
+
+    <view class="form-grid" style="margin-top: 20rpx;">
+      <view class="form-item">
+        <text class="lbl">头围 (cm)</text>
+        <input type="digit" placeholder="如 43.5" value="{{ formHead }}" data-field="formHead" bindinput="onInputChange" placeholder-class="input-placeholder" />
+      </view>
+
+      <view class="form-item">
+        <text class="lbl">脚长 (cm)</text>
+        <input type="digit" placeholder="如 10.2" value="{{ formFoot }}" data-field="formFoot" bindinput="onInputChange" placeholder-class="input-placeholder" />
+      </view>
+    </view>
+
+    <view class="form-item" style="margin-top: 20rpx;">
+      <text class="lbl">备注说明</text>
+      <input type="text" placeholder="如：9月龄体检，或在家自主测量" value="{{ formNote }}" data-field="formNote" bindinput="onInputChange" placeholder-class="input-placeholder" />
+    </view>
+
+    <view class="save-btn" hover-class="btn-hover" bindtap="saveRecord">保存成长记录</view>
+  </view>
+
+  <!-- 3. 历史数据记录 -->
+  <view class="section-title">📜 历史成长轨迹</view>
+
+  <view class="history-list">
+    <view class="card history-card" wx:for="{{ records }}" wx:key="id">
+      <view class="history-header">
+        <text class="record-date">{{ item.date }}</text>
+        <text class="delete-btn" bindtap="deleteRecord" data-id="{{ item.id }}">删除</text>
+      </view>
+      
+      <view class="metrics-flex">
+        <view class="metric-col" wx:if="{{ item.weight }}">
+          <text class="metric-lbl">体重</text>
+          <view class="metric-val-wrap">
+            <text class="metric-val">{{ item.weight }}kg</text>
+            <text class="diff-tag text-green" wx:if="{{ item.delta.weight }}">{{ item.delta.weight }}</text>
+          </view>
+        </view>
+
+        <view class="metric-col" wx:if="{{ item.height }}">
+          <text class="metric-lbl">身高</text>
+          <view class="metric-val-wrap">
+            <text class="metric-val">{{ item.height }}cm</text>
+            <text class="diff-tag text-blue" wx:if="{{ item.delta.height }}">{{ item.delta.height }}</text>
+          </view>
+        </view>
+
+        <view class="metric-col" wx:if="{{ item.head }}">
+          <text class="metric-lbl">头围</text>
+          <view class="metric-val-wrap">
+            <text class="metric-val">{{ item.head }}cm</text>
+            <text class="diff-tag text-orange" wx:if="{{ item.delta.head }}">{{ item.delta.head }}</text>
+          </view>
+        </view>
+
+        <view class="metric-col" wx:if="{{ item.foot }}">
+          <text class="metric-lbl">脚长</text>
+          <view class="metric-val-wrap">
+            <text class="metric-val">{{ item.foot }}cm</text>
+            <text class="diff-tag text-purple" wx:if="{{ item.delta.foot }}">{{ item.delta.foot }}</text>
+          </view>
+        </view>
+      </view>
+      
+      <view class="note-box" wx:if="{{ item.note }}">
+        <text class="note-content">💡 备注：{{ item.note }}</text>
+      </view>
+    </view>
+
+    <view class="empty-list" wx:if="{{ records.length === 0 }}">
+      <text>暂无成长测量记录</text>
+    </view>
+  </view>
+
+</view>
