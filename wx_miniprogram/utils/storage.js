@@ -223,6 +223,27 @@ function syncPull(targetCollections, onSuccess) {
             });
           }
         }
+      } else {
+        // 如果本地有绑定的家庭组ID，但云端的 login 返回无此家庭组，说明已被管理员移出或家庭组已解散！
+        const localFamilyId = wx.getStorageSync('user_family_id');
+        if (localFamilyId) {
+          wx.setStorageSync('user_family_id', '');
+          wx.showModal({
+            title: '协同共享已断开',
+            content: '您已被管理员移出该家庭组，或该家庭组已解散。已自动切换回本地单机模式。',
+            showCancel: false,
+            success: () => {
+              // 自动刷新当前页面以清除云端数据渲染
+              const pages = getCurrentPages();
+              if (pages.length > 0) {
+                const currentPage = pages[pages.length - 1];
+                if (currentPage && typeof currentPage.onShow === 'function') {
+                  currentPage.onShow();
+                }
+              }
+            }
+          });
+        }
       }
       if (callback) callback();
     },

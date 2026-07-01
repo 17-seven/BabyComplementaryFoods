@@ -110,7 +110,7 @@ exports.main = async (event, context) => {
       return { success: true, familyId };
 
     } else if (action === 'removeMember') {
-      // 成员解绑：从 members 数组和 members_info 数组中移除当前退出的成员
+      // 成员解绑：可由操作人自己退组，也可由创建者将他人移出家庭组
       const doc = await db.collection('families').doc(familyId).get();
       if (!doc.data) {
         return { success: false, error: '同步码不存在' };
@@ -119,9 +119,11 @@ exports.main = async (event, context) => {
       let members = family.members || [];
       let membersInfo = family.members_info || [];
 
-      // 移出当前操作的 openid
-      members = members.filter(m => m !== openid);
-      membersInfo = membersInfo.filter(m => m.openid !== openid);
+      // 获取待移除的 openid (若未传入，默认移除当前调用者自己)
+      const targetOpenid = event.targetOpenid || openid;
+
+      members = members.filter(m => m !== targetOpenid);
+      membersInfo = membersInfo.filter(m => m.openid !== targetOpenid);
 
       await db.collection('families').doc(familyId).update({
         data: {
@@ -130,6 +132,21 @@ exports.main = async (event, context) => {
         }
       });
       return { success: true, familyId };
+
+    } else if (action === 'dismissFamily') {
+      // 解散家庭组：只有创建者才有权限删除对应的家庭组文档
+      const doc = await db.collection('families').doc(familyId).get();
+      if (!doc.data) {
+        return { success: false, error: '同步码不存在' };
+      }
+      const family = doc.data;
+      const creatorOpenid = family.creator_openid || family._openid || (family.members && family.members[0]);
+      if (creatorOpenid !== openid) {
+        return { success: false, error: '非创建者无权解散家庭组' };
+      }
+
+      await db.collection('families').doc(familyId).remove();
+      return { success: true };
 
     } else {
       return { success: false, error: '未知 action: ' + action };

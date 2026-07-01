@@ -281,6 +281,24 @@
   white-space: nowrap;
 }
 
+.remove-member-btn {
+  font-size: 22rpx;
+  color: #e53e3e;
+  background-color: #fff5f5;
+  border: 1rpx solid #fed7d7;
+  padding: 4rpx 14rpx;
+  border-radius: 12rpx;
+  margin-left: 20rpx;
+  font-weight: 500;
+  display: inline-block;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.remove-member-btn:active {
+  background-color: #fed7d7;
+  transform: scale(0.95);
+}
+
 /* 解绑退出按钮设计 (高级轻量警示幽灵按钮) */
 .danger-zone-wrapper {
   margin-top: 40rpx;

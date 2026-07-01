@@ -133,6 +133,23 @@
     *   [pages/my/index.js](file:///e:/AAAWork/self/BabyComplementaryFoods/wx_miniprogram/pages/my/index.js)
     *   云函数 [cloudfunctions/updateFamily/index.js](file:///e:/AAAWork/self/BabyComplementaryFoods/wx_miniprogram/cloudfunctions/updateFamily/index.js)
 
+### 12. 家庭组权限管控规范化 — 创建者注销限制、成员单向移除与实时踢出检测
+*   **需求描述**：
+    1.  当家庭组内还有其他协同成员时，不允许创建者解散家庭组；创建者只能将其他协同成员移出组，而不能移出自己。只有在所有其他看护人被移除后，创建者才可以注销当前家庭组。
+    2.  解散/注销对于协同看护人端仅显示“解绑并退出”。
+    3.  如果看护人被创建者移除，或家庭组被创建者注销，在看护人下一次请求数据、保存数据或刷新页面时，应弹出失效提示，并立即断开同步，不再展示原家庭组数据，回退到本地单机状态。
+*   **解决方案**：
+    *   **创建者管控**：在 `updateFamily` 云函数中新增 `action === 'dismissFamily'` 用以物理删除家庭组文档。在前端 `pages/family/index.wxml` 为创建者在每个协同成员行右侧添加“移除”按钮，点击调用 `action === 'removeMember'`（携带 `targetOpenid`）移除对方。
+    *   **注销与退出按钮分流**：根据 `isCurrentCreator` 动态分流大按钮：创建者点击“注销当前家庭组”时如果 `membersList.length > 1` 会被弹窗拦截；仅剩自己时方可调用 `dismissFamily` 彻底销毁家庭。协同成员则调用 `removeMember` 自主退组。
+    *   **实时踢出拦截器**：重构了 `utils/storage.js` 的 `syncPull` 与 `pages/family/index.js` 的 `fetchFamilyDetails`。当用户本地存有家庭 ID 但云端 `login` 函数返回无此家庭记录（已被踢出或解散）时，前台将自动清除本地 `user_family_id` 缓存、弹出“协同已断开”的提示模态框，并自动重新载入当前页面清空界面，退回单机安全状态。
+*   **关联文件**：
+    *   [pages/family/index.js](file:///e:/AAAWork/self/BabyComplementaryFoods/wx_miniprogram/pages/family/index.js)
+    *   [pages/family/index.wxml](file:///e:/AAAWork/self/BabyComplementaryFoods/wx_miniprogram/pages/family/index.wxml)
+    *   [pages/family/index.wxss](file:///e:/AAAWork/self/BabyComplementaryFoods/wx_miniprogram/pages/family/index.wxss)
+    *   [utils/storage.js](file:///e:/AAAWork/self/BabyComplementaryFoods/wx_miniprogram/utils/storage.js)
+    *   云函数 [cloudfunctions/updateFamily/index.js](file:///e:/AAAWork/self/BabyComplementaryFoods/wx_miniprogram/cloudfunctions/updateFamily/index.js)
+
+
 
 
 

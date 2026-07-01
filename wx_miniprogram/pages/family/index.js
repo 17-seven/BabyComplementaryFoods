@@ -93,12 +93,28 @@ Page({
             return 0;
           });
 
+          const isCurrentCreator = (currentOpenid === creatorOpenid);
           that.setData({
             familyDetails: detail,
-            membersList: membersList
+            membersList: membersList,
+            isCurrentCreator: isCurrentCreator
           });
         } else {
-          that.fallbackToOffline();
+          // 如果本地有家庭ID，但云端返回无记录，说明已被管理员移出或已注销解散！
+          const localFamilyId = wx.getStorageSync('user_family_id');
+          if (localFamilyId) {
+            setStorage('user_family_id', '');
+            that.setData({ myFamilyId: '' }, () => {
+              that.fallbackToOffline();
+              wx.showModal({
+                title: '协同共享已断开',
+                content: '您已被管理员移出该家庭组，或该家庭组已解散。已自动切换回本地单机模式。',
+                showCancel: false
+              });
+            });
+          } else {
+            that.fallbackToOffline();
+          }
         }
       },
       fail: (err) => {
@@ -127,7 +143,8 @@ Page({
           avatarUrl: userInfo ? (userInfo.avatarUrl || '/assets/avatar_default.png') : '/assets/avatar_default.png',
           isCreator: true
         }
-      ]
+      ],
+      isCurrentCreator: true
     });
   },
 
@@ -314,41 +331,137 @@ Page({
   },
 
   // 5. 解绑家庭组
-  leaveFamily: function () {
+  // 移除家庭组成员 (仅创建者有权调用)
+  removeMember: function (e) {
     const that = this;
+    const targetOpenid = e.currentTarget.dataset.openid;
+    const nickname = e.currentTarget.dataset.nickname || '看护人';
+    const familyId = this.data.myFamilyId;
+
+    if (!familyId || !targetOpenid) return;
+
     wx.showModal({
-      title: '解绑确认',
-      content: '确定要退出当前绑定的家庭组吗？退出后将无法共享看护人数据，转为单机本地状态。',
+      title: '移除成员确认',
+      content: `确定要将“${nickname}”移出当前家庭组吗？移出后对方将转为单机本地状态且无法同步数据。`,
       confirmColor: '#e53e3e',
       success: (res) => {
         if (res.confirm) {
-          wx.showLoading({ title: '正在解除绑定...', mask: true });
-          const familyId = that.data.myFamilyId;
-          
-          if (wx.cloud && familyId && !familyId.startsWith('fam_loc_')) {
-            wx.cloud.callFunction({
-              name: 'updateFamily',
-              data: {
-                action: 'removeMember',
-                familyId: familyId
-              },
-              success: () => {
-                wx.hideLoading();
-                that.clearLocalFamilyInfo();
-              },
-              fail: (err) => {
-                wx.hideLoading();
-                console.warn('云端退出家庭组失败，进行本地解绑:', err);
-                that.clearLocalFamilyInfo();
+          wx.showLoading({ title: '正在移除成员...', mask: true });
+          wx.cloud.callFunction({
+            name: 'updateFamily',
+            data: {
+              action: 'removeMember',
+              familyId: familyId,
+              targetOpenid: targetOpenid
+            },
+            success: (cloudRes) => {
+              wx.hideLoading();
+              if (cloudRes.result && cloudRes.result.success) {
+                wx.showToast({ title: '移除成功', icon: 'success' });
+                that.fetchFamilyDetails();
+              } else {
+                wx.showToast({ title: cloudRes.result.error || '移除失败', icon: 'none' });
               }
-            });
-          } else {
-            wx.hideLoading();
-            that.clearLocalFamilyInfo();
-          }
+            },
+            fail: (err) => {
+              wx.hideLoading();
+              console.error('移除成员云函数失败:', err);
+              wx.showToast({ title: '网络异常，请重试', icon: 'none' });
+            }
+          });
         }
       }
     });
+  },
+
+  // 5. 解绑退出或注销家庭组
+  leaveFamily: function () {
+    const that = this;
+    const isCreator = this.data.isCurrentCreator;
+    const familyId = this.data.myFamilyId;
+
+    if (isCreator) {
+      // 创建者注销家庭组逻辑：必须先移除其他所有看护成员
+      if (this.data.membersList.length > 1) {
+        wx.showModal({
+          title: '无法注销',
+          content: '无法直接注销家庭组。请先点击列表成员旁的“移除”按钮，将其他所有协同看护人移出家庭组，最后再注销家庭组。',
+          showCancel: false
+        });
+        return;
+      }
+
+      wx.showModal({
+        title: '注销家庭组确认',
+        content: '确定要注销当前家庭组吗？注销后所有协同绑定关系将被删除，您的数据将转为单机本地状态。',
+        confirmColor: '#e53e3e',
+        success: (res) => {
+          if (res.confirm) {
+            wx.showLoading({ title: '正在注销家庭组...', mask: true });
+            if (wx.cloud && familyId && !familyId.startsWith('fam_loc_')) {
+              wx.cloud.callFunction({
+                name: 'updateFamily',
+                data: {
+                  action: 'dismissFamily',
+                  familyId: familyId
+                },
+                success: (cloudRes) => {
+                  wx.hideLoading();
+                  if (cloudRes.result && cloudRes.result.success) {
+                    that.clearLocalFamilyInfo();
+                    wx.showToast({ title: '家庭组已注销', icon: 'success' });
+                  } else {
+                    wx.showToast({ title: cloudRes.result.error || '注销失败', icon: 'none' });
+                  }
+                },
+                fail: (err) => {
+                  wx.hideLoading();
+                  console.warn('云端注销失败，进行本地退出:', err);
+                  that.clearLocalFamilyInfo();
+                }
+              });
+            } else {
+              wx.hideLoading();
+              that.clearLocalFamilyInfo();
+            }
+          }
+        }
+      });
+
+    } else {
+      // 协同成员自主退组逻辑
+      wx.showModal({
+        title: '退出确认',
+        content: '确定要退出当前绑定的家庭组吗？退出后您将无法共享数据，数据转为单机本地状态。',
+        confirmColor: '#e53e3e',
+        success: (res) => {
+          if (res.confirm) {
+            wx.showLoading({ title: '正在解除绑定...', mask: true });
+            if (wx.cloud && familyId && !familyId.startsWith('fam_loc_')) {
+              wx.cloud.callFunction({
+                name: 'updateFamily',
+                data: {
+                  action: 'removeMember',
+                  familyId: familyId
+                },
+                success: () => {
+                  wx.hideLoading();
+                  that.clearLocalFamilyInfo();
+                },
+                fail: (err) => {
+                  wx.hideLoading();
+                  console.warn('云端退出家庭组失败，进行本地解绑:', err);
+                  that.clearLocalFamilyInfo();
+                }
+              });
+            } else {
+              wx.hideLoading();
+              that.clearLocalFamilyInfo();
+            }
+          }
+        }
+      });
+    }
   },
 
   clearLocalFamilyInfo: function () {

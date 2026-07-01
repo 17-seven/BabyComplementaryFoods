@@ -67,6 +67,8 @@
                   <text wx:if="{{ item.isCreator }}">👑 创建者</text>
                   <text wx:else>🤝 看护人</text>
                 </view>
+                <!-- 移除按钮：仅创建者可见，且不能移除自己 -->
+                <text wx:if="{{ isCurrentCreator && !item.isCreator }}" class="remove-member-btn" bindtap="removeMember" data-openid="{{ item.openid }}" data-nickname="{{ item.nickName }}">移除</text>
               </view>
               <view class="member-id-tag">
                 <text class="id-lbl">ID:</text>
@@ -78,11 +80,11 @@
       </view>
     </view>
 
-    <!-- 解绑退出按钮 -->
+    <!-- 解绑退出/注销家庭组 按钮 -->
     <view class="danger-zone-wrapper">
       <button class="btn-danger-ghost" bindtap="leaveFamily">
         <text class="btn-danger-icon">📴</text>
-        <text>解绑并退出当前家庭组</text>
+        <text>{{ isCurrentCreator ? '注销当前家庭组' : '解绑并退出当前家庭组' }}</text>
       </button>
     </view>
   </view>
