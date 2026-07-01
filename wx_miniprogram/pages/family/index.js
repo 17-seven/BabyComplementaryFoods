@@ -41,51 +41,61 @@ Page({
 
   // 从云数据库拉取家庭看护成员信息
   fetchFamilyDetails: function () {
-    const db = wx.cloud.database();
     const that = this;
+    wx.showLoading({ title: '正在获取家庭信息...' });
 
-    db.collection('families').doc(this.data.myFamilyId).get({
+    wx.cloud.callFunction({
+      name: 'login',
       success: (res) => {
-        const detail = res.data;
-        let membersList = detail.members_info || [];
-        if (membersList.length === 0 && detail.members) {
-          // 向上兼容历史老数据格式
-          membersList = detail.members.map(m => {
-            const isCreator = (m === detail.creator_openid);
-            return {
-              openid: m,
-              nickName: isCreator ? (detail.creator_nickname || '群主') : '看护人',
-              avatarUrl: isCreator ? (detail.creator_avatar || '/assets/avatar_default.png') : '/assets/avatar_default.png'
-            };
+        wx.hideLoading();
+        if (res.result && res.result.familyRecord) {
+          const detail = res.result.familyRecord;
+          let membersList = detail.members_info || [];
+          if (membersList.length === 0 && detail.members) {
+            // 向上兼容历史老数据格式
+            membersList = detail.members.map(m => {
+              const isCreator = (m === detail.creator_openid);
+              return {
+                openid: m,
+                nickName: isCreator ? (detail.creator_nickname || '群主') : '看护人',
+                avatarUrl: isCreator ? (detail.creator_avatar || '/assets/avatar_default.png') : '/assets/avatar_default.png'
+              };
+            });
+          }
+          that.setData({
+            familyDetails: detail,
+            membersList: membersList
           });
+        } else {
+          that.fallbackToOffline();
         }
-        that.setData({
-          familyDetails: detail,
-          membersList: membersList
-        });
       },
       fail: (err) => {
-        console.warn("未能拉取云端家庭组详情，可能环境尚未部署完毕，采用本地缓存渲染", err);
-        // 从本地宝宝档案读取，不再硬编码
-        const profile = getStorage('baby_profile_info', null);
-        const userInfo = getStorage('user_info', null);
-        const openid = getApp().globalData.openid || wx.getStorageSync('user_openid') || '您自己';
-        that.setData({
-          familyDetails: profile ? {
-            baby_name: profile.name,
-            birth_date: profile.birthDate,
-            premature_days: profile.prematureDays || 0,
-            creator_openid: openid
-          } : { creator_openid: openid },
-          membersList: [
-            {
-              openid: openid,
-              nickName: userInfo ? (userInfo.nickName || '您自己') : '您自己',
-              avatarUrl: userInfo ? (userInfo.avatarUrl || '/assets/avatar_default.png') : '/assets/avatar_default.png'
-            }
-          ]
-        });
+        wx.hideLoading();
+        console.warn("未能通过云函数拉取家庭组详情，采用本地缓存渲染", err);
+        that.fallbackToOffline();
       }
+    });
+  },
+
+  fallbackToOffline: function () {
+    const profile = getStorage('baby_profile_info', null);
+    const userInfo = getStorage('user_info', null);
+    const openid = getApp().globalData.openid || wx.getStorageSync('user_openid') || '您自己';
+    this.setData({
+      familyDetails: profile ? {
+        baby_name: profile.name,
+        birth_date: profile.birthDate,
+        premature_days: profile.prematureDays || 0,
+        creator_openid: openid
+      } : { creator_openid: openid },
+      membersList: [
+        {
+          openid: openid,
+          nickName: userInfo ? (userInfo.nickName || '您自己') : '您自己',
+          avatarUrl: userInfo ? (userInfo.avatarUrl || '/assets/avatar_default.png') : '/assets/avatar_default.png'
+        }
+      ]
     });
   },
 
