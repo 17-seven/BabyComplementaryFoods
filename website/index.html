@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>围兜日记 | 智能宝宝辅食与健康协同管理系统</title>
+  <meta name="description" content="围兜日记是一款专为宝宝设计的智能辅食排餐与健康管理系统，提供红绿灯配餐校验、疫苗补种滚动日程、儿保就诊记录、大事记时间轴及视力矫正遮盖计时等核心护理服务，支持多端增量数据云端同步。">
+  
+  <!-- CSS 样式 -->
+  <link rel="stylesheet" href="style.css">
+  
+  <!-- FontAwesome 图标库 (CDN) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+  <!-- 顶部导航栏 -->
+  <header>
+    <div class="nav-container">
+      <a href="#" class="logo">
+        <div class="logo-icon">
+          <i class="fa-solid fa-child-reaching"></i>
+        </div>
+        围兜<span>日记</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="#features">核心功能</a></li>
+        <li><a href="#demo">智能看板</a></li>
+        <li><a href="#download" class="btn-nav-download">立即体验</a></li>
+      </ul>
+    </div>
+  </header>
+
+  <!-- 巨幕 Hero 区域 -->
+  <section class="hero">
+    <div class="hero-container">
+      <div class="hero-text">
+        <div class="section-badge">👶 围兜日记 — 懂辅食，更懂健康</div>
+        <h1>宝宝的成长手账<br>家庭协同智能管家</h1>
+        <p>不再为“今天吃什么”焦虑，更不用为疫苗和儿保排期发愁。我们提供一站式、支持家庭多端协同的宝宝日常护理与健康指标管理方案。</p>
+        <div class="hero-cta">
+          <a href="#download" class="btn-primary">
+            <i class="fa-solid fa-qrcode"></i> 扫码立即体验
+          </a>
+          <a href="#features" class="btn-secondary">
+            了解功能细节 <i class="fa-solid fa-arrow-down"></i>
+          </a>
+        </div>
+      </div>
+      
+      <div class="hero-visual">
+        <div class="hero-mockup-container">
+          <img src="assets/hero_baby_app_mockup.png" alt="围兜日记小程序界面" class="hero-mockup">
+          
+          <!-- 悬浮标签1 -->
+          <div class="floating-badge badge-1">
+            <i class="fa-solid fa-circle-check"></i>
+            <div>
+              <div class="badge-text">辅食红肉吃够 5 次</div>
+              <div style="font-size: 0.7rem; color: var(--text-muted);">铁元素补充打标</div>
+            </div>
+          </div>
+          
+          <!-- 悬浮标签2 -->
+          <div class="floating-badge badge-2">
+            <i class="fa-solid fa-hourglass-half"></i>
+            <div>
+              <div class="badge-text">左眼遮盖计时中</div>
+              <div style="font-size: 0.7rem; color: var(--text-muted);">今日目标 4 小时</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 核心特性区域 -->
+  <section class="features" id="features">
+    <div class="section-header">
+      <div class="section-badge">功能亮点</div>
+      <h2>不仅是记录，更是智能守护</h2>
+      <p>每一个功能设计都融入了医嘱要求与科学育儿理念，让看护工作井然有序。</p>
+    </div>
+    
+    <div class="features-grid">
+      <!-- 特性1 -->
+      <div class="feature-card">
+        <div class="feature-icon-wrapper">
+          <i class="fa-solid fa-carrot"></i>
+        </div>
+        <h3>🥦 辅食计划与红绿灯校验</h3>
+        <p>周食谱个性化定制，内置智能红肉摄入计算（防贫血）、粗粮占比红线控制（护肠胃）、主蛋白交替以及菜品命名格式规范化验证。</p>
+      </div>
+      
+      <!-- 特性2 -->
+      <div class="feature-card">
+        <div class="feature-icon-wrapper">
+          <i class="fa-solid fa-syringe"></i>
+        </div>
+        <h3>📊 疫苗补种与儿保管理</h3>
+        <p>针对早产宝宝智能设计 15 天滚动打针排期算法，级联已种确认。同时提供发育评估（AIMS/TIMP）与25项就诊记录闭环倒计时提醒。</p>
+      </div>
+      
+      <!-- 特性3 -->
+      <div class="feature-card">
+        <div class="feature-icon-wrapper">
+          <i class="fa-solid fa-clock-rotate-left"></i>
+        </div>
+        <h3>📝 成长大事记时间轴</h3>
+        <p>提供大运动、用药疾病、康复康健等5大分类着色时间轴，完美检索过敏发热用药，帮助看护人随时复盘疾病与过敏反应规律。</p>
+      </div>
+      
+      <!-- 特性4 -->
+      <div class="feature-card">
+        <div class="feature-icon-wrapper">
+          <i class="fa-solid fa-eye-slash"></i>
+        </div>
+        <h3>👁️ 视力遮盖与日常记录</h3>
+        <p>遵照眼科医嘱进行每日左眼戴/摘眼罩计时与打卡进度环，同时提供大便干湿度评估和日常饮水量/纽荃星奶粉摄入一键累加计账。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 智能看板演示区域 -->
+  <section class="demo-section" id="demo">
+    <div class="demo-container">
+      <div class="demo-text">
+        <div class="section-badge">在线互动</div>
+        <h2>今日护理概览</h2>
+        <p>系统自动计算月龄，并通过图形化进度条指引当日护理任务的达成率。右侧为今日数据更新交互模拟，您可以点击任何一项卡片尝试：</p>
+        
+        <ul class="demo-steps">
+          <li class="demo-step-item">
+            <div class="step-num">1</div>
+            <div class="step-content">
+              <h4>自动月龄算</h4>
+              <p>宝宝当前实际月龄为：<span id="baby-age-val" style="font-weight: 700; color: var(--primary);">正在计算...</span></p>
+            </div>
+          </li>
+          <li class="demo-step-item">
+            <div class="step-num">2</div>
+            <div class="step-content">
+              <h4>实时家庭协同</h4>
+              <p>数据保存在云端数据库，爸爸、妈妈或爷爷奶奶在任意设备修改，全家即刻秒级收到同步提示。</p>
+            </div>
+          </li>
+        </ul>
+      </div>
+      
+      <div class="interactive-panel">
+        <div class="panel-header">
+          <div class="panel-title"><i class="fa-solid fa-chart-pie"></i> 今日实时护理概览</div>
+          <div class="panel-badge">智能打卡中</div>
+        </div>
+        
+        <div class="indicator-grid">
+          <!-- 奶量 -->
+          <div class="indicator-card" id="card-milk">
+            <i class="fa-solid fa-prescription-bottle" style="color: #81c784; font-size: 1.4rem;"></i>
+            <div class="indicator-val" id="val-milk">360/500ml</div>
+            <span>🍼 今日总奶量</span>
+            <div><button class="btn-indicator-action">+ 50ml</button></div>
+          </div>
+          
+          <!-- 水分 -->
+          <div class="indicator-card" id="card-water">
+            <i class="fa-solid fa-glass-water" style="color: #64b5f6; font-size: 1.4rem;"></i>
+            <div class="indicator-val" id="val-water">90/120ml</div>
+            <span>💧 今日总饮水</span>
+            <div><button class="btn-indicator-action">+ 20ml</button></div>
+          </div>
+          
+          <!-- 排便 -->
+          <div class="indicator-card" id="card-bowel">
+            <i class="fa-solid fa-poop" style="color: #8d6e63; font-size: 1.4rem;"></i>
+            <div class="indicator-val" id="val-bowel">1 次</div>
+            <span>💩 便便次数</span>
+            <div><button class="btn-indicator-action">+ 1 次</button></div>
+          </div>
+          
+          <!-- 眼罩 -->
+          <div class="indicator-card" id="card-vision">
+            <i class="fa-solid fa-eye-low-vision" style="color: #ba68c8; font-size: 1.4rem;"></i>
+            <div class="indicator-val" id="val-vision">2.5/4小时</div>
+            <span>👁️ 视力遮盖时长</span>
+            <div><button class="btn-indicator-action">+ 0.5h</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 扫码体验区域 -->
+  <section class="cta-section" id="download">
+    <div class="cta-container">
+      <h2>微信扫码，即刻开始</h2>
+      <p>围兜日记作为微信小程序提供服务，无须下载安装任何 APP。全家人扫码，加入同一个家庭组，开始轻松记账，共同看护宝宝的成长。</p>
+      
+      <div class="qr-box-wrapper">
+        <div class="qr-image-container">
+          <div class="qr-scan-line"></div>
+          <img src="assets/weidou_qr_mockup.png" alt="微信扫码二维码" class="qr-image">
+        </div>
+        <div class="qr-tip">微信扫一扫使用小程序</div>
+        <div class="qr-subtip">支持家庭成员数据多端同步</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 页脚 -->
+  <footer>
+    <div class="footer-container">
+      <a href="#" class="footer-logo">
+        围兜<span>日记</span>
+      </a>
+      <div>
+        基于 Node.js 架构自建云服务器迁移成功保护
+      </div>
+    </div>
+    <div class="copyright">
+      &copy; 2026 围兜日记. All rights reserved. 专为宝宝健康与辅食设计的家庭健康管家
+    </div>
+  </footer>
+
+  <!-- JS 脚本 -->
+  <script src="app.js"></script>
+</body>
+</html>
