@@ -1250,13 +1250,13 @@
   {
     "date": "2026-06-02",
     "dayName": "周二",
-    "attended": true,
-    "teacher": "春雨老师",
-    "sessions": 2,
-    "cost": 240,
+    "attended": false,
+    "teacher": null,
+    "sessions": 0,
+    "cost": 0,
     "topup": 0,
-    "balance": 3060,
-    "note": "",
+    "balance": 3300,
+    "note": "去四院看眼睛没去",
     "institution_name": "春雨红圆健康管理中心"
   },
   {
@@ -1267,7 +1267,7 @@
     "sessions": 2,
     "cost": 240,
     "topup": 0,
-    "balance": 2820,
+    "balance": 3060,
     "note": "",
     "institution_name": "春雨红圆健康管理中心"
   },
@@ -1279,7 +1279,7 @@
     "sessions": 2,
     "cost": 240,
     "topup": 0,
-    "balance": 2580,
+    "balance": 2820,
     "note": "",
     "institution_name": "春雨红圆健康管理中心"
   },
@@ -1291,7 +1291,7 @@
     "sessions": 2,
     "cost": 240,
     "topup": 0,
-    "balance": 2340,
+    "balance": 2580,
     "note": "",
     "institution_name": "春雨红圆健康管理中心"
   },
@@ -1303,7 +1303,7 @@
     "sessions": 2,
     "cost": 240,
     "topup": 0,
-    "balance": 2100,
+    "balance": 2340,
     "note": "",
     "institution_name": "春雨红圆健康管理中心"
   },
@@ -1315,7 +1315,7 @@
     "sessions": 2,
     "cost": 240,
     "topup": 0,
-    "balance": 1860,
+    "balance": 2100,
     "note": "",
     "institution_name": "春雨红圆健康管理中心"
   },
@@ -1327,7 +1327,7 @@
     "sessions": 2,
     "cost": 240,
     "topup": 0,
-    "balance": 1620,
+    "balance": 1860,
     "note": "",
     "institution_name": "春雨红圆健康管理中心"
   },
@@ -1339,7 +1339,7 @@
     "sessions": 2,
     "cost": 240,
     "topup": 0,
-    "balance": 1380,
+    "balance": 1620,
     "note": "",
     "institution_name": "春雨红圆健康管理中心"
   },
@@ -1351,7 +1351,7 @@
     "sessions": 0,
     "cost": 0,
     "topup": 0,
-    "balance": 1380,
+    "balance": 1620,
     "note": "打疫苗没去",
     "institution_name": "春雨红圆健康管理中心"
   },
@@ -1363,7 +1363,7 @@
     "sessions": 0,
     "cost": 0,
     "topup": 0,
-    "balance": 1380,
+    "balance": 1620,
     "note": "下大雨没去",
     "institution_name": "春雨红圆健康管理中心"
   },
@@ -1375,7 +1375,7 @@
     "sessions": 0,
     "cost": 0,
     "topup": 0,
-    "balance": 1380,
+    "balance": 1620,
     "note": "眼科医院没去",
     "institution_name": "春雨红圆健康管理中心"
   },
@@ -1387,19 +1387,19 @@
     "sessions": 2,
     "cost": 240,
     "topup": 0,
-    "balance": 1140,
+    "balance": 1380,
     "note": "",
     "institution_name": "春雨红圆健康管理中心"
   },
   {
     "date": "2026-06-18",
-    "dayName": "周发",
+    "dayName": "周四",
     "attended": true,
     "teacher": "春雨老师",
     "sessions": 2,
     "cost": 240,
     "topup": 0,
-    "balance": 900,
+    "balance": 1140,
     "note": "",
     "institution_name": "春雨红圆健康管理中心"
   },
@@ -1411,7 +1411,7 @@
     "sessions": 0,
     "cost": 0,
     "topup": 0,
-    "balance": 900,
+    "balance": 1140,
     "note": "端午放假",
     "institution_name": "春雨红圆健康管理中心"
   },
@@ -1423,7 +1423,7 @@
     "sessions": 0,
     "cost": 0,
     "topup": 0,
-    "balance": 900,
+    "balance": 1140,
     "note": "没睡好不去了",
     "institution_name": "春雨红圆健康管理中心"
   },
@@ -1435,7 +1435,7 @@
     "sessions": 0,
     "cost": 0,
     "topup": 0,
-    "balance": 900,
+    "balance": 1140,
     "note": "便秘难受没去",
     "institution_name": "春雨红圆健康管理中心"
   },
@@ -1447,7 +1447,7 @@
     "sessions": 2,
     "cost": 240,
     "topup": 0,
-    "balance": 660,
+    "balance": 900,
     "note": "",
     "institution_name": "春雨红圆健康管理中心"
   },
@@ -1459,7 +1459,7 @@
     "sessions": 2,
     "cost": 240,
     "topup": 0,
-    "balance": 420,
+    "balance": 660,
     "note": "",
     "institution_name": "春雨红圆健康管理中心"
   },
@@ -1471,8 +1471,44 @@
     "sessions": 2,
     "cost": 240,
     "topup": 0,
+    "balance": 420,
+    "note": "",
+    "institution_name": "春雨红圆健康管理中心"
+  },
+  {
+    "date": "2026-06-29",
+    "dayName": "周一",
+    "attended": true,
+    "teacher": "春雨老师",
+    "sessions": 2,
+    "cost": 240,
+    "topup": 0,
     "balance": 180,
     "note": "",
+    "institution_name": "春雨红圆健康管理中心"
+  },
+  {
+    "date": "2026-06-30",
+    "dayName": "周二",
+    "attended": true,
+    "teacher": "春雨老师",
+    "sessions": 2,
+    "cost": 240,
+    "topup": 0,
+    "balance": -60,
+    "note": "",
+    "institution_name": "春雨红圆健康管理中心"
+  },
+  {
+    "date": "2026-07-01",
+    "dayName": "周三",
+    "attended": true,
+    "teacher": "春雨老师",
+    "sessions": 2,
+    "cost": 240,
+    "topup": 3000,
+    "balance": 2700,
+    "note": "冲3000",
     "institution_name": "春雨红圆健康管理中心"
   }
 ]

@@ -41,35 +41,59 @@ Page({
 
     wx.showLoading({ title: '正在登录...', mask: true });
 
-    // 2. 优先调用微信云开发自带的 login 云函数，直接在云端安全获取唯一、终生不变的微信号真实 openid
     const that = this;
-    if (wx.cloud) {
-      wx.cloud.callFunction({
-        name: 'login',
-        success: (res) => {
-          const openid = res.result.openid;
-          const familyRecord = res.result.familyRecord || null;
-          const businessData = res.result.businessData || {};
-          console.log("微信云端成功换取到真实、稳定唯一的微信 OpenID：" + openid);
-          that.proceedLoginWithOpenid(openid, familyRecord, businessData);
-        },
-        fail: (err) => {
-          wx.hideLoading();
-          wx.showModal({
-            title: '微信登录失败',
-            content: '无法通过云开发服务获取您的微信用户标识 OpenID。发布前请确保您的微信小程序云后台已部署并开通了名为 login 的云函数。\n\n错误信息：' + (err.errMsg || err.message || JSON.stringify(err)),
-            showCancel: false
+    wx.login({
+      success: (loginRes) => {
+        if (loginRes.code) {
+          const request = require('../../utils/request.js');
+          const oldInfo = getStorage('user_info', {});
+          request.post('/auth/login', {
+            code: loginRes.code,
+            nickname: oldInfo.nickName || '',
+            avatarUrl: oldInfo.avatarUrl || ''
+          }).then(res => {
+            wx.hideLoading();
+            if (res.code === 200) {
+              const data = res.data;
+              wx.setStorageSync('access_token', data.accessToken);
+              wx.setStorageSync('refresh_token', data.refreshToken);
+              wx.setStorageSync('user_openid', data.user.openid);
+              
+              if (data.familyId) {
+                wx.setStorageSync('user_family_id', data.familyId);
+              } else {
+                wx.removeStorageSync('user_family_id');
+              }
+              if (data.babyId) {
+                wx.setStorageSync('baby_id', data.babyId);
+                const app = getApp();
+                if (app) app.globalData.babyId = data.babyId;
+              } else {
+                wx.removeStorageSync('baby_id');
+              }
+
+              that.proceedLoginWithOpenid(data.user.openid, data.familyRecord, data.businessData || {});
+            } else {
+              wx.showModal({ title: '登录失败', content: res.message || '未知错误', showCancel: false });
+            }
+          }).catch(err => {
+            wx.hideLoading();
+            wx.showModal({
+              title: '登录异常',
+              content: err.message || '服务器连接失败',
+              showCancel: false
+            });
           });
+        } else {
+          wx.hideLoading();
+          wx.showToast({ title: '获取微信Code失败', icon: 'error' });
         }
-      });
-    } else {
-      wx.hideLoading();
-      wx.showModal({
-        title: '微信登录失败',
-        content: '云开发环境未初始化。请先在 app.js 中完成真实云环境 ID 的设定，并开通微信云开发服务。',
-        showCancel: false
-      });
-    }
+      },
+      fail: (err) => {
+        wx.hideLoading();
+        wx.showModal({ title: '微信登录调用失败', content: err.errMsg, showCancel: false });
+      }
+    });
   },
 
   // 使用云函数已返回的 familyRecord 直接恢复数据，彻底规避客户端查库权限问题
@@ -297,23 +321,19 @@ Page({
         app.globalData.userInfo = userInfo;
       }
 
-      // 实时同步更新至云数据库备份里（以防未来被清除缓存）
-      // 通过云函数同步看护人昵称到云端（familyId 有则更新，无则等家庭组创建时自动带入）
+      // 实时同步更新至自建服务器备份里
       const familyId = wx.getStorageSync('user_family_id');
-      if (wx.cloud && familyId) {
-        wx.cloud.callFunction({
-          name: 'updateFamily',
+      if (familyId) {
+        const request = require('../../utils/request.js');
+        request.post('/family/update-action', {
+          action: 'update',
+          familyId: familyId,
           data: {
-            action: 'update',
-            familyId: familyId,
-            data: {
-              creator_nickname: nickname,
-              creator_avatar: cloudUrl || avatar || '/assets/avatar_default.png'
-            }
-          },
-          fail: (err) => {
-            console.warn('同步昵称至云端失败（本地已保存）:', err);
+            creator_nickname: nickname,
+            creator_avatar: cloudUrl || avatar || '/assets/avatar_default.png'
           }
+        }).catch((err) => {
+          console.warn('同步昵称至自建后端失败（本地已保存）:', err);
         });
       }
 
@@ -337,26 +357,8 @@ Page({
       });
     };
 
-    // 如果头像是一个本地临时路径并且开通了云开发，先上传云端
-    if (avatar && (avatar.startsWith('wxfile://') || avatar.startsWith('http://tmp/')) && wx.cloud) {
-      wx.showLoading({ title: '正在保存资料...', mask: true });
-      const cloudPath = `user_avatars/avatar_${Date.now()}_${Math.floor(Math.random() * 1000)}.jpg`;
-      wx.cloud.uploadFile({
-        cloudPath: cloudPath,
-        filePath: avatar,
-        success: (uploadRes) => {
-          wx.hideLoading();
-          finishSubmit(uploadRes.fileID);
-        },
-        fail: (err) => {
-          wx.hideLoading();
-          console.warn('头像上传云存储失败，采用本地路径兜底:', err);
-          finishSubmit(null);
-        }
-      });
-    } else {
-      finishSubmit(null);
-    }
+    // 迁移自建后端后，本地临时头像不再自动上传云端，待接入COS/OSS服务后再行配置。本地调试暂直接以本地临时路径为准进行缓存
+    finishSubmit(null);
   },
 
   /**

@@ -204,14 +204,16 @@ Page({
     });
   },
 
-  // 将分类配置同步到 families 文档（无需新建集合）
   _syncCategoriesToCloud: function (catList) {
     const familyId = wx.getStorageSync('user_family_id');
-    if (!familyId || !wx.cloud) return;
-    wx.cloud.callFunction({
-      name: 'updateFamily',
-      data: { action: 'update', familyId, data: { timeline_categories: catList } },
-      fail: (err) => { console.warn('timeline_categories 同步失败:', err); }
+    if (!familyId) return;
+    const request = require('../../utils/request.js');
+    request.post('/family/update-action', {
+      action: 'update',
+      familyId: familyId,
+      data: { timeline_categories: catList }
+    }).catch((err) => {
+      console.warn('timeline_categories 同步失败:', err);
     });
   }
 });

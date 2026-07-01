@@ -55,48 +55,19 @@ Page({
       success: (res) => {
         const tempFilePath = res.tempFiles[0].tempFilePath;
         wx.showLoading({ title: '正在存入相册...' });
-
-        // A. 尝试使用微信云存储上传文件
-        const cloudPath = `baby_album/photo_${Date.now()}_${Math.floor(Math.random() * 1000)}.jpg`;
-        
-        wx.cloud.uploadFile({
-          cloudPath: cloudPath,
-          filePath: tempFilePath,
-          success: (uploadRes) => {
-            wx.hideLoading();
-            const fileId = uploadRes.fileID; // 微信云存储提供的真实云端可访问 URL
-            
-            const updatedList = [...list];
-            updatedList.push({
-              id: Date.now(),
-              url: fileId
-            });
-
-            that.setData({ photos: updatedList }, () => {
-              setStorage('baby_album_photos', updatedList);
-              // 同步云端相册列表
-              that._syncCloudAlbum(updatedList);
-              wx.showToast({ title: '已成功上传云端', icon: 'success' });
-            });
-          },
-          fail: (err) => {
-            // B. 离线/未开通云开发时，使用本地临时路径兜底缓存
-            wx.hideLoading();
-            console.warn("未开通云开发或网络错误，采用本地路径兜底", err);
-            
-            const updatedList = [...list];
-            updatedList.push({
-              id: Date.now(),
-              url: tempFilePath // 离线缓存路径
-            });
-
-            that.setData({ photos: updatedList }, () => {
-              setStorage('baby_album_photos', updatedList);
-              wx.showToast({ title: '已暂存本地相册', icon: 'success' });
-            });
-          }
+        wx.hideLoading();
+        const updatedList = [...list];
+        updatedList.push({
+          id: Date.now(),
+          url: tempFilePath // 暂存本地路径，后续接入自建后端的OSS服务后再行配置
         });
-      }
+
+        that.setData({ photos: updatedList }, () => {
+          setStorage('baby_album_photos', updatedList);
+          // 同步自建服务器相册列表
+          that._syncCloudAlbum(updatedList);
+          wx.showToast({ title: '已添加到相册', icon: 'success' });
+        });      }
     });
   },
 
@@ -121,12 +92,16 @@ Page({
           setStorage('baby_custom_avatar', url);
           that.setData({ avatarUrl: url });
 
-          // 通过云函数同步宝宝头像至 families 记录
+          // 同步宝宝头像至自建服务器 families 记录
           const familyId = getStorage('user_family_id', '');
-          if (familyId && wx.cloud) {
-            wx.cloud.callFunction({
-              name: 'updateFamily',
-              data: { action: 'update', familyId, data: { baby_avatar: url } }
+          if (familyId) {
+            const request = require('../../utils/request.js');
+            request.post('/family/update-action', {
+              action: 'update',
+              familyId: familyId,
+              data: { baby_avatar: url }
+            }).catch(err => {
+              console.warn('同步宝宝头像失败:', err);
             });
           }
           wx.showToast({ title: '已成功设置为宝宝头像', icon: 'success' });
@@ -148,10 +123,14 @@ Page({
                     setStorage('baby_custom_avatar', '/assets/avatar_default.png');
                     that.setData({ avatarUrl: '/assets/avatar_default.png' });
                     const familyId2 = getStorage('user_family_id', '');
-                    if (familyId2 && wx.cloud) {
-                      wx.cloud.callFunction({
-                        name: 'updateFamily',
-                        data: { action: 'update', familyId: familyId2, data: { baby_avatar: '/assets/avatar_default.png' } }
+                    if (familyId2) {
+                      const request = require('../../utils/request.js');
+                      request.post('/family/update-action', {
+                        action: 'update',
+                        familyId: familyId2,
+                        data: { baby_avatar: '/assets/avatar_default.png' }
+                      }).catch(err => {
+                        console.warn('恢复宝宝默认头像失败:', err);
                       });
                     }
                   }
@@ -165,14 +144,17 @@ Page({
     });
   },
 
-  // 通过云函数同步相册数组至 families 集合
+  // 同步相册数组至自建服务器 families 记录
   _syncCloudAlbum: function (photosList) {
     const familyId = getStorage('user_family_id', '');
-    if (familyId && wx.cloud) {
-      wx.cloud.callFunction({
-        name: 'updateFamily',
-        data: { action: 'update', familyId, data: { album_photos: photosList } },
-        fail: (err) => { console.warn('同步相册至云端失败:', err); }
+    if (familyId) {
+      const request = require('../../utils/request.js');
+      request.post('/family/update-action', {
+        action: 'update',
+        familyId: familyId,
+        data: { album_photos: photosList }
+      }).catch(err => {
+        console.warn('同步相册至服务器失败:', err);
       });
     }
   }

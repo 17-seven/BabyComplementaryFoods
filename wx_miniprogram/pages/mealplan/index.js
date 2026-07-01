@@ -274,13 +274,16 @@ Page({
     this.setData({ notes });
     // 本地保存
     wx.setStorageSync('meal_day_notes', notes);
-    // 同步到云端 families 文档（与 timer_items、timeline_categories 方式一致）
+    // 同步到自建服务器 families 文档
     const familyId = wx.getStorageSync('user_family_id');
-    if (familyId && wx.cloud) {
-      wx.cloud.callFunction({
-        name: 'updateFamily',
-        data: { action: 'update', familyId, data: { meal_day_notes: notes } },
-        fail: (err) => { console.warn('meal_day_notes 同步失败:', err); }
+    if (familyId) {
+      const request = require('../../utils/request.js');
+      request.post('/family/update-action', {
+        action: 'update',
+        familyId: familyId,
+        data: { meal_day_notes: notes }
+      }).catch((err) => {
+        console.warn('meal_day_notes 同步失败:', err);
       });
     }
   },

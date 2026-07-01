@@ -150,42 +150,36 @@ Page({
     const familyId = getStorage('user_family_id', '');
     const babyAvatar = getStorage('baby_custom_avatar', '/assets/avatar_default.png');
     const userInfo = getStorage('user_info', null);
-
-    if (openid && wx.cloud) {
+    if (openid) {
       const cloudData = {
         baby_name: profile.name,
         birth_date: profile.birthDate,
         due_date: profile.dueDate,
         premature_days: profile.prematureDays,
-        premature_desc: profile.prematureDesc,
+        premature_desc: profile.premature_desc,
         baby_avatar: babyAvatar,
         creator_nickname: userInfo ? userInfo.nickName : '',
         creator_avatar: userInfo ? userInfo.avatarUrl : '/assets/avatar_default.png'
       };
 
-      wx.cloud.callFunction({
-        name: 'updateFamily',
-        data: {
-          action: familyId ? 'update' : 'create',
-          familyId: familyId || null,
-          data: cloudData
-        },
-        success: (res) => {
-          if (res.result && res.result.success) {
-            if (!familyId && res.result.familyId) {
-              setStorage('user_family_id', res.result.familyId);
-              console.log('云端创建家庭组成功，familyId:', res.result.familyId);
-            } else {
-              console.log('云端宝宝档案更新成功');
-            }
+      const request = require('../../utils/request.js');
+      request.post('/family/update-action', {
+        action: familyId ? 'update' : 'create',
+        familyId: familyId || null,
+        data: cloudData
+      }).then((res) => {
+        if (res.code === 200 && res.data && res.data.success) {
+          if (!familyId && res.data.familyId) {
+            setStorage('user_family_id', res.data.familyId);
+            console.log('自建后端创建家庭组成功，familyId:', res.data.familyId);
+          } else {
+            console.log('自建后端宝宝档案更新成功');
           }
-        },
-        fail: (err) => {
-          console.warn('updateFamily 云函数调用失败（本地已保存）:', err);
         }
+      }).catch((err) => {
+        console.warn('自建后端更新家庭档案失败（本地已保存）:', err);
       });
     }
-
     wx.showToast({
       title: '档案保存成功',
       icon: 'success',

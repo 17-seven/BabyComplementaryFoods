@@ -25,22 +25,15 @@ Page = function (pageConfig) {
 // app.js
 App({
   onLaunch: function () {
-    if (!wx.cloud) {
-      console.error('请使用 2.2.3 或以上的基础库以使用云端开发能力');
-    } else {
-      wx.cloud.init({
-        // 显式指定云开发环境 ID，确保多端及真机测试时准确指向真实云后台
-        env: 'cloudbase-d2gnb0gxs0bc55eb6', 
-        traceUser: true
-      });
-    }
+    // 微信小程序自建后端架构迁移：已弃用原有的 wx.cloud 云端开发依赖
+    console.log('围兜日记：自建 Node.js 后端数据对接中...');
 
     // 从本地缓存预载用户登录身份
     const userInfo = wx.getStorageSync('user_info') || null;
     const openid = wx.getStorageSync('user_openid') || '';
 
     this.globalData = {
-      babyId: 'default_baby_id',
+      babyId: wx.getStorageSync('baby_id') || 'default_baby_id',
       openid: openid,
       userInfo: userInfo
     };

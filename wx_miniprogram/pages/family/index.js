@@ -44,84 +44,79 @@ Page({
     const that = this;
     wx.showLoading({ title: '正在获取家庭信息...' });
 
-    wx.cloud.callFunction({
-      name: 'login',
-      success: (res) => {
-        wx.hideLoading();
-        if (res.result && res.result.familyRecord) {
-          const detail = res.result.familyRecord;
-          const membersInfo = detail.members_info || [];
-          const membersOpenids = detail.members || [];
+    const request = require('../../utils/request.js');
+    request.post('/sync/pull', {
+      familyId: that.data.myFamilyId
+    }).then((res) => {
+      wx.hideLoading();
+      if (res.code === 200 && res.data && res.data.familyRecord) {
+        const detail = res.data.familyRecord;
+        const membersInfo = detail.members_info || [];
+        const membersOpenids = detail.members || [];
+        
+        const currentOpenid = getApp().globalData.openid || wx.getStorageSync('user_openid') || '';
+        const creatorOpenid = detail.creator_openid || detail._openid || (membersOpenids && membersOpenids[0]);
+        
+        const membersList = membersOpenids.map(m => {
+          const info = membersInfo.find(infoItem => infoItem.openid === m);
+          const isCreator = (m === creatorOpenid);
+          let nickName = info ? info.nickName : (isCreator ? (detail.creator_nickname || '群主') : '看护人');
+          let avatarUrl = info ? info.avatarUrl : (isCreator ? (detail.creator_avatar || '/assets/avatar_default.png') : '/assets/avatar_default.png');
           
-          // 动态以 members 数组为基准，融合补齐昵称与头像，保证无论何种同步情况下，家庭成员都完整展示且不漏人
-          const currentOpenid = getApp().globalData.openid || wx.getStorageSync('user_openid') || '';
-          const creatorOpenid = detail.creator_openid || detail._openid || (membersOpenids && membersOpenids[0]);
+          const isLocalPath = (url) => {
+            if (!url) return true;
+            return url.startsWith('wxfile://') || 
+                   url.startsWith('http://tmp/') || 
+                   url.startsWith('http://usr/') || 
+                   url.startsWith('wdfile://') || 
+                   url.includes('profile_avatar') ||
+                   url.startsWith('http://127.0.0.1');
+          };
           
-          const membersList = membersOpenids.map(m => {
-            const info = membersInfo.find(infoItem => infoItem.openid === m);
-            const isCreator = (m === creatorOpenid);
-            let nickName = info ? info.nickName : (isCreator ? (detail.creator_nickname || '群主') : '看护人');
-            let avatarUrl = info ? info.avatarUrl : (isCreator ? (detail.creator_avatar || '/assets/avatar_default.png') : '/assets/avatar_default.png');
-            
-            // 过滤和兜底：如果不是当前用户本人，且头像路径是本地临时/内部路径，则降级为默认头像，防止显示空白
-            const isLocalPath = (url) => {
-              if (!url) return true;
-              return url.startsWith('wxfile://') || 
-                     url.startsWith('http://tmp/') || 
-                     url.startsWith('http://usr/') || 
-                     url.startsWith('wdfile://') || 
-                     url.includes('profile_avatar') ||
-                     url.startsWith('http://127.0.0.1');
-            };
-            
-            if (m !== currentOpenid && isLocalPath(avatarUrl)) {
-              avatarUrl = '/assets/avatar_default.png';
-            }
+          if (m !== currentOpenid && isLocalPath(avatarUrl)) {
+            avatarUrl = '/assets/avatar_default.png';
+          }
 
-            return {
-              openid: m,
-              nickName: nickName || (isCreator ? '创建者' : '看护人'),
-              avatarUrl: avatarUrl || '/assets/avatar_default.png',
-              isCreator: isCreator
-            };
-          });
+          return {
+            openid: m,
+            nickName: nickName || (isCreator ? '创建者' : '看护人'),
+            avatarUrl: avatarUrl || '/assets/avatar_default.png',
+            isCreator: isCreator
+          };
+        });
 
-          // 保证创建者始终排在第一位
-          membersList.sort((a, b) => {
-            if (a.openid === creatorOpenid) return -1;
-            if (b.openid === creatorOpenid) return 1;
-            return 0;
-          });
+        membersList.sort((a, b) => {
+          if (a.openid === creatorOpenid) return -1;
+          if (b.openid === creatorOpenid) return 1;
+          return 0;
+        });
 
-          const isCurrentCreator = (currentOpenid === creatorOpenid);
-          that.setData({
-            familyDetails: detail,
-            membersList: membersList,
-            isCurrentCreator: isCurrentCreator
+        const isCurrentCreator = (currentOpenid === creatorOpenid);
+        that.setData({
+          familyDetails: detail,
+          membersList: membersList,
+          isCurrentCreator: isCurrentCreator
+        });
+      } else {
+        const localFamilyId = wx.getStorageSync('user_family_id');
+        if (localFamilyId) {
+          setStorage('user_family_id', '');
+          that.setData({ myFamilyId: '' }, () => {
+            that.fallbackToOffline();
+            wx.showModal({
+              title: '协同共享已断开',
+              content: '您已被管理员移出该家庭组，或该家庭组已解散。已自动切换回本地单机模式。',
+              showCancel: false
+            });
           });
         } else {
-          // 如果本地有家庭ID，但云端返回无记录，说明已被管理员移出或已注销解散！
-          const localFamilyId = wx.getStorageSync('user_family_id');
-          if (localFamilyId) {
-            setStorage('user_family_id', '');
-            that.setData({ myFamilyId: '' }, () => {
-              that.fallbackToOffline();
-              wx.showModal({
-                title: '协同共享已断开',
-                content: '您已被管理员移出该家庭组，或该家庭组已解散。已自动切换回本地单机模式。',
-                showCancel: false
-              });
-            });
-          } else {
-            that.fallbackToOffline();
-          }
+          that.fallbackToOffline();
         }
-      },
-      fail: (err) => {
-        wx.hideLoading();
-        console.warn("未能通过云函数拉取家庭组详情，采用本地缓存渲染", err);
-        that.fallbackToOffline();
       }
+    }).catch((err) => {
+      wx.hideLoading();
+      console.warn("未能通过自建后台拉取家庭组详情，采用本地缓存渲染", err);
+      that.fallbackToOffline();
     });
   },
 
@@ -180,61 +175,55 @@ Page({
     const savedUserInfo = getStorage('user_info', null);
     wx.showLoading({ title: '正在开通家庭组...' });
 
-    wx.cloud.callFunction({
-      name: 'updateFamily',
+    const request = require('../../utils/request.js');
+    request.post('/family/update-action', {
+      action: 'create',
       data: {
-        action: 'create',
-        data: {
-          baby_name: babyProfile.name,
-          birth_date: babyProfile.birthDate,
-          premature_days: babyProfile.prematureDays || 0,
-          creator_nickname: savedUserInfo ? (savedUserInfo.nickName || '') : '',
-          creator_avatar: savedUserInfo ? (savedUserInfo.avatarUrl || '/assets/avatar_default.png') : '/assets/avatar_default.png'
-        }
-      },
-      success: (res) => {
-        wx.hideLoading();
-        if (!res.result || !res.result.success) {
-          wx.showModal({ title: '创建失败', content: res.result && res.result.error || '未知错误', showCancel: false });
-          return;
-        }
-        const familyId = res.result.familyId;
-        that.setData({ myFamilyId: familyId }, () => {
-          setStorage('user_family_id', familyId);
-          const { syncMerge } = require('../../utils/storage.js');
-          syncMerge(familyId, () => {
-            that.fetchFamilyDetails();
-            wx.showModal({
-              title: '家庭创建成功',
-              content: `您的专属家庭同步码为：\n\n${familyId}\n\n已为您自动复制。把此邀请码发送给您爱人，她在小程序端输入后即可共享数据。`,
-              confirmText: '好 的',
-              showCancel: false,
-              success: () => { wx.setClipboardData({ data: familyId }); }
-            });
-          });
-        });
-      },
-      fail: (err) => {
-        wx.hideLoading();
-        console.error('updateFamily 云函数调用失败，离线降级:', err);
-        // 离线生成临时同步码
-        const fakeFamilyId = 'fam_loc_' + Date.now();
-        that.setData({ myFamilyId: fakeFamilyId }, () => {
-          setStorage('user_family_id', fakeFamilyId);
-          that.fetchFamilyDetails();
-          
-          wx.showModal({
-            title: '离线同步码生成',
-            content: `本地虚拟同步码为：\n\n${fakeFamilyId}\n\n(注意：真实协同需开通云数据库families集合并部署joinFamily云函数哦！)`,
-            confirmText: '复制同步码',
-            success: (modalRes) => {
-              if (modalRes.confirm) {
-                wx.setClipboardData({ data: fakeFamilyId });
-              }
-            }
-          });
-        });
+        baby_name: babyProfile.name,
+        birth_date: babyProfile.birthDate,
+        premature_days: babyProfile.prematureDays || 0,
+        creator_nickname: savedUserInfo ? (savedUserInfo.nickName || '') : '',
+        creator_avatar: savedUserInfo ? (savedUserInfo.avatarUrl || '/assets/avatar_default.png') : '/assets/avatar_default.png'
       }
+    }).then((res) => {
+      wx.hideLoading();
+      if (res.code !== 200 || !res.data || !res.data.success) {
+        wx.showModal({ title: '创建失败', content: res.message || '未知错误', showCancel: false });
+        return;
+      }
+      const familyId = res.data.familyId;
+      that.setData({ myFamilyId: familyId }, () => {
+        setStorage('user_family_id', familyId);
+        const { syncMerge } = require('../../utils/storage.js');
+        syncMerge(familyId, () => {
+          that.fetchFamilyDetails();
+          wx.showModal({
+            title: '家庭创建成功',
+            content: `您的专属家庭同步码为：\n\n${familyId}\n\n已为您自动复制。把此邀请码发送给您爱人，她在小程序端输入后即可共享数据。`,
+            confirmText: '好 的',
+            showCancel: false,
+            success: () => { wx.setClipboardData({ data: familyId }); }
+          });
+        });
+      });
+    }).catch((err) => {
+      wx.hideLoading();
+      console.error('自建服务器创建家庭接口失败，进行本地降级:', err);
+      const fakeFamilyId = 'fam_loc_' + Date.now();
+      that.setData({ myFamilyId: fakeFamilyId }, () => {
+        setStorage('user_family_id', fakeFamilyId);
+        that.fetchFamilyDetails();
+        wx.showModal({
+          title: '离线同步码生成',
+          content: `本地虚拟同步码为：\n\n${fakeFamilyId}\n\n(已复制到剪贴板，注意当前为离线模式)`,
+          confirmText: '复制同步码',
+          success: (modalRes) => {
+            if (modalRes.confirm) {
+              wx.setClipboardData({ data: fakeFamilyId });
+            }
+          }
+        });
+      });
     });
   },
 
@@ -265,58 +254,44 @@ Page({
 
     const userInfo = getStorage('user_info', null);
     // 优先调用 joinFamily 云函数
-    wx.cloud.callFunction({
-      name: 'updateFamily',
-      data: { 
-        action: 'addMember', 
-        familyId: code,
-        data: {
-          nickName: userInfo ? (userInfo.nickName || '') : '',
-          avatarUrl: userInfo ? (userInfo.avatarUrl || '/assets/avatar_default.png') : '/assets/avatar_default.png'
-        }
-      },
-      success: (res) => {
-        wx.hideLoading();
-        if (res.result && res.result.success) {
-          setStorage('user_family_id', code);
-          that.setData({ myFamilyId: code }, () => {
-            const { syncMerge } = require('../../utils/storage.js');
-            syncMerge(code, () => {
-              that.fetchFamilyDetails();
-              wx.showModal({
-                title: '绑定协同成功',
-                content: '已成功接入家庭组！双方刷新页面即可看到共同添加的信息。',
-                showCancel: false
-              });
-            });
-          });
-        } else {
-          // 兜底离线直接模拟成功
-          that.setData({ myFamilyId: code }, () => {
-            setStorage('user_family_id', code);
+    const request = require('../../utils/request.js');
+    request.post('/family/update-action', {
+      action: 'addMember',
+      familyId: code,
+      data: {
+        nickName: userInfo ? (userInfo.nickName || '') : '',
+        avatarUrl: userInfo ? (userInfo.avatarUrl || '/assets/avatar_default.png') : '/assets/avatar_default.png'
+      }
+    }).then((res) => {
+      wx.hideLoading();
+      if (res.code === 200 && res.data && res.data.success) {
+        setStorage('user_family_id', code);
+        that.setData({ myFamilyId: code }, () => {
+          const { syncMerge } = require('../../utils/storage.js');
+          syncMerge(code, () => {
             that.fetchFamilyDetails();
             wx.showModal({
-              title: '模拟绑定成功',
-              content: '本地虚拟绑定成功！(真实云服务请部署 joinFamily 云函数。)',
+              title: '绑定协同成功',
+              content: '已成功接入家庭组！双方刷新页面即可看到共同添加的信息。',
               showCancel: false
             });
           });
-        }
-      },
-      fail: (err) => {
-        // 兜底失败直接模拟
-        wx.hideLoading();
-        console.warn("调用joinFamily云函数失败，采用离线模拟绑定", err);
-        that.setData({ myFamilyId: code }, () => {
-          setStorage('user_family_id', code);
-          that.fetchFamilyDetails();
-          wx.showModal({
-            title: '绑定协同',
-            content: '已本地记录您的同步码。请确保云数据库中 families 下已将您的 openid 添加入对应记录的 members 中。',
-            showCancel: false
-          });
         });
+      } else {
+        wx.showModal({ title: '绑定失败', content: res.message || '邀请码错误或已被解散', showCancel: false });
       }
+    }).catch((err) => {
+      wx.hideLoading();
+      console.warn("加入家庭接口失败，进行本地模拟绑定", err);
+      that.setData({ myFamilyId: code }, () => {
+        setStorage('user_family_id', code);
+        that.fetchFamilyDetails();
+        wx.showModal({
+          title: '离线绑定成功',
+          content: '已在本地保存该家庭同步码，部分离线缓存将限制在当前设备使用。',
+          showCancel: false
+        });
+      });
     });
   },
 
@@ -347,27 +322,23 @@ Page({
       success: (res) => {
         if (res.confirm) {
           wx.showLoading({ title: '正在移除成员...', mask: true });
-          wx.cloud.callFunction({
-            name: 'updateFamily',
-            data: {
-              action: 'removeMember',
-              familyId: familyId,
-              targetOpenid: targetOpenid
-            },
-            success: (cloudRes) => {
-              wx.hideLoading();
-              if (cloudRes.result && cloudRes.result.success) {
-                wx.showToast({ title: '移除成功', icon: 'success' });
-                that.fetchFamilyDetails();
-              } else {
-                wx.showToast({ title: cloudRes.result.error || '移除失败', icon: 'none' });
-              }
-            },
-            fail: (err) => {
-              wx.hideLoading();
-              console.error('移除成员云函数失败:', err);
-              wx.showToast({ title: '网络异常，请重试', icon: 'none' });
+          const request = require('../../utils/request.js');
+          request.post('/family/update-action', {
+            action: 'removeMember',
+            familyId: familyId,
+            targetOpenid: targetOpenid
+          }).then((res) => {
+            wx.hideLoading();
+            if (res.code === 200 && res.data && res.data.success) {
+              wx.showToast({ title: '移除成功', icon: 'success' });
+              that.fetchFamilyDetails();
+            } else {
+              wx.showToast({ title: res.message || '移除失败', icon: 'none' });
             }
+          }).catch((err) => {
+            wx.hideLoading();
+            console.error('移除成员接口失败:', err);
+            wx.showToast({ title: '网络异常，请重试', icon: 'none' });
           });
         }
       }
@@ -398,27 +369,23 @@ Page({
         success: (res) => {
           if (res.confirm) {
             wx.showLoading({ title: '正在注销家庭组...', mask: true });
-            if (wx.cloud && familyId && !familyId.startsWith('fam_loc_')) {
-              wx.cloud.callFunction({
-                name: 'updateFamily',
-                data: {
-                  action: 'dismissFamily',
-                  familyId: familyId
-                },
-                success: (cloudRes) => {
-                  wx.hideLoading();
-                  if (cloudRes.result && cloudRes.result.success) {
-                    that.clearLocalFamilyInfo();
-                    wx.showToast({ title: '家庭组已注销', icon: 'success' });
-                  } else {
-                    wx.showToast({ title: cloudRes.result.error || '注销失败', icon: 'none' });
-                  }
-                },
-                fail: (err) => {
-                  wx.hideLoading();
-                  console.warn('云端注销失败，进行本地退出:', err);
+            if (familyId && !familyId.startsWith('fam_loc_')) {
+              const request = require('../../utils/request.js');
+              request.post('/family/update-action', {
+                action: 'dismissFamily',
+                familyId: familyId
+              }).then((res) => {
+                wx.hideLoading();
+                if (res.code === 200 && res.data && res.data.success) {
                   that.clearLocalFamilyInfo();
+                  wx.showToast({ title: '家庭组已注销', icon: 'success' });
+                } else {
+                  wx.showToast({ title: res.message || '注销失败', icon: 'none' });
                 }
+              }).catch((err) => {
+                wx.hideLoading();
+                console.warn('服务端注销失败，强制本地注销:', err);
+                that.clearLocalFamilyInfo();
               });
             } else {
               wx.hideLoading();
@@ -437,22 +404,18 @@ Page({
         success: (res) => {
           if (res.confirm) {
             wx.showLoading({ title: '正在解除绑定...', mask: true });
-            if (wx.cloud && familyId && !familyId.startsWith('fam_loc_')) {
-              wx.cloud.callFunction({
-                name: 'updateFamily',
-                data: {
-                  action: 'removeMember',
-                  familyId: familyId
-                },
-                success: () => {
-                  wx.hideLoading();
-                  that.clearLocalFamilyInfo();
-                },
-                fail: (err) => {
-                  wx.hideLoading();
-                  console.warn('云端退出家庭组失败，进行本地解绑:', err);
-                  that.clearLocalFamilyInfo();
-                }
+            if (familyId && !familyId.startsWith('fam_loc_')) {
+              const request = require('../../utils/request.js');
+              request.post('/family/update-action', {
+                action: 'removeMember',
+                familyId: familyId
+              }).then(() => {
+                wx.hideLoading();
+                that.clearLocalFamilyInfo();
+              }).catch((err) => {
+                wx.hideLoading();
+                console.warn('服务端退出家庭组失败，进行本地解绑:', err);
+                that.clearLocalFamilyInfo();
               });
             } else {
               wx.hideLoading();

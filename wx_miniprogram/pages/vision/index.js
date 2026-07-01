@@ -194,8 +194,15 @@ Page({
     defs.push(newItem);
     setStorage('vision_timer_items', defs);
     const familyId = wx.getStorageSync('user_family_id');
-    if (familyId && wx.cloud) {
-      wx.cloud.callFunction({ name: 'updateFamily', data: { action: 'update', familyId, data: { timer_items: defs } } });
+    if (familyId) {
+      const request = require('../../utils/request.js');
+      request.post('/family/update-action', {
+        action: 'update',
+        familyId: familyId,
+        data: { timer_items: defs }
+      }).catch(err => {
+        console.warn('timer_items 同步失败:', err);
+      });
     }
     this.setData({ showAddModal: false }, () => { this.loadAllTimers(); wx.showToast({ title: '模块已添加', icon: 'success' }); });
   },

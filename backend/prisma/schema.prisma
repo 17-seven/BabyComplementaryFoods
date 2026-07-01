@@ -1,0 +1,283 @@
+datasource db {
+  provider = "sqlite" // 若生产环境切换为 mysql，只需改为 "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  openid     String   @id
+  unionid    String?  @unique
+  nickname   String   @default("看护人")
+  avatar_url String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  memberships FamilyMember[]
+}
+
+model Baby {
+  id             String   @id @default(uuid())
+  name           String   @default("小宝贝")
+  birth_date     String   // 格式：YYYY-MM-DD
+  is_premature   Boolean  @default(false)
+  due_date       String?  // 格式：YYYY-MM-DD
+  premature_days Int      @default(0)
+  premature_desc String?
+  avatar_url     String?
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+
+  families           Family[]
+  timeline_events    TimelineEvent[]
+  healthcares        Healthcare[]
+  clinical_logs      ClinicalLog[]
+  eyepatch_records   EyepatchRecord[]
+  meal_plans         MealPlan[]
+  vaccines           Vaccine[]
+  allergen_pools     AllergenPool[]
+  milk_water_records MilkWaterRecord[]
+  bowel_records      BowelRecord[]
+  sleep_records      SleepRecord[]
+  growth_records     GrowthRecord[]
+  assessments        Assessment[]
+  class_customers    ClassCustomer[]
+  class_records      ClassRecord[]
+}
+
+model Family {
+  id                  String   @id // 家庭组ID/同步邀请码
+  baby_id             String
+  creator_openid      String
+  baby_avatar         String?  // 从 families 备份读取
+  album_photos        String?  // JSON字符串存储相册
+  timer_items         String?  // JSON字符串存储自定义计时模块
+  timeline_categories String?  // JSON字符串存储大事记分类
+  meal_day_notes      String?  // JSON字符串存储每日饮食备注
+  created_at          DateTime @default(now())
+
+  baby    Baby           @relation(fields: [baby_id], references: [id], onDelete: Cascade)
+  members FamilyMember[]
+}
+
+model FamilyMember {
+  id          Int      @id @default(autoincrement())
+  family_id   String
+  user_openid String
+  role        String   @default("MEMBER") // CREATOR / MEMBER
+  joined_at   DateTime @default(now())
+
+  family Family @relation(fields: [family_id], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [user_openid], references: [openid], onDelete: Cascade)
+
+  @@unique([family_id, user_openid])
+}
+
+model TimelineEvent {
+  id             String   @id @default(uuid())
+  baby_id        String
+  creator_openid String
+  date           String   // YYYY-MM-DD
+  category       String
+  title          String
+  content        String
+  media_urls     String?  // JSON字符串存储URL数组
+  created_at     DateTime @default(now())
+
+  baby Baby @relation(fields: [baby_id], references: [id], onDelete: Cascade)
+}
+
+model Healthcare {
+  id                 String   @id @default(uuid())
+  baby_id            String
+  date               String   // YYYY-MM-DD
+  height             Float?
+  weight             Float?
+  head_circumference Float?
+  feedback           String?
+  doctor             String?
+  created_at         DateTime @default(now())
+
+  baby Baby @relation(fields: [baby_id], references: [id], onDelete: Cascade)
+}
+
+model ClinicalLog {
+  id         String   @id @default(uuid())
+  baby_id    String
+  name       String
+  date       String   // YYYY-MM-DD
+  desc1      String?
+  desc2      String?
+  result     String?
+  status     String   @default("PENDING") // COMPLETED / PENDING
+  created_at DateTime @default(now())
+
+  baby Baby @relation(fields: [baby_id], references: [id], onDelete: Cascade)
+}
+
+model EyepatchRecord {
+  id               String   @id @default(uuid())
+  baby_id          String
+  date             String   // YYYY-MM-DD
+  start_time       String   // HH:mm
+  end_time         String   // HH:mm
+  duration_minutes Int
+  type             String   @default("TIMER") // TIMER / MANUAL
+  created_at       DateTime @default(now())
+
+  baby Baby @relation(fields: [baby_id], references: [id], onDelete: Cascade)
+}
+
+model MealPlan {
+  id                String   @id @default(uuid())
+  baby_id           String
+  week_num          String   // 例如：2026W27
+  start_date        String   // YYYY-MM-DD
+  end_date          String   // YYYY-MM-DD
+  validation_report String?  // JSON字符串存储报告
+  created_at        DateTime @default(now())
+
+  baby Baby          @relation(fields: [baby_id], references: [id], onDelete: Cascade)
+  days MealPlanDay[]
+
+  @@unique([baby_id, week_num])
+}
+
+model MealPlanDay {
+  id           Int     @id @default(autoincrement())
+  meal_plan_id String
+  date         String  // YYYY-MM-DD
+  day_name     String  // 周一
+  breakfast    String?
+  lunch        String?
+  dinner       String?
+  snack        String?
+  note         String?
+
+  meal_plan MealPlan @relation(fields: [meal_plan_id], references: [id], onDelete: Cascade)
+
+  @@unique([meal_plan_id, date])
+}
+
+model Vaccine {
+  id           String   @id @default(uuid())
+  baby_id      String
+  name         String
+  dose         String
+  status       String   @default("未到时间") // 已接种 / 需补种 / 推荐接种 / 未到时间
+  actual_date  String?  // YYYY-MM-DD
+  planned_date String?  // YYYY-MM-DD
+  created_at   DateTime @default(now())
+
+  baby Baby @relation(fields: [baby_id], references: [id], onDelete: Cascade)
+}
+
+model AllergenPool {
+  id         Int      @id @default(autoincrement())
+  baby_id    String
+  food_name  String
+  status     String   // ALLOWED / BANNED
+  updated_at DateTime @default(now()) @updatedAt
+
+  baby Baby @relation(fields: [baby_id], references: [id], onDelete: Cascade)
+
+  @@unique([baby_id, food_name])
+}
+
+model MilkWaterRecord {
+  id         String   @id @default(uuid())
+  baby_id    String
+  date       String   // YYYY-MM-DD
+  time       String?  // HH:mm
+  type       String   // milk / water
+  amount     Int
+  remark     String?
+  created_at DateTime @default(now())
+
+  baby Baby @relation(fields: [baby_id], references: [id], onDelete: Cascade)
+}
+
+model BowelRecord {
+  id         String   @id @default(uuid())
+  baby_id    String
+  date       String   // YYYY-MM-DD
+  time       String?  // HH:mm
+  color      String?
+  shape      String?
+  count      Int      @default(1)
+  note       String?
+  created_at DateTime @default(now())
+
+  baby Baby @relation(fields: [baby_id], references: [id], onDelete: Cascade)
+}
+
+model SleepRecord {
+  id               String   @id @default(uuid())
+  baby_id          String
+  date             String   // YYYY-MM-DD
+  start_time       String   // YYYY-MM-DD HH:mm:ss
+  end_time         String   // YYYY-MM-DD HH:mm:ss
+  duration_minutes Int
+  note             String?
+
+  baby Baby @relation(fields: [baby_id], references: [id], onDelete: Cascade)
+}
+
+model GrowthRecord {
+  id         Int      @id @default(autoincrement())
+  baby_id    String
+  date       String   // YYYY-MM-DD
+  height     Float?
+  weight     Float?
+  head       Float?
+  foot       Float?
+  note       String?
+  created_at DateTime @default(now())
+
+  baby Baby @relation(fields: [baby_id], references: [id], onDelete: Cascade)
+
+  @@unique([baby_id, date])
+}
+
+model Assessment {
+  id           String   @id // 字符串主键以兼容 sync_id
+  baby_id      String
+  date         String   // YYYY-MM-DD
+  name         String
+  doctor       String
+  result       String
+  intervention String?
+  created_at   DateTime @default(now())
+
+  baby Baby @relation(fields: [baby_id], references: [id], onDelete: Cascade)
+}
+
+model ClassCustomer {
+  id         String   @id // 机构简写ID (如 spring_rain)
+  baby_id    String
+  name       String   // 机构全名
+  created_at DateTime @default(now())
+
+  baby Baby @relation(fields: [baby_id], references: [id], onDelete: Cascade)
+}
+
+model ClassRecord {
+  id               String   @id // 记录唯一标识
+  baby_id          String
+  date             String   // YYYY-MM-DD
+  day_name         String   // 周一
+  attended         Boolean  @default(true)
+  teacher          String?
+  sessions         Float    @default(0)
+  cost             Float    @default(0)
+  topup            Float    @default(0)
+  balance          Float    @default(0)
+  note             String?
+  institution_id   String
+  institution_name String
+  created_at       DateTime @default(now())
+
+  baby Baby @relation(fields: [baby_id], references: [id], onDelete: Cascade)
+}

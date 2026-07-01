@@ -181,22 +181,21 @@ Page({
       const app = getApp(); if (app) app.globalData.userInfo = userInfo;
       this.setData({ userInfo, showEditModal: false });
 
-      // 同步更新至云数据库 families 记录中
+      // 同步更新至自建服务器 families 记录中
       const familyId = wx.getStorageSync('user_family_id');
-      if (familyId && wx.cloud) {
-        // 如果有云存储 URL，则同步云端 URL；否则如果原有头像已经是合法的非本地路径，使用之
+      if (familyId) {
+        // 如果有服务器头像 URL，则同步之；否则如果原有头像已经是合法的外部路径，使用之
         const syncAvatar = cloudUrl || (userInfo.avatarUrl && !userInfo.avatarUrl.startsWith('wxfile://') && !userInfo.avatarUrl.startsWith('http://tmp/') && !userInfo.avatarUrl.startsWith('wdfile://') && !userInfo.avatarUrl.includes('profile_avatar') ? userInfo.avatarUrl : '');
-        wx.cloud.callFunction({
-          name: 'updateFamily',
+        const request = require('../../utils/request.js');
+        request.post('/family/update-action', {
+          action: 'update',
+          familyId: familyId,
           data: {
-            action: 'update',
-            familyId: familyId,
-            data: {
-              creator_nickname: userInfo.nickName,
-              ...(syncAvatar ? { creator_avatar: syncAvatar } : {})
-            }
-          },
-          fail: (err) => { console.warn('同步个人信息到云端失败:', err); }
+            creator_nickname: userInfo.nickName,
+            ...(syncAvatar ? { creator_avatar: syncAvatar } : {})
+          }
+        }).catch((err) => {
+          console.warn('同步个人信息到自建端失败:', err);
         });
       }
       wx.showToast({ title: '已保存', icon: 'success' });
@@ -208,26 +207,8 @@ Page({
       wx.getFileSystemManager().copyFile({
         srcPath: this.data.editAvatarTemp, destPath: dest,
         success: () => {
-          // 本地拷贝成功后，若开通了云开发，上传到云端存储
-          if (wx.cloud) {
-            wx.showLoading({ title: '正在上传头像...', mask: true });
-            const cloudPath = `user_avatars/avatar_${Date.now()}_${Math.floor(Math.random() * 1000)}.jpg`;
-            wx.cloud.uploadFile({
-              cloudPath: cloudPath,
-              filePath: dest,
-              success: (uploadRes) => {
-                wx.hideLoading();
-                finish(uploadRes.fileID, dest);
-              },
-              fail: (err) => {
-                wx.hideLoading();
-                console.warn('头像上传云端失败，采用本地路径兜底:', err);
-                finish(null, dest);
-              }
-            });
-          } else {
-            finish(null, dest);
-          }
+          // 自建后端暂不自动上传云存储，待对接OSS服务后再行配置。本地调试暂直接以本地持久缓存路径为准进行缓存
+          finish(null, dest);
         },
         fail: () => {
           finish(null, this.data.editAvatarTemp);
@@ -300,8 +281,15 @@ Page({
     defs.push(newItem);
     wx.setStorageSync('vision_timer_items', defs);
     const familyId = wx.getStorageSync('user_family_id');
-    if (familyId && wx.cloud) {
-      wx.cloud.callFunction({ name: 'updateFamily', data: { action: 'update', familyId, data: { timer_items: defs } } });
+    if (familyId) {
+      const request = require('../../utils/request.js');
+      request.post('/family/update-action', {
+        action: 'update',
+        familyId: familyId,
+        data: { timer_items: defs }
+      }).catch(err => {
+        console.warn('timer_items 同步失败:', err);
+      });
     }
     this.setData({ showNewTimerModal: false }, () => {
       this.loadCustomShortcuts();
@@ -318,8 +306,15 @@ Page({
           const defs = getStorage('vision_timer_items', DEFAULT_TIMERS).filter(t => t.id !== id);
           wx.setStorageSync('vision_timer_items', defs);
           const familyId = wx.getStorageSync('user_family_id');
-          if (familyId && wx.cloud) {
-            wx.cloud.callFunction({ name: 'updateFamily', data: { action: 'update', familyId, data: { timer_items: defs } } });
+          if (familyId) {
+            const request = require('../../utils/request.js');
+            request.post('/family/update-action', {
+              action: 'update',
+              familyId: familyId,
+              data: { timer_items: defs }
+            }).catch(err => {
+              console.warn('timer_items 同步失败:', err);
+            });
           }
           this.loadCustomShortcuts();
         }
@@ -416,7 +411,6 @@ Page({
 
         that.setData({ importLogs: [] });
         const logs = [];
-        const db = wx.cloud.database();
         let totalRecords = 0;
         let successFiles = 0;
 
@@ -485,24 +479,15 @@ Page({
               if (collectionName === 'classes') {
                 uploadRecords = dataArray.map(item => ({ ...item, institution_id: 'spring_rain' }));
               }
-              const syncRes = await wx.cloud.callFunction({
-                name: 'syncData',
-                data: {
-                  collection: collectionName,
-                  familyId: familyId,
-                  records: uploadRecords
-                }
+              const request = require('../../utils/request.js');
+              const syncRes = await request.post('/sync/push', {
+                collection: collectionName,
+                familyId: familyId,
+                records: uploadRecords
               });
-              if (!syncRes.result || !syncRes.result.success) {
+              if (syncRes.code !== 200) {
                 cloudSuccess = false;
-                if (syncRes.result && Array.isArray(syncRes.result.errors) && syncRes.result.errors.length > 0) {
-                  // 取前 3 个错误输出展示，避免长列表撑爆 UI
-                  const topErrors = syncRes.result.errors.slice(0, 3).map(e => `${e.syncId || '未知'}: ${e.error}`);
-                  cloudErrMsg = topErrors.join('; ');
-                  if (syncRes.result.errors.length > 3) cloudErrMsg += ` (共 ${syncRes.result.errors.length} 个错误)`;
-                } else {
-                  cloudErrMsg = syncRes.result && syncRes.result.error || '云端同步处理失败';
-                }
+                cloudErrMsg = syncRes.message || '自建服务端同步失败';
               }
             } catch (cloudErr) {
               console.error(`同步写入云端数据库 ${collectionName} 失败：`, cloudErr);
