@@ -55,7 +55,7 @@ Page({
           
           // 动态以 members 数组为基准，融合补齐昵称与头像，保证无论何种同步情况下，家庭成员都完整展示且不漏人
           const currentOpenid = getApp().globalData.openid || wx.getStorageSync('user_openid') || '';
-          const creatorOpenid = detail.creator_openid || detail._openid;
+          const creatorOpenid = detail.creator_openid || detail._openid || (membersOpenids && membersOpenids[0]);
           
           const membersList = membersOpenids.map(m => {
             const info = membersInfo.find(infoItem => infoItem.openid === m);
@@ -124,7 +124,8 @@ Page({
         {
           openid: openid,
           nickName: userInfo ? (userInfo.nickName || '您自己') : '您自己',
-          avatarUrl: userInfo ? (userInfo.avatarUrl || '/assets/avatar_default.png') : '/assets/avatar_default.png'
+          avatarUrl: userInfo ? (userInfo.avatarUrl || '/assets/avatar_default.png') : '/assets/avatar_default.png',
+          isCreator: true
         }
       ]
     });
