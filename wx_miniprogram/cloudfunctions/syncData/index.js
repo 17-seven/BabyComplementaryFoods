@@ -92,22 +92,26 @@ exports.main = async (event, context) => {
       const rawId = item.id !== undefined ? item.id : item.name;
       const syncId = rawId !== undefined && rawId !== null ? String(rawId) : null;
 
+      const updateData = { ...item };
+      delete updateData._id;
+      delete updateData._openid;
+
       try {
         if (syncId) {
           const existingDocId = existingMap.get(syncId);
           if (existingDocId) {
             await db.collection(collection).doc(existingDocId).update({
-              data: { ...item, family_id: familyId, sync_id: syncId, sync_time: new Date() }
+              data: { ...updateData, family_id: familyId, sync_id: syncId, sync_time: new Date() }
             });
           } else {
             await db.collection(collection).add({
-              data: { ...item, family_id: familyId, sync_id: syncId, sync_time: new Date() }
+              data: { ...updateData, family_id: familyId, sync_id: syncId, sync_time: new Date() }
             });
           }
         } else {
           // 无唯一标识，直接追加
           await db.collection(collection).add({
-            data: { ...item, family_id: familyId, sync_time: new Date() }
+            data: { ...updateData, family_id: familyId, sync_time: new Date() }
           });
         }
         successCount++;

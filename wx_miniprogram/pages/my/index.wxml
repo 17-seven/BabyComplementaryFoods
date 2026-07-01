@@ -139,7 +139,7 @@
 
   <!-- 3. 底部版本号（连续点击10次解锁开发者模式） -->
   <view class="version-footer" bindtap="onVersionTap">
-    <text class="version-text">珑珑成长助手 v1.0.0</text>
+    <text class="version-text">围兜日记 {{ appVersion }}</text>
   </view>
 
   <!-- 4. 开发者数据导入面板（隐藏入口，点击版本号10次后展示） -->

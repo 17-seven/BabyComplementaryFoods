@@ -49,7 +49,21 @@ Page({
     // 页面快捷方式弹窗
     showShortcutModal: false,
     newShortcutPage: '',
-    availablePages: AVAILABLE_PAGES
+    availablePages: AVAILABLE_PAGES,
+    appVersion: 'v1.0.0'
+  },
+
+  onLoad: function () {
+    try {
+      const accountInfo = wx.getAccountInfoSync();
+      let version = accountInfo.miniProgram.version || '1.0.0';
+      if (!version.startsWith('v') && !version.startsWith('V')) {
+        version = 'v' + version;
+      }
+      this.setData({ appVersion: version });
+    } catch (e) {
+      console.warn("无法获取小程序版本号", e);
+    }
   },
 
   onShow: function () {
@@ -162,7 +176,7 @@ Page({
     const userInfo = { ...(this.data.userInfo || {}), nickName: name };
     
     const finish = (cloudUrl, localUrl) => {
-      userInfo.avatarUrl = cloudUrl || localUrl;
+      userInfo.avatarUrl = cloudUrl || localUrl || userInfo.avatarUrl;
       wx.setStorageSync('user_info', userInfo);
       const app = getApp(); if (app) app.globalData.userInfo = userInfo;
       this.setData({ userInfo, showEditModal: false });
@@ -171,7 +185,7 @@ Page({
       const familyId = wx.getStorageSync('user_family_id');
       if (familyId && wx.cloud) {
         // 如果有云存储 URL，则同步云端 URL；否则如果原有头像已经是合法的非本地路径，使用之
-        const syncAvatar = cloudUrl || (userInfo.avatarUrl && !userInfo.avatarUrl.startsWith('wxfile://') && !userInfo.avatarUrl.includes('profile_avatar') ? userInfo.avatarUrl : '');
+        const syncAvatar = cloudUrl || (userInfo.avatarUrl && !userInfo.avatarUrl.startsWith('wxfile://') && !userInfo.avatarUrl.startsWith('http://tmp/') && !userInfo.avatarUrl.startsWith('wdfile://') && !userInfo.avatarUrl.includes('profile_avatar') ? userInfo.avatarUrl : '');
         wx.cloud.callFunction({
           name: 'updateFamily',
           data: {
