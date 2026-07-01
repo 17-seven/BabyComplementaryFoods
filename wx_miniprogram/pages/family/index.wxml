@@ -1,9 +1,12 @@
 <!--pages/family/index.wxml-->
 <view class="container">
 
-  <!-- 1. 顶部提示语 -->
+  <!-- 1. 顶部提示语 Banner -->
   <view class="tip-banner">
-    ☁️ 协同共享机制开启后，您和爱人的设备将全部挂接同一个云端宝宝数据库。任何一方记录的便便、饮奶、用药及儿保打卡，另一方点击页面即可实时同步获取。
+    <view class="tip-icon">📡</view>
+    <view class="tip-text">
+      家庭协同共享机制已启用。绑定后，双方设备将实时连通同一个云数据库。任何一方记录的奶量、便便、用药及儿保，另一方均能立刻同步刷新。
+    </view>
   </view>
 
   <!-- ==================== 情况A: 已绑定家庭组 ==================== -->
@@ -11,42 +14,64 @@
     
     <!-- 家庭概览 Card -->
     <view class="card family-active-card">
-      <view class="family-badge">🏡 共享家庭进行中</view>
-      <view class="baby-name-row">
-        <text class="lbl">关爱宝宝：</text>
-        <text class="val">{{ familyDetails.baby_name || '未录入' }}</text>
+      <view class="card-header-badge">
+        <text class="badge-dot"></text>
+        <text class="badge-text">家庭共享进行中</text>
+      </view>
+      
+      <view class="baby-profile-section">
+        <view class="baby-avatar-badge">👶</view>
+        <view class="baby-info-meta">
+          <text class="baby-info-lbl">关爱宝宝</text>
+          <text class="baby-info-val">{{ familyDetails.baby_name || '未录入' }}</text>
+        </view>
       </view>
       
       <!-- 邀请码展示框 -->
       <view class="invite-display-box">
         <view class="code-header">
-          <text class="lbl">家庭同步码 (长按/点击复制)</text>
+          <text class="code-lbl">🔐 家庭同步码 (长按/点击复制)</text>
           <view class="code-actions">
-            <text class="btn-action" bindtap="copyInviteCode">📋 复制</text>
-            <text class="btn-action btn-qr-action" bindtap="openQrModal">🖼️ 二维码</text>
+            <view class="btn-action-capsule" catchtap="copyInviteCode">
+              <text>📋 复制</text>
+            </view>
+            <view class="btn-action-capsule btn-qr-capsule" catchtap="openQrModal">
+              <text>🖼️ 二维码</text>
+            </view>
           </view>
         </view>
         <text class="code-val" bindtap="copyInviteCode">{{ myFamilyId }}</text>
       </view>
 
-      <view class="hint-msg">把这串同步码发送给家人，或让家人使用“扫码绑定”直接扫二维码加入。</view>
+      <view class="hint-msg">提示：将此码发送给家人，或让家人使用本页下方的“扫码绑定”扫描二维码加入。</view>
     </view>
 
     <!-- 看护人列表 Card -->
-    <view class="card">
-      <view class="section-title">👥 家庭守护成员 ({{ membersList.length }}人)</view>
-      <view class="members-flow">
+    <view class="card members-card">
+      <view class="section-header">
+        <view class="section-title-wrapper">
+          <text class="section-icon">👥</text>
+          <text class="section-title">家庭守护成员</text>
+        </view>
+        <text class="members-count-badge">{{ membersList.length }}人</text>
+      </view>
+
+      <view class="members-list-wrapper">
         <block wx:for="{{ membersList }}" wx:key="openid">
-          <view class="member-row-item">
-            <image class="member-avatar-img" src="{{ item.avatarUrl || '/assets/avatar_default.png' }}" mode="aspectFill"></image>
-            <view class="member-meta">
-              <view class="member-nickname-row">
+          <view class="member-card-row">
+            <image class="member-avatar" src="{{ item.avatarUrl || '/assets/avatar_default.png' }}" mode="aspectFill"></image>
+            <view class="member-detail-info">
+              <view class="member-name-row">
                 <text class="member-nickname">{{ item.nickName || '看护人' }}</text>
-                <text class="member-role-badge {{ item.openid === familyDetails.creator_openid ? 'role-creator' : 'role-helper' }}">
-                  {{ item.openid === familyDetails.creator_openid ? '创建者' : '看护人' }}
-                </text>
+                <view class="role-tag-badge {{ item.openid === familyDetails.creator_openid ? 'tag-creator' : 'tag-helper' }}">
+                  <text wx:if="{{ item.openid === familyDetails.creator_openid }}">👑 创建者</text>
+                  <text wx:else>🤝 看护人</text>
+                </view>
               </view>
-              <text class="member-openid-sub">ID: {{ item.openid || '未知' }}</text>
+              <view class="member-id-tag">
+                <text class="id-lbl">ID:</text>
+                <text class="id-val">{{ item.openid || '未知' }}</text>
+              </view>
             </view>
           </view>
         </block>
@@ -54,9 +79,12 @@
     </view>
 
     <!-- 解绑退出按钮 -->
-    <button class="btn btn-danger btn-block" style="margin-top: 40rpx;" bindtap="leaveFamily">
-      📴 退出/解绑当前家庭组
-    </button>
+    <view class="danger-zone-wrapper">
+      <button class="btn-danger-ghost" bindtap="leaveFamily">
+        <text class="btn-danger-icon">📴</text>
+        <text>解绑并退出当前家庭组</text>
+      </button>
+    </view>
   </view>
 
 
@@ -64,33 +92,47 @@
   <view wx:else>
     
     <!-- 方案1：我是管理员，创建家庭 -->
-    <view class="card create-card-box">
-      <view class="section-title">🏡 方式一：我是创建者</view>
-      <text class="card-desc">如果您是第一次使用本小程序并负责记录，请点击下方按钮开通全新的家庭空间。开通后系统会自动为您复制同步码。</text>
-      <button class="btn btn-primary btn-block" bindtap="createFamily">
-        新建家庭组并获取邀请码
+    <view class="card design-card create-card">
+      <view class="card-bg-glow glow-green"></view>
+      <view class="section-header-styled">
+        <view class="card-title-icon bg-green">🏡</view>
+        <view class="card-title-meta">
+          <text class="title-main">方式一：我是创建者</text>
+          <text class="title-sub">自主建立共享家庭空间</text>
+        </view>
+      </view>
+      <text class="card-description-text">首次使用本小程序的看护人请选择此项。建立后您将成为管理员，系统会自动为您生成并复制家庭同步码。</text>
+      <button class="btn-gradient btn-gradient-green" bindtap="createFamily">
+        新建家庭组并获取同步码
       </button>
     </view>
 
     <!-- 分割线 -->
-    <view class="divider-line">
-      <view class="line"></view>
-      <text class="text">或者</text>
-      <view class="line"></view>
+    <view class="divider-section">
+      <view class="divider-line"></view>
+      <text class="divider-text">或者</text>
+      <view class="divider-line"></view>
     </view>
 
     <!-- 方案2：爱人已建好，我来加入 -->
-    <view class="card join-card-box">
-      <view class="section-title">🔗 方式二：加入爱人的家庭</view>
-      <text class="card-desc">如果您的家人已经开通了家庭空间并向您发送了邀请，请点击下方进行扫码绑定，或在下方输入同步码进行绑定：</text>
+    <view class="card design-card join-card">
+      <view class="card-bg-glow glow-orange"></view>
+      <view class="section-header-styled">
+        <view class="card-title-icon bg-orange">🔗</view>
+        <view class="card-title-meta">
+          <text class="title-main">方式二：加入家人的家庭</text>
+          <text class="title-sub">连接已有数据库实现数据协同</text>
+        </view>
+      </view>
+      <text class="card-description-text">家人如果已经建好家庭组，请直接点击下方【扫码绑定】扫描其同步码二维码，或在下方输入同步码加入：</text>
       
-      <button class="btn btn-scan btn-block" style="margin-bottom: 24rpx;" bindtap="scanToJoin">
-        📷 扫码绑定 (推荐)
+      <button class="btn-gradient btn-gradient-emerald" bindtap="scanToJoin">
+        📷 扫码一键绑定 (推荐)
       </button>
 
-      <view class="invite-input-group">
-        <input class="invite-input" type="text" placeholder="粘贴 24 位家庭同步码" value="{{ inviteCodeInput }}" bindinput="onInviteInput" />
-        <button class="btn btn-orange" bindtap="joinFamily">确认绑定</button>
+      <view class="input-binding-bar">
+        <input class="styled-invite-input" type="text" placeholder="粘贴或输入 24 位同步码" placeholder-style="color: #a0aec0;" value="{{ inviteCodeInput }}" bindinput="onInviteInput" />
+        <button class="btn-bind-confirm" bindtap="joinFamily">确定</button>
       </view>
     </view>
 
@@ -101,12 +143,15 @@
     <view class="qr-modal-content" catchtap="preventBubble">
       <view class="qr-modal-header">
         <text class="qr-title">👨‍👩‍👧‍👦 家庭组扫码绑定</text>
-        <text class="btn-close" bindtap="closeQrModal">✕</text>
+        <view class="qr-close-icon" bindtap="closeQrModal">✕</view>
       </view>
       <view class="qr-body">
         <image class="qr-img" src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=familyId:{{ myFamilyId }}" show-menu-by-longpress="true" mode="aspectFit"></image>
-        <text class="qr-hint">提示：长按上方二维码可以发送或保存。让爱人打开微信小程序“协同共享”，点击【扫码绑定】扫描此二维码即可快速加入。</text>
-        <text class="qr-sync-code">同步码: {{ myFamilyId }}</text>
+        <text class="qr-hint">提示：长按上方二维码可以发送或保存。让爱人打开微信小程序，进入“协同共享”，点击【扫码绑定】扫描此二维码即可快速加入。</text>
+        <view class="qr-sync-code-box">
+          <text class="sync-code-lbl">同步码:</text>
+          <text class="sync-code-val">{{ myFamilyId }}</text>
+        </view>
       </view>
     </view>
   </view>
