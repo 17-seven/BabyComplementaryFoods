@@ -83,8 +83,8 @@ Page({
 
   // 5. 根据预产期和出生日期自动计算早产天数
   _calcPrematureDays: function () {
-    const birthMs = new Date(this.data.birthDate).getTime();
-    const dueMs = new Date(this.data.dueDate).getTime();
+    const birthMs = new Date(this.data.birthDate.replace(/-/g, '/')).getTime();
+    const dueMs = new Date(this.data.dueDate.replace(/-/g, '/')).getTime();
 
     if (isNaN(birthMs) || isNaN(dueMs)) return;
 

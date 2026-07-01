@@ -136,21 +136,21 @@ Page({
       };
       Object.entries(CLOUD_TO_LOCAL).forEach(function(entry) {
         const collName = entry[0], localKey = entry[1];
-        if (businessData[collName] && businessData[collName].length > 0) {
+        if (businessData[collName]) {
           wx.setStorageSync(localKey, businessData[collName]);
           console.log('[数据恢复]', collName, businessData[collName].length, '条 ->', localKey);
           
-          if (collName === 'meal_plans') {
+          if (collName === 'meal_plans' && businessData[collName].length > 0) {
             wx.setStorageSync('meal_plan_auto_generated', true);
           }
-          if (collName === 'safe_foods' || collName === 'risk_foods') {
+          if ((collName === 'safe_foods' || collName === 'risk_foods') && businessData[collName].length > 0) {
             wx.setStorageSync('allergen_setup_completed', true);
           }
         }
       });
 
       // 恢复多机构上课打卡明细
-      if (businessData['classes'] && businessData['classes'].length > 0) {
+      if (businessData['classes']) {
         const classesGrouped = {};
         businessData['classes'].forEach(item => {
           const instId = item.institution_id || 'spring_rain';

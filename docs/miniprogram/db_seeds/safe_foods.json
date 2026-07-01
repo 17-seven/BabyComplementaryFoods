@@ -42,6 +42,7 @@
   { "name": "红枣", "category": "水果", "icon": "枣" },
   { "name": "李子", "category": "水果", "icon": "🍑" },
   { "name": "小蟠桃", "category": "水果", "icon": "🍑" },
+  { "name": "蓝莓", "category": "水果", "icon": "🫐" },
   { "name": "猪肉", "category": "动物蛋白", "icon": "🥩" },
   { "name": "牛肉", "category": "动物蛋白", "icon": "🍖" },
   { "name": "鹅肝", "category": "动物蛋白", "icon": "🥩" },

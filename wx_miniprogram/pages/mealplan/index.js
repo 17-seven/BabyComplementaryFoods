@@ -33,6 +33,20 @@ Page({
       this.getTabBar().setData({ selected: 1 });
     }
     this.initMealPlans();
+
+    // 静默刷新
+    const { syncPull } = require('../../utils/storage.js');
+    syncPull('meal_plans', () => {
+      this.initMealPlans();
+    });
+  },
+
+  onPullDownRefresh: function () {
+    const { syncPull } = require('../../utils/storage.js');
+    syncPull('meal_plans', () => {
+      this.initMealPlans();
+      wx.stopPullDownRefresh();
+    });
   },
 
   initMealPlans: function () {
@@ -518,22 +532,16 @@ Page({
       });
     }
 
-    let nextWeekName = '2026-W28';
+    let nextWeekNum = list.length + 1;
     if (lastWeek && lastWeek.week) {
-      const match = lastWeek.week.match(/^(\d{4})-W(\d{1,2})$/);
+      const match = lastWeek.week.match(/第\s*(\d+)\s*周辅食计划/);
       if (match) {
-        let year = parseInt(match[1]);
-        let weekNum = parseInt(match[2]);
-        weekNum++;
-        if (weekNum > 52) {
-          weekNum = 1;
-          year++;
-        }
-        nextWeekName = `${year}-W${weekNum < 10 ? '0' + weekNum : weekNum}`;
-      } else {
-        nextWeekName = `第 ${list.length + 1} 周辅食计划`;
+        nextWeekNum = parseInt(match[1]) + 1;
+      } else if (lastWeek.week === '第一周辅食计划') {
+        nextWeekNum = 2;
       }
     }
+    const nextWeekName = `第${nextWeekNum}周辅食计划`;
     const startPeriod = nextDays[0].date.slice(5).replace('-', '.');
     const endPeriod = nextDays[6].date.slice(5).replace('-', '.');
     

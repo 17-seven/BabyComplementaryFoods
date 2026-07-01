@@ -6,7 +6,7 @@
  * @param {number} prematureDays 早产天数 (王玧初为 71 天)
  */
 function calculateBabyAge(birthDateStr, prematureDays) {
-  const birth = new Date(birthDateStr);
+  const birth = new Date(birthDateStr.replace(/-/g, '/'));
   const now = new Date();
   
   // 计算实际相差总天数
@@ -43,21 +43,27 @@ function getAgeDetailString(totalDays) {
  */
 function regenerateVaccineSchedule(vaccineList, catchUpStartDate) {
   const due = vaccineList.filter(v => v.status === '需补种' || v.status === '推荐接种');
-  const base = new Date(catchUpStartDate);
+  const base = new Date(catchUpStartDate.replace(/-/g, '/'));
   
   return due.map((v, i) => {
     const plannedDate = new Date(base);
     plannedDate.setDate(plannedDate.getDate() + i * 15);
-    const plannedStr = plannedDate.toISOString().slice(0, 10);
-    const curr = new Date();
+    
+    const year = plannedDate.getFullYear();
+    let month = plannedDate.getMonth() + 1;
+    let day = plannedDate.getDate();
+    if (month < 10) month = '0' + month;
+    if (day < 10) day = '0' + day;
+    const plannedStr = `${year}-${month}-${day}`;
     
     // 清除时分秒只算天数差
-    const d1 = new Date(plannedStr);
-    const d2 = new Date(curr.toISOString().slice(0, 10));
+    const d1 = new Date(plannedStr.replace(/-/g, '/'));
+    const d2 = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
     const diffTime = d1.getTime() - d2.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
     return {
+      id: v.id,
       name: v.name,
       dose: v.dose,
       status: v.status,

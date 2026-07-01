@@ -58,22 +58,82 @@ Page({
       this.getTabBar().setData({ selected: 2 });
     }
     this.initData();
+
+    // 后台静默刷新最新数据
+    const { syncPull } = require('../../utils/storage.js');
+    syncPull(['vaccines', 'healthcares', 'assessments', 'clinical_logs'], () => {
+      this.initData();
+    });
+  },
+
+  onPullDownRefresh: function () {
+    const { syncPull } = require('../../utils/storage.js');
+    syncPull(['vaccines', 'healthcares', 'assessments', 'clinical_logs'], () => {
+      this.initData();
+      wx.stopPullDownRefresh();
+    });
   },
 
   initData: function () {
     // 载入本地缓存或种子数据
-    const vaccines = getStorage('baby_vaccines_list', defaultVaccinesList);
+    let vaccines = getStorage('baby_vaccines_list', defaultVaccinesList);
+    
+    // 自动为历史数据补上唯一 id 并修复可能因去重 Bug 被裁剪的记录 (迁移与恢复逻辑)
+    let hasMigration = false;
+    if (vaccines.length < defaultVaccinesList.length) {
+      hasMigration = true;
+      vaccines = defaultVaccinesList.map(def => {
+        const matched = vaccines.find(v => v.name === def.name && v.dose === def.dose);
+        if (matched) {
+          return {
+            ...def,
+            status: matched.status || def.status,
+            actualDate: matched.actualDate || def.actualDate
+          };
+        }
+        return def;
+      });
+    } else {
+      vaccines = vaccines.map((v, i) => {
+        if (!v.id) {
+          hasMigration = true;
+          const defaultItem = defaultVaccinesList.find(d => d.name === v.name && d.dose === v.dose);
+          return {
+            ...v,
+            id: defaultItem ? defaultItem.id : `vac_${String(i + 1).padStart(2, '0')}`
+          };
+        }
+        return v;
+      });
+    }
+    if (hasMigration) {
+      setStorage('baby_vaccines_list', vaccines);
+    }
+
     const catchupStart = getStorage('catchup_start_date', '2026-07-06');
     const hcs = getStorage('baby_healthcares', defaultHealthcares);
     const asms = getStorage('baby_assessments', defaultAssessments);
     const clis = getStorage('baby_clinical_logs', defaultClinicalLogs);
 
+    // 门诊病历、儿保轨迹、发育评估全部按照日期 (和id) 倒序排列，保证最新在最上
+    const sortListDesc = (list) => {
+      return [...list].sort((a, b) => {
+        const dateCompare = (b.date || '').localeCompare(a.date || '');
+        if (dateCompare !== 0) return dateCompare;
+        return (b.id || 0) - (a.id || 0);
+      });
+    };
+
+    const sortedHcs = sortListDesc(hcs);
+    const sortedAsms = sortListDesc(asms);
+    const sortedClis = sortListDesc(clis);
+
     this.setData({
       vaccineList: vaccines,
       catchUpStartDate: catchupStart,
-      healthcares: hcs,
-      assessments: asms,
-      clinicalLogs: clis
+      healthcares: sortedHcs,
+      assessments: sortedAsms,
+      clinicalLogs: sortedClis
     }, () => {
       this.calculateVaccines();
       this.calculateNextCheckup();
@@ -180,13 +240,31 @@ Page({
   // ==================== 2. 儿保逻辑 ====================
   calculateNextCheckup: function () {
     const hcs = this.data.healthcares;
-    if (hcs.length === 0) return;
+    if (hcs.length === 0) {
+      this.setData({ nextCheckupDate: '', nextCheckupDays: 0 });
+      return;
+    }
     const sorted = [...hcs].sort((a, b) => b.date.localeCompare(a.date));
     const latest = sorted[0];
-    const d = new Date(latest.date);
+    if (!latest.date) return;
+    
+    // 兼容 iOS hyphen bug
+    const dateStr = latest.date.replace(/-/g, '/');
+    const d = new Date(dateStr);
     d.setMonth(d.getMonth() + 3);
-    const plannedDate = d.toISOString().slice(0, 10);
-    const diff = Math.ceil((d.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+
+    const year = d.getFullYear();
+    let month = d.getMonth() + 1;
+    let day = d.getDate();
+    if (month < 10) month = '0' + month;
+    if (day < 10) day = '0' + day;
+    const plannedDate = `${year}-${month}-${day}`;
+
+    // 计算天数差，使用本地时间零点对比
+    const todayStart = new Date(today().replace(/-/g, '/'));
+    const targetDate = new Date(plannedDate.replace(/-/g, '/'));
+    const diff = Math.ceil((targetDate.getTime() - todayStart.getTime()) / (1000 * 60 * 60 * 24));
+
     this.setData({
       nextCheckupDate: plannedDate,
       nextCheckupDays: diff > 0 ? diff : 0
@@ -221,6 +299,12 @@ Page({
       doctor:       this.data.asmDoctor.trim(),
       result,
       intervention: this.data.asmIntervention.trim()
+    });
+    // 按照日期 (和id) 倒序排列，保证最新最上面
+    list.sort((a, b) => {
+      const dateCompare = (b.date || '').localeCompare(a.date || '');
+      if (dateCompare !== 0) return dateCompare;
+      return (b.id || 0) - (a.id || 0);
     });
     this.setData({
       assessments: list,
@@ -267,7 +351,12 @@ Page({
       headCircumference: hc,
       feedback: f
     });
-
+    // 按照日期 (和id) 倒序排列，保证最新最上面
+    list.sort((a, b) => {
+      const dateCompare = (b.date || '').localeCompare(a.date || '');
+      if (dateCompare !== 0) return dateCompare;
+      return (b.id || 0) - (a.id || 0);
+    });
     this.setData({
       healthcares: list,
       hcHeight: '',
@@ -306,9 +395,24 @@ Page({
     const upcoming = clis
       .filter(l => l.status === '未完成' && l.date && l.date >= todayStr)
       .sort((a, b) => a.date.localeCompare(b.date));
-    this.setData({
-      nextClinical: upcoming.length > 0 ? upcoming[0] : null
-    });
+    
+    if (upcoming.length > 0) {
+      const item = upcoming[0];
+      const todayStart = new Date(todayStr.replace(/-/g, '/'));
+      const targetDate = new Date(item.date.replace(/-/g, '/'));
+      const diff = Math.ceil((targetDate.getTime() - todayStart.getTime()) / (1000 * 60 * 60 * 24));
+      
+      this.setData({
+        nextClinical: {
+          ...item,
+          daysLeft: diff > 0 ? diff : 0
+        }
+      });
+    } else {
+      this.setData({
+        nextClinical: null
+      });
+    }
   },
 
   onCliInput: function(e) {
@@ -353,6 +457,12 @@ Page({
       desc1: d1,
       desc2: d2,
       result: r
+    });
+    // 按照日期 (和id) 倒序排列，保证最新最上面
+    list.sort((a, b) => {
+      const dateCompare = (b.date || '').localeCompare(a.date || '');
+      if (dateCompare !== 0) return dateCompare;
+      return (b.id || 0) - (a.id || 0);
     });
 
     this.setData({

@@ -45,8 +45,9 @@ exports.main = async (event, context) => {
     console.warn('[syncData] 同步物理删除失败:', err);
   }
 
-  // 2. 一次性获取云端该家庭在该集合的所有记录，构建 sync_id -> _id 的映射，避免循环中进行 get 查询
+  // 2. 一次性获取云端该家庭在该集合的所有记录，构建 sync_id -> _id 的映射，并剔除重复文档
   let existingMap = new Map();
+  const duplicatesToDelete = [];
   try {
     // 考虑数据可能较多，云函数端一次性 get 限制为 1000 条，对种子数据同步完全足够
     const res = await db.collection(collection).where({
@@ -56,12 +57,31 @@ exports.main = async (event, context) => {
     if (res.data) {
       for (const rec of res.data) {
         if (rec.sync_id) {
-          existingMap.set(String(rec.sync_id), rec._id);
+          const syncIdStr = String(rec.sync_id);
+          if (existingMap.has(syncIdStr)) {
+            // 发现重复文档，收集重复文档的 _id 以便清理
+            duplicatesToDelete.push(rec._id);
+          } else {
+            existingMap.set(syncIdStr, rec._id);
+          }
         }
       }
     }
   } catch (err) {
     console.warn('[syncData] 批量获取已有记录失败:', err);
+  }
+
+  // 3. 物理清理云端数据库中的重复记录
+  if (duplicatesToDelete.length > 0) {
+    try {
+      const removePromises = duplicatesToDelete.map(docId => {
+        return db.collection(collection).doc(docId).remove();
+      });
+      await Promise.all(removePromises);
+      console.log(`[syncData] 成功物理清理了 ${duplicatesToDelete.length} 条重复数据`);
+    } catch (cleanErr) {
+      console.warn('[syncData] 清理重复记录失败:', cleanErr);
+    }
   }
 
   // 3. 分批并行执行添加或更新操作，避免一次性并发过多请求导致底层数据库连接池阻塞

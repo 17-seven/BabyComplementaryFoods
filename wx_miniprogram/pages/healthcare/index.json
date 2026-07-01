@@ -1,4 +1,6 @@
 {
-  "navigationBarTitleText": "医疗儿保",
+  "navigationBarTitleText": "医疗儿保档案",
+  "enablePullDownRefresh": true,
+  "backgroundTextStyle": "dark",
   "usingComponents": {}
 }

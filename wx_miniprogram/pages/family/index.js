@@ -120,13 +120,16 @@ Page({
         const familyId = res.result.familyId;
         that.setData({ myFamilyId: familyId }, () => {
           setStorage('user_family_id', familyId);
-          that.fetchFamilyDetails();
-          wx.showModal({
-            title: '家庭创建成功',
-            content: `您的专属家庭同步码为：\n\n${familyId}\n\n已为您自动复制。把此邀请码发送给您爱人，她在小程序端输入后即可共享数据。`,
-            confirmText: '好 的',
-            showCancel: false,
-            success: () => { wx.setClipboardData({ data: familyId }); }
+          const { syncMerge } = require('../../utils/storage.js');
+          syncMerge(familyId, () => {
+            that.fetchFamilyDetails();
+            wx.showModal({
+              title: '家庭创建成功',
+              content: `您的专属家庭同步码为：\n\n${familyId}\n\n已为您自动复制。把此邀请码发送给您爱人，她在小程序端输入后即可共享数据。`,
+              confirmText: '好 的',
+              showCancel: false,
+              success: () => { wx.setClipboardData({ data: familyId }); }
+            });
           });
         });
       },
@@ -188,11 +191,14 @@ Page({
         if (res.result && res.result.success) {
           setStorage('user_family_id', code);
           that.setData({ myFamilyId: code }, () => {
-            that.fetchFamilyDetails();
-            wx.showModal({
-              title: '绑定协同成功',
-              content: '已成功接入家庭组！双方刷新页面即可看到共同添加的信息。',
-              showCancel: false
+            const { syncMerge } = require('../../utils/storage.js');
+            syncMerge(code, () => {
+              that.fetchFamilyDetails();
+              wx.showModal({
+                title: '绑定协同成功',
+                content: '已成功接入家庭组！双方刷新页面即可看到共同添加的信息。',
+                showCancel: false
+              });
             });
           });
         } else {

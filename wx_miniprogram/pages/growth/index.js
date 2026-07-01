@@ -35,6 +35,20 @@ Page({
     }, () => {
       this.loadGrowthRecords();
     });
+
+    // 静默云同步
+    const { syncPull } = require('../../utils/storage.js');
+    syncPull('growth', () => {
+      this.loadGrowthRecords();
+    });
+  },
+
+  onPullDownRefresh: function () {
+    const { syncPull } = require('../../utils/storage.js');
+    syncPull('growth', () => {
+      this.loadGrowthRecords();
+      wx.stopPullDownRefresh();
+    });
   },
 
   // 加载数据记录

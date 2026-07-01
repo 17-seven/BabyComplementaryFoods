@@ -2,7 +2,7 @@
 
 const defaultWeekPlans = [
   {
-    "week": "第一周辅食计划",
+    "week": "第1周辅食计划",
     "period": "06/29 - 07/05",
     "note": "碎碎面、疙瘩汤暂停",
     "days": [

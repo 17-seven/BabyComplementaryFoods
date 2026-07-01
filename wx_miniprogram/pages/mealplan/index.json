@@ -1,4 +1,6 @@
 {
-  "navigationBarTitleText": "辅食计划",
+  "navigationBarTitleText": "宝宝周辅食计划",
+  "enablePullDownRefresh": true,
+  "backgroundTextStyle": "dark",
   "usingComponents": {}
 }

@@ -1,4 +1,6 @@
 {
-  "navigationBarTitleText": "宝宝上课打卡",
+  "navigationBarTitleText": "课程中心 & 上课打卡",
+  "enablePullDownRefresh": true,
+  "backgroundTextStyle": "dark",
   "usingComponents": {}
 }

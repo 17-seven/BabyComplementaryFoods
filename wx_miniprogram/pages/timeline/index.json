@@ -1,4 +1,6 @@
 {
-  "navigationBarTitleText": "成长大事记",
+  "navigationBarTitleText": "宝宝成长大事记",
+  "enablePullDownRefresh": true,
+  "backgroundTextStyle": "dark",
   "usingComponents": {}
 }

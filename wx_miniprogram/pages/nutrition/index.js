@@ -28,6 +28,20 @@ Page({
     }
     this.setData({ logDate: today() });
     this.loadNutritionLogs();
+
+    // 静默同步刷新
+    const { syncPull } = require('../../utils/storage.js');
+    syncPull('milk_water_records', () => {
+      this.loadNutritionLogs();
+    });
+  },
+
+  onPullDownRefresh: function () {
+    const { syncPull } = require('../../utils/storage.js');
+    syncPull('milk_water_records', () => {
+      this.loadNutritionLogs();
+      wx.stopPullDownRefresh();
+    });
   },
 
   loadNutritionLogs: function () {

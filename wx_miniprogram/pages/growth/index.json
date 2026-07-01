@@ -1,4 +1,6 @@
 {
-  "navigationBarTitleText": "成长发育记录",
+  "navigationBarTitleText": "成长曲线 & 发育记录",
+  "enablePullDownRefresh": true,
+  "backgroundTextStyle": "dark",
   "usingComponents": {}
 }

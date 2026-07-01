@@ -1,4 +1,6 @@
 {
-  "navigationBarTitleText": "饮奶与饮水记录",
+  "navigationBarTitleText": "宝宝今日饮食",
+  "enablePullDownRefresh": true,
+  "backgroundTextStyle": "dark",
   "usingComponents": {}
 }

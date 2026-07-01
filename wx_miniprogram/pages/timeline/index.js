@@ -36,6 +36,20 @@ Page({
       this.getTabBar().setData({ selected: 3 });
     }
     this.loadCategories();
+
+    // 静默云刷新
+    const { syncPull } = require('../../utils/storage.js');
+    syncPull('timeline_events', () => {
+      this.loadCategories();
+    });
+  },
+
+  onPullDownRefresh: function () {
+    const { syncPull } = require('../../utils/storage.js');
+    syncPull('timeline_events', () => {
+      this.loadCategories();
+      wx.stopPullDownRefresh();
+    });
   },
 
   // 加载分类列表，再加载事件

@@ -32,6 +32,20 @@ Page({
     }
     this.setData({ bowelDate: today() });
     this.loadBowelLogs();
+
+    // 静默刷新
+    const { syncPull } = require('../../utils/storage.js');
+    syncPull('bowel_records', () => {
+      this.loadBowelLogs();
+    });
+  },
+
+  onPullDownRefresh: function () {
+    const { syncPull } = require('../../utils/storage.js');
+    syncPull('bowel_records', () => {
+      this.loadBowelLogs();
+      wx.stopPullDownRefresh();
+    });
   },
 
   loadBowelLogs: function () {

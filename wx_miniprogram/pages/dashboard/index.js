@@ -37,6 +37,12 @@ Page({
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 0 });
     }
+    
+    // 后台静默刷新云端最新数据
+    const { syncPull } = require('../../utils/storage.js');
+    syncPull(() => {
+      this.loadBabyStatus();
+    });
   },
 
   onHide:   function () { this._stopLive(); },
@@ -67,8 +73,11 @@ Page({
   },
 
   onPullDownRefresh: function () {
-    this.loadBabyStatus();
-    wx.stopPullDownRefresh();
+    const { syncPull } = require('../../utils/storage.js');
+    syncPull(() => {
+      this.loadBabyStatus();
+      wx.stopPullDownRefresh();
+    });
   },
 
   loadBabyStatus: function () {
@@ -163,7 +172,9 @@ Page({
     let nextVaccine = null;
     if (dueVaccines.length > 0) {
       const baseStr = getStorage('catchup_start_date', todayStr);
-      const diff    = Math.ceil((new Date(baseStr).getTime() - Date.now()) / 86400000);
+      const todayStart = new Date(todayStr.replace(/-/g, '/'));
+      const targetDate = new Date(baseStr.replace(/-/g, '/'));
+      const diff    = Math.ceil((targetDate.getTime() - todayStart.getTime()) / 86400000);
       nextVaccine   = { name: dueVaccines[0].name, dose: dueVaccines[0].dose, plannedDate: baseStr, daysLeft: diff > 0 ? diff : 0 };
     }
 
@@ -172,10 +183,24 @@ Page({
     let nextCheckup = null;
     if (healthcares.length > 0) {
       const latest = [...healthcares].sort((a, b) => b.date.localeCompare(a.date))[0];
-      const d = new Date(latest.date); d.setMonth(d.getMonth() + 3);
-      const plannedStr = d.toISOString().slice(0, 10);
-      const diff = Math.ceil((d.getTime() - Date.now()) / 86400000);
-      nextCheckup = { plannedDate: plannedStr, daysLeft: diff > 0 ? diff : 0 };
+      if (latest.date) {
+        const dateStr = latest.date.replace(/-/g, '/');
+        const d = new Date(dateStr); 
+        d.setMonth(d.getMonth() + 3);
+
+        const year = d.getFullYear();
+        let month = d.getMonth() + 1;
+        let day = d.getDate();
+        if (month < 10) month = '0' + month;
+        if (day < 10) day = '0' + day;
+        const plannedStr = `${year}-${month}-${day}`;
+
+        const todayStart = new Date(todayStr.replace(/-/g, '/'));
+        const targetDate = new Date(plannedStr.replace(/-/g, '/'));
+        const diff = Math.ceil((targetDate.getTime() - todayStart.getTime()) / 86400000);
+
+        nextCheckup = { plannedDate: plannedStr, daysLeft: diff > 0 ? diff : 0 };
+      }
     }
 
     // 就诊提醒
@@ -184,7 +209,9 @@ Page({
       .sort((a, b) => a.date.localeCompare(b.date));
     let nextClinical = null;
     if (upcoming.length > 0) {
-      const diff = Math.ceil((new Date(upcoming[0].date).getTime() - Date.now()) / 86400000);
+      const todayStart = new Date(todayStr.replace(/-/g, '/'));
+      const targetDate = new Date(upcoming[0].date.replace(/-/g, '/'));
+      const diff = Math.ceil((targetDate.getTime() - todayStart.getTime()) / 86400000);
       nextClinical = { name: upcoming[0].name, date: upcoming[0].date, daysLeft: diff > 0 ? diff : 0 };
     }
 

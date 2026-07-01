@@ -53,7 +53,16 @@ Page({
       return;
     }
 
-    // 新用户登录后，class_customers 本地应为空
+    this.loadClassesLocalData();
+
+    // 静默云刷新
+    const { syncPull } = require('../../utils/storage.js');
+    syncPull(['classes', 'class_customers'], () => {
+      this.loadClassesLocalData();
+    });
+  },
+
+  loadClassesLocalData: function () {
     const customers = getStorage('class_customers', []);
     const activeCustomerId = getStorage('class_active_customer_id', '');
     
@@ -72,11 +81,19 @@ Page({
     });
   },
 
+  onPullDownRefresh: function () {
+    const { syncPull } = require('../../utils/storage.js');
+    syncPull(['classes', 'class_customers'], () => {
+      this.loadClassesLocalData();
+      wx.stopPullDownRefresh();
+    });
+  },
+
   // 获取星期
   getDayName: function (dateStr) {
     if (!dateStr) return '';
     const weekDays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
-    const date = new Date(dateStr);
+    const date = new Date(dateStr.replace(/-/g, '/'));
     return weekDays[date.getDay()];
   },
 

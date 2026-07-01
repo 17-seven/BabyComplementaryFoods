@@ -55,19 +55,23 @@ exports.main = async (event, context) => {
     console.warn('查询 families 失败（集合可能尚未创建）:', e.message || e);
   }
 
-  // 2. 如果有家庭组，批量拉取所有业务数据
+  // 2. 如果有家庭组，根据需求拉取对应的业务数据
   const businessData = {};
   if (familyRecord) {
     const familyId = familyRecord._id;
+    let targetCollections = BUSINESS_COLLECTIONS;
+    if (event.collections) {
+      const filterCols = Array.isArray(event.collections) ? event.collections : [event.collections];
+      targetCollections = BUSINESS_COLLECTIONS.filter(c => filterCols.includes(c));
+    }
+
     await Promise.all(
-      BUSINESS_COLLECTIONS.map(async (collName) => {
+      targetCollections.map(async (collName) => {
         try {
           const result = await db.collection(collName).where({
             family_id: familyId
           }).limit(1000).get(); // 提高限制到 1000 条，防止长数据（如 classes 有 125 条）被截断丢失
-          if (result.data && result.data.length > 0) {
-            businessData[collName] = result.data;
-          }
+          businessData[collName] = result.data || [];
         } catch (e) {
           // 集合不存在或无数据时静默跳过
           console.warn(`拉取 ${collName} 失败:`, e.message || e);

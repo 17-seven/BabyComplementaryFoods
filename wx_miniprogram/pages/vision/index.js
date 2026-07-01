@@ -33,6 +33,20 @@ Page({
     }
     this.loadAllTimers();
     this._startLive();
+
+    // 静默同步刷新最新数据
+    const { syncPull } = require('../../utils/storage.js');
+    syncPull('eyepatch_records', () => {
+      this.loadAllTimers();
+    });
+  },
+
+  onPullDownRefresh: function () {
+    const { syncPull } = require('../../utils/storage.js');
+    syncPull('eyepatch_records', () => {
+      this.loadAllTimers();
+      wx.stopPullDownRefresh();
+    });
   },
 
   onHide: function () { this._stopLive(); },

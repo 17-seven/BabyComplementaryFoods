@@ -25,61 +25,59 @@
   "creator_openid": "oXXXXX_husband",// 创建人 (如丈夫的) OpenID
   "baby_name": "王玧初",              // 宝宝名字
   "birth_date": "2025-02-18",        // 宝宝生日
-  "premature_days": 71,              // 早产天数
-  "members": [                       // 授权可协同记账的家庭成员 OpenID 列表
-    "oXXXXX_husband", 
-    "oXXXXX_wife"
-  ],
-  "create_time": "2026-06-29T16:00:00Z"
-}
-```
+  "premature_days": 71,             ## ☁️ 四、 家庭绑定与写操作云函数实现 (`updateFamily`)
 
----
-
-## 🔒 三、 微信云数据库“安全规则 (Security Rules)”配置
-
-微信云开发数据库支持配置**安全规则 JSON**，使系统能够直接在数据库层面判定权限，无需通过复杂的云函数鉴权。
-请在微信云开发控制台中，将 `timeline_events`、`vaccines`、`healthcares`、`clinical_logs`、`bowel_records`、`milk_water_records`、`eyepatch_records` 的安全规则修改为以下配置：
-
-```json
-{
-  "read": "auth.openid in get('database.families.' + doc.family_id).members",
-  "write": "auth.openid in get('database.families.' + doc.family_id).members"
-}
-```
-> [!NOTE]
-> **规则解释**：只有当发起请求的用户的 `openid` 包含在对应 `families` 记录中的 `members` 列表中时，该用户才被允许读取 (read) 或写入 (write) 该记录。这完美解决了丈夫和妻子共同读写同一条宝宝数据的需求。
-
----
-
-## ☁️ 四、 家庭绑定云函数实现 (`joinFamily`)
-
-为了防范越权攻击，成员的添加应该在云端通过云函数执行。创建云函数 `joinFamily`：
+为了防范越权攻击并统一管理家庭组的操作，所有针对 `families` 集合的写操作（如创建家庭、添加成员、更新宝宝档案等）均统一在云端通过 `updateFamily` 云函数执行。
 
 ```javascript
-// cloudfunctions/joinFamily/index.js
+// cloudfunctions/updateFamily/index.js
 const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
 
 exports.main = async (event, context) => {
-  const { familyId } = event; // 要加入的家庭 ID
-  const { OPENID } = cloud.getWXContext(); // 申请加入人的 OpenID
+  const { action, familyId, data } = event;
+  const { OPENID } = cloud.getWXContext();
 
   try {
-    // 将该成员的 openid 原子地追加到该家庭的 members 数组中
-    const res = await db.collection('families').doc(familyId).update({
-      data: {
-        members: _.addToSet(OPENID)
+    if (action === 'create') {
+      // 创建新家庭，自动将创建者加入成员列表
+      const res = await db.collection('families').add({
+        data: {
+          ...data,
+          members: [OPENID],
+          create_time: db.serverDate()
+        }
+      });
+      return { success: true, familyId: res._id };
+    }
+    
+    if (action === 'addMember') {
+      // 成员加入：将申请加入人的 openid 原子地追加到该家庭的 members 数组中
+      const res = await db.collection('families').doc(familyId).update({
+        data: {
+          members: _.addToSet(OPENID)
+        }
+      });
+      if (res.stats.updated === 0) {
+        return { success: false, message: '同步码不存在' };
       }
-    });
-
-    if (res.stats.updated === 0) {
-      return { success: false, message: '家庭ID不存在' };
+      return { success: true };
     }
 
-    return { success: true, message: '成功加入家庭组，已同步宝宝数据！' };
+    if (action === 'update') {
+      // 更新宝宝档案或家庭配置
+      const res = await db.collection('families').doc(familyId).update({
+        data: {
+          ...data,
+          update_time: db.serverDate()
+        }
+      });
+      return { success: true };
+    }
+    
+    return { success: false, message: '未知操作' };
   } catch (e) {
     return { success: false, error: e.message };
   }
@@ -90,141 +88,89 @@ exports.main = async (event, context) => {
 
 ## 📱 五、 小程序端“家庭邀请与协同管理”界面
 
-我们在个人中心页面（`my/index`）或单独页面中，为看护人提供**“家庭管理”**控制板，支持“创建家庭并获取邀请码”与“扫码或手动输入邀请码加入家庭”。
+我们在“家庭协同”管理页面（`pages/family/index`）中提供管理控制板，支持创建家庭组和输入同步码加入共享家庭。并且在重新绑定时，会自动触发本地与云端数据的去重合并。
 
-### 1. 页面逻辑 JS
+### 1. 绑定与合并逻辑 JS
 ```javascript
-// pages/family/index.js
+// pages/family/index.js 核心片段
 const { getStorage, setStorage } = require('../../utils/storage.js');
 
-Page({
-  data: {
-    isLoggedIn: false,
-    myFamilyId: '',
-    inviteCodeInput: '',
-    familyMembersCount: 1
-  },
-
-  onShow: function () {
-    const familyId = getStorage('user_family_id', '');
-    this.setData({
-      isLoggedIn: !!getApp().globalData.openid,
-      myFamilyId: familyId
-    });
-    if (familyId) {
-      this.checkFamilyMembers();
-    }
-  },
-
-  // 1. 创建属于自己的家庭 (并生成宝宝邀请码)
-  createFamily: function () {
-    const db = wx.cloud.database();
-    const that = this;
-    
-    wx.showLoading({ title: '正在开通家庭组...' });
-    
-    db.collection('families').add({
+// 1. 创建属于自己的家庭
+createFamily: function () {
+  const that = this;
+  wx.showLoading({ title: '正在开通家庭组...' });
+  wx.cloud.callFunction({
+    name: 'updateFamily',
+    data: {
+      action: 'create',
       data: {
         baby_name: '小宝贝',
         birth_date: '2025-02-18',
-        premature_days: 71,
-        members: [getApp().globalData.openid],
-        create_time: new Date()
-      },
-      success: (res) => {
-        wx.hideLoading();
-        const familyId = res._id;
-        that.setData({ myFamilyId: familyId });
+        premature_days: 71
+      }
+    },
+    success: (res) => {
+      wx.hideLoading();
+      const familyId = res.result.familyId;
+      that.setData({ myFamilyId: familyId }, () => {
         setStorage('user_family_id', familyId);
         
-        wx.showModal({
-          title: '家庭创建成功',
-          content: `您的专属家庭同步码为：\n${familyId}\n\n爱人登录小程序后，输入此码即可共享协同记账。`,
-          confirmText: '复制邀请码',
-          success: (modalRes) => {
-            if (modalRes.confirm) {
-              wx.setClipboardData({ data: familyId });
-            }
-          }
-        });
-      }
-    });
-  },
-
-  // 2. 扫码或手动输入别人的邀请码加入家庭
-  onInviteInput: function (e) {
-    this.setData({ inviteCodeInput: e.detail.value.trim() });
-  },
-
-  joinFamily: function () {
-    const code = this.data.inviteCodeInput;
-    if (!code) {
-      wx.showToast({ title: '请输入邀请码', icon: 'error' });
-      return;
-    }
-
-    const that = this;
-    wx.showLoading({ title: '正在加入...' });
-
-    wx.cloud.callFunction({
-      name: 'joinFamily',
-      data: { familyId: code },
-      success: (res) => {
-        wx.hideLoading();
-        if (res.result.success) {
-          setStorage('user_family_id', code);
-          that.setData({ myFamilyId: code });
+        // 绑定成功后触发双向合并
+        const { syncMerge } = require('../../utils/storage.js');
+        syncMerge(familyId, () => {
+          that.fetchFamilyDetails();
           wx.showModal({
-            title: '绑定成功',
-            content: '已成功接入爱人的家庭共享组！刷新页面即可查看共同的宝宝记录。',
-            showCancel: false
+            title: '家庭创建成功',
+            content: `您的家庭同步码为：\n\n${familyId}\n\n已自动复制邀请码，爱人输入后即可共享数据。`,
+            confirmText: '好 的',
+            showCancel: false,
+            success: () => { wx.setClipboardData({ data: familyId }); }
           });
-        } else {
-          wx.showToast({ title: res.result.message, icon: 'error' });
-        }
-      },
-      fail: () => {
-        wx.hideLoading();
-        wx.showToast({ title: '绑定失败，请检查邀请码', icon: 'none' });
-      }
-    });
-  }
-});
-```
-
-### 2. 多端同步拉取数据逻辑（刷新自动同步）
-在各记录页面（如便便、饮奶、大事记）中，将原来直接从本地缓存读取，改为在 `onShow` 时向云数据库请求：
-```javascript
-// 以拉取大事记页面为例
-loadEventsFromCloud: function () {
-  const familyId = wx.getStorageSync('user_family_id');
-  if (!familyId) {
-    // 离线使用本地缓存
-    return this.loadEventsFromLocal();
-  }
-
-  const db = wx.cloud.database();
-  wx.showNavigationBarLoading();
-  
-  // 按 family_id 查询，而不是 openid
-  db.collection('timeline_events')
-    .where({ family_id: familyId })
-    .orderBy('date', 'desc')
-    .get({
-      success: (res) => {
-        wx.hideNavigationBarLoading();
-        this.setData({
-          events: res.data
         });
-        // 覆盖本地缓存做离线备份
-        wx.setStorageSync('baby_timeline_events', res.data);
-      },
-      fail: (err) => {
-        wx.hideNavigationBarLoading();
-        console.error("云端加载失败，使用本地离线数据", err);
-        this.loadEventsFromLocal();
+      });
+    }
+  });
+},
+
+// 2. 输入别人的邀请码加入家庭
+joinFamily: function () {
+  const code = this.data.inviteCodeInput;
+  const that = this;
+  wx.showLoading({ title: '正在加入...' });
+
+  wx.cloud.callFunction({
+    name: 'updateFamily',
+    data: { action: 'addMember', familyId: code },
+    success: (res) => {
+      wx.hideLoading();
+      if (res.result && res.result.success) {
+        setStorage('user_family_id', code);
+        that.setData({ myFamilyId: code }, () => {
+          // 加入成功后触发双向合并
+          const { syncMerge } = require('../../utils/storage.js');
+          syncMerge(code, () => {
+            that.fetchFamilyDetails();
+            wx.showModal({
+              title: '绑定协同成功',
+              content: '已成功接入家庭组！双方刷新页面即可看到共同数据。',
+              showCancel: false
+            });
+          });
+        });
       }
-    });
+    }
+  });
 }
 ```
-利用这种机制，当妻子在她的手机上添加便便打卡时，记录写入云数据库，带有 `family_id`。当您在您的手机上打开页面或下拉刷新，触发 `loadEventsFromCloud` 查询同样的 `family_id`，就能瞬间加载并显示妻子刚刚添加的全新数据，达成完美协同记账！
+
+### 2. 双向数据归集与防丢失机制 (`syncMerge`)
+在 `utils/storage.js` 中，当绑定发生时，客户端将自动执行双向数据合并：
+*   拉取云数据库的全量业务记录，并与本地缓存的业务数组进行双向比对。
+*   通过唯一主键（`id`）或去重键判定是否重复。
+*   若存在接种状态不一致（例如本地为“已接种”，云端为“未到时间”），优先保留状态为“已接种”且含有接种日期的版本。
+*   将去重合并后的全量记录覆盖本地，并自动触发静默上传同步，使云端与本地同步达到高可用状态。
+
+### 3. 多端实时拉取与刷新机制 (`syncPull` & 下拉刷新)
+为了实现协同成员操作的实时可见性，让多端数据始终对齐：
+*   **切换页面自动加载最新数据**：在各个主要功能页面的 `onShow` 函数中引入后台静默 `syncPull` 调用，自动拉取最新的云端数据并重新渲染当前页面，保证看护人切换页面时始终能看到其他成员添加的最新数据。
+*   **支持下拉刷新强制更新**：在各页面的配置文件 `index.json` 中配置 `"enablePullDownRefresh": true`。在页面的 `onPullDownRefresh` 方法中显式调用 `syncPull`，并在拉取成功后调用 `wx.stopPullDownRefresh()` 停止刷新动画。

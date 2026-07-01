@@ -1,4 +1,6 @@
 {
-  "navigationBarTitleText": "计时模块管理",
+  "navigationBarTitleText": "计时管理中心",
+  "enablePullDownRefresh": true,
+  "backgroundTextStyle": "dark",
   "usingComponents": {}
 }
