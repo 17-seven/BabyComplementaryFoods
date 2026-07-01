@@ -106,5 +106,19 @@
     *   [pages/family/index.wxml](file:///e:/AAAWork/self/BabyComplementaryFoods/wx_miniprogram/pages/family/index.wxml)
     *   [pages/family/index.wxss](file:///e:/AAAWork/self/BabyComplementaryFoods/wx_miniprogram/pages/family/index.wxss)
 
+### 10. 宝宝睡眠记录云开发数据库实时同步扩展
+*   **需求描述**：排便记录、饮奶饮水均支持实时云同步与多端协同，但“宝宝睡眠记录”仅保存在单机本地 LocalStorage 中，容易因刷新、卸载导致数据丢失，无法实现协同共享。
+*   **解决方案**：
+    *   在 `login` 云函数的业务数据库集合列表 `BUSINESS_COLLECTIONS` 中新增 `'sleep_records'` 集合。
+    *   在缓存同步工具类 `utils/storage.js` 的 `KEY_TO_COLLECTION` 和 `CLOUD_TO_LOCAL` 中添加 `'baby_sleep_records': 'sleep_records'` 的双向自动同步映射，使其调用 `setStorage` 保存或删除时自动触发静默增量云端更新。
+    *   开启睡眠记录配置页 `pages/sleep/index.json` 的下拉刷新 `"enablePullDownRefresh": true`。
+    *   在 `pages/sleep/index.js` 的 `onShow` 与 `onPullDownRefresh` 中注入 `syncPull('sleep_records')` 局部刷新机制，实现协同端睡眠数据的实时渲染及主动下拉同步。
+*   **关联文件**：
+    *   云函数 [cloudfunctions/login/index.js](file:///e:/AAAWork/self/BabyComplementaryFoods/wx_miniprogram/cloudfunctions/login/index.js)
+    *   [utils/storage.js](file:///e:/AAAWork/self/BabyComplementaryFoods/wx_miniprogram/utils/storage.js)
+    *   [pages/sleep/index.json](file:///e:/AAAWork/self/BabyComplementaryFoods/wx_miniprogram/pages/sleep/index.json)
+    *   [pages/sleep/index.js](file:///e:/AAAWork/self/BabyComplementaryFoods/wx_miniprogram/pages/sleep/index.js)
+
+
 
 

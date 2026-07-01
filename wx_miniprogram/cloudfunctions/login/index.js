@@ -21,7 +21,8 @@ const BUSINESS_COLLECTIONS = [
   'eyepatch_records',
   'growth',
   'classes',
-  'class_customers'
+  'class_customers',
+  'sleep_records'
 ];
 
 /**

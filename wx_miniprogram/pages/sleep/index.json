@@ -1,4 +1,5 @@
 {
   "navigationBarTitleText": "😴 睡眠记录",
+  "enablePullDownRefresh": true,
   "usingComponents": {}
 }

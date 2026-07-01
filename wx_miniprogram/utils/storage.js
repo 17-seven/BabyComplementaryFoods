@@ -63,7 +63,8 @@ function triggerAutoCloudSync(key, data) {
     'baby_week_plans':      'meal_plans',
     'baby_assessments':     'assessments',
     'baby_growth_records':  'growth',
-    'class_customers':      'class_customers'
+    'class_customers':      'class_customers',
+    'baby_sleep_records':   'sleep_records'
   };
 
   let collName = KEY_TO_COLLECTION[key];
@@ -178,7 +179,8 @@ function syncPull(targetCollections, onSuccess) {
           'milk_water_records': 'milk_water_records',
           'eyepatch_records':   'eyepatch_records',
           'growth':             'baby_growth_records',
-          'class_customers':    'class_customers'
+          'class_customers':    'class_customers',
+          'sleep_records':      'baby_sleep_records'
         };
 
         Object.entries(CLOUD_TO_LOCAL).forEach(([collName, localKey]) => {
@@ -261,7 +263,8 @@ function syncMerge(familyId, onSuccess) {
         'milk_water_records': 'milk_water_records',
         'eyepatch_records':   'eyepatch_records',
         'growth':             'baby_growth_records',
-        'class_customers':    'class_customers'
+        'class_customers':    'class_customers',
+        'sleep_records':      'baby_sleep_records'
       };
 
       const keysToSync = [];

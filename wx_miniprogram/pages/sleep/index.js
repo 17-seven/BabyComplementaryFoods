@@ -37,6 +37,20 @@ Page({
     }
     this.setData({ addDate: today() });
     this.loadSleepLogs();
+
+    // 静默同步刷新最新数据
+    const { syncPull } = require('../../utils/storage.js');
+    syncPull('sleep_records', () => {
+      this.loadSleepLogs();
+    });
+  },
+
+  onPullDownRefresh: function () {
+    const { syncPull } = require('../../utils/storage.js');
+    syncPull('sleep_records', () => {
+      this.loadSleepLogs();
+      wx.stopPullDownRefresh();
+    });
   },
 
   loadSleepLogs: function () {
