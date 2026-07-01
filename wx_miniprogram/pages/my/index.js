@@ -162,7 +162,7 @@ Page({
     const userInfo = { ...(this.data.userInfo || {}), nickName: name };
     
     const finish = (cloudUrl, localUrl) => {
-      if (localUrl) userInfo.avatarUrl = localUrl;
+      userInfo.avatarUrl = cloudUrl || localUrl;
       wx.setStorageSync('user_info', userInfo);
       const app = getApp(); if (app) app.globalData.userInfo = userInfo;
       this.setData({ userInfo, showEditModal: false });

@@ -54,14 +54,40 @@ Page({
           const membersOpenids = detail.members || [];
           
           // 动态以 members 数组为基准，融合补齐昵称与头像，保证无论何种同步情况下，家庭成员都完整展示且不漏人
+          const currentOpenid = getApp().globalData.openid || wx.getStorageSync('user_openid') || '';
           const membersList = membersOpenids.map(m => {
             const info = membersInfo.find(infoItem => infoItem.openid === m);
             const isCreator = (m === detail.creator_openid);
+            let nickName = info ? info.nickName : (isCreator ? (detail.creator_nickname || '群主') : '看护人');
+            let avatarUrl = info ? info.avatarUrl : (isCreator ? (detail.creator_avatar || '/assets/avatar_default.png') : '/assets/avatar_default.png');
+            
+            // 过滤和兜底：如果不是当前用户本人，且头像路径是本地临时/内部路径，则降级为默认头像，防止显示空白
+            const isLocalPath = (url) => {
+              if (!url) return true;
+              return url.startsWith('wxfile://') || 
+                     url.startsWith('http://tmp/') || 
+                     url.startsWith('http://usr/') || 
+                     url.startsWith('wdfile://') || 
+                     url.includes('profile_avatar') ||
+                     url.startsWith('http://127.0.0.1');
+            };
+            
+            if (m !== currentOpenid && isLocalPath(avatarUrl)) {
+              avatarUrl = '/assets/avatar_default.png';
+            }
+
             return {
               openid: m,
-              nickName: info ? info.nickName : (isCreator ? (detail.creator_nickname || '群主') : '看护人'),
-              avatarUrl: info ? info.avatarUrl : (isCreator ? (detail.creator_avatar || '/assets/avatar_default.png') : '/assets/avatar_default.png')
+              nickName: nickName || (isCreator ? '创建者' : '看护人'),
+              avatarUrl: avatarUrl || '/assets/avatar_default.png'
             };
+          });
+
+          // 保证创建者始终排在第一位
+          membersList.sort((a, b) => {
+            if (a.openid === detail.creator_openid) return -1;
+            if (b.openid === detail.creator_openid) return 1;
+            return 0;
           });
 
           that.setData({
