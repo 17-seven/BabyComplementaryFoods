@@ -94,4 +94,17 @@
     *   [pages/family/index.wxss](file:///e:/AAAWork/self/BabyComplementaryFoods/wx_miniprogram/pages/family/index.wxss)
     *   [cloudfunctions/updateFamily/index.js](file:///e:/AAAWork/self/BabyComplementaryFoods/wx_miniprogram/cloudfunctions/updateFamily/index.js)
 
+### 9. 家庭共享协同页面视觉交互美化重构
+*   **需求描述**：对已绑定及未绑定状态下的协同共享控制面板进行高保真重设计。提升视觉亲和力与质感，规范长同步码和 OpenID 的排版显示，重构退出解绑等警示按钮以防生硬。
+*   **解决方案**：
+    *   **色调及布局**：引入微渐变淡绿背景与扩散卡片阴影，采用嫩绿马卡龙渐变升级提示横幅，引入宝宝专属头像区域。
+    *   **排版控制**：同步邀请码框使用 monospace 等宽字族并使用微虚线框，避免中途折行。对过长的守护成员 OpenID 限制宽度并使用 CSS 自动 ellipsis 截断，防止戳破容器边框。
+    *   **角色与弹窗动效**：创建者和看护人分配带 Emoji 的高级彩色身份徽章。二维码弹窗引入背景模糊遮罩与弹出放大缩放弹性动效。
+    *   **幽灵警示按钮**：解绑按钮替换为幽灵酒红色细线设计，低调沉稳。
+    *   **高光微光效果**：未绑定时的方式一和方式二卡片引入微光高斯模糊斑点（`glow-green` / `glow-orange`）和双渐变色主按钮，突出“扫码绑定”主路径。
+*   **关联文件**：
+    *   [pages/family/index.wxml](file:///e:/AAAWork/self/BabyComplementaryFoods/wx_miniprogram/pages/family/index.wxml)
+    *   [pages/family/index.wxss](file:///e:/AAAWork/self/BabyComplementaryFoods/wx_miniprogram/pages/family/index.wxss)
+
+
 
