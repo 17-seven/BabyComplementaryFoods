@@ -81,3 +81,17 @@
     *   [utils/storage.js](file:///e:/AAAWork/self/BabyComplementaryFoods/wx_miniprogram/utils/storage.js)
     *   各业务页面 JS 文件。
 
+### 8. 家庭共享协同体验升级 — 扫码绑定、同步码二维码生成与看护人昵称头像展示
+*   **需求描述**：家庭协同页面没有展示出其他绑定的成员，需要直观展示所有成员的微信头像及昵称；并提供同步码对应的二维码展示弹窗，以及摄像头一键扫码绑定功能。
+*   **解决方案**：
+    *   在 `families` 数据库模型中新增 `members_info` 成员头像昵称明细数组。
+    *   修改 `updateFamily` 云函数，在创建、加入以及修改个人资料时，自动更新 `members_info`，并针对普通看护人隔离了对创建者 `creator_` 字段的覆盖风险。
+    *   小程序家庭共享页面（`pages/family/index`）的看护人列表中以 `members_info` 渲染头像和昵称。
+    *   页面增加弹窗组件，以公用 API 生成并展示绑定二维码；增加扫码绑定按钮，集成 `wx.scanCode` API，支持相机扫描后自动提取 `familyId` 并完成协同加入。
+*   **关联文件**：
+    *   [pages/family/index.wxml](file:///e:/AAAWork/self/BabyComplementaryFoods/wx_miniprogram/pages/family/index.wxml)
+    *   [pages/family/index.js](file:///e:/AAAWork/self/BabyComplementaryFoods/wx_miniprogram/pages/family/index.js)
+    *   [pages/family/index.wxss](file:///e:/AAAWork/self/BabyComplementaryFoods/wx_miniprogram/pages/family/index.wxss)
+    *   [cloudfunctions/updateFamily/index.js](file:///e:/AAAWork/self/BabyComplementaryFoods/wx_miniprogram/cloudfunctions/updateFamily/index.js)
+
+

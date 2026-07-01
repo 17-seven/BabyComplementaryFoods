@@ -21,11 +21,34 @@
 
 ```json
 {
-  "_id": "family_xyz123",            // 家庭唯一ID (也作为 baby_id 绑定主键)
-  "creator_openid": "oXXXXX_husband",// 创建人 (如丈夫的) OpenID
-  "baby_name": "王玧初",              // 宝宝名字
-  "birth_date": "2025-02-18",        // 宝宝生日
-  "premature_days": 71,             ## ☁️ 四、 家庭绑定与写操作云函数实现 (`updateFamily`)
+  "_id": "family_xyz123",              // 家庭唯一ID
+  "creator_openid": "oXXXXX_husband",  // 创建人 OpenID
+  "creator_nickname": "爸爸",          // 创建人微信昵称
+  "creator_avatar": "https://...",     // 创建人微信头像
+  "baby_name": "王玧初",                // 宝宝名字
+  "birth_date": "2025-02-18",          // 宝宝生日
+  "premature_days": 71,                // 早产天数
+  "members": [                         // 成员 OpenID 列表
+    "oXXXXX_husband", 
+    "oXXXXX_wife"
+  ],
+  "members_info": [                    // 看护人真实头像昵称列表（用于协同展示）
+    {
+      "openid": "oXXXXX_husband",
+      "nickName": "爸爸",
+      "avatarUrl": "https://..."
+    },
+    {
+      "openid": "oXXXXX_wife",
+      "nickName": "妈妈",
+      "avatarUrl": "https://..."
+    }
+  ],
+  "create_time": "2026-06-29T16:00:00Z"
+}
+```
+
+## ☁️ 四、 家庭绑定与写操作云函数实现 (`updateFamily`)
 
 为了防范越权攻击并统一管理家庭组的操作，所有针对 `families` 集合的写操作（如创建家庭、添加成员、更新宝宝档案等）均统一在云端通过 `updateFamily` 云函数执行。
 

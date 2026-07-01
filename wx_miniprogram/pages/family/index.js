@@ -7,7 +7,8 @@ Page({
     myFamilyId: '',
     inviteCodeInput: '',
     familyDetails: null,
-    membersList: []
+    membersList: [],
+    showQrModal: false
   },
 
   onShow: function () {
@@ -46,22 +47,43 @@ Page({
     db.collection('families').doc(this.data.myFamilyId).get({
       success: (res) => {
         const detail = res.data;
+        let membersList = detail.members_info || [];
+        if (membersList.length === 0 && detail.members) {
+          // 向上兼容历史老数据格式
+          membersList = detail.members.map(m => {
+            const isCreator = (m === detail.creator_openid);
+            return {
+              openid: m,
+              nickName: isCreator ? (detail.creator_nickname || '群主') : '看护人',
+              avatarUrl: isCreator ? (detail.creator_avatar || '/assets/avatar_default.png') : '/assets/avatar_default.png'
+            };
+          });
+        }
         that.setData({
           familyDetails: detail,
-          membersList: detail.members || []
+          membersList: membersList
         });
       },
       fail: (err) => {
         console.warn("未能拉取云端家庭组详情，可能环境尚未部署完毕，采用本地缓存渲染", err);
         // 从本地宝宝档案读取，不再硬编码
         const profile = getStorage('baby_profile_info', null);
+        const userInfo = getStorage('user_info', null);
+        const openid = getApp().globalData.openid || wx.getStorageSync('user_openid') || '您自己';
         that.setData({
           familyDetails: profile ? {
             baby_name: profile.name,
             birth_date: profile.birthDate,
-            premature_days: profile.prematureDays || 0
-          } : null,
-          membersList: [getApp().globalData.openid || '您自己']
+            premature_days: profile.prematureDays || 0,
+            creator_openid: openid
+          } : { creator_openid: openid },
+          membersList: [
+            {
+              openid: openid,
+              nickName: userInfo ? (userInfo.nickName || '您自己') : '您自己',
+              avatarUrl: userInfo ? (userInfo.avatarUrl || '/assets/avatar_default.png') : '/assets/avatar_default.png'
+            }
+          ]
         });
       }
     });
@@ -182,10 +204,18 @@ Page({
     const that = this;
     wx.showLoading({ title: '正在加入...' });
 
+    const userInfo = getStorage('user_info', null);
     // 优先调用 joinFamily 云函数
     wx.cloud.callFunction({
       name: 'updateFamily',
-      data: { action: 'addMember', familyId: code },
+      data: { 
+        action: 'addMember', 
+        familyId: code,
+        data: {
+          nickName: userInfo ? (userInfo.nickName || '') : '',
+          avatarUrl: userInfo ? (userInfo.avatarUrl || '/assets/avatar_default.png') : '/assets/avatar_default.png'
+        }
+      },
       success: (res) => {
         wx.hideLoading();
         if (res.result && res.result.success) {
@@ -258,6 +288,43 @@ Page({
           });
           wx.showToast({ title: '已成功退组' });
         }
+      }
+    });
+  },
+
+  // 6. 二维码弹窗控制
+  openQrModal: function () {
+    this.setData({ showQrModal: true });
+  },
+  closeQrModal: function () {
+    this.setData({ showQrModal: false });
+  },
+  preventBubble: function () {
+    // 阻止冒泡
+  },
+
+  // 7. 扫码绑定
+  scanToJoin: function () {
+    const that = this;
+    wx.scanCode({
+      onlyFromCamera: false,
+      scanType: ['qrCode'],
+      success: (res) => {
+        let code = res.result || '';
+        if (code.startsWith('familyId:')) {
+          code = code.replace('familyId:', '');
+        }
+        code = code.trim();
+        if (code && code.length >= 10) {
+          that.setData({ inviteCodeInput: code }, () => {
+            that.joinFamily();
+          });
+        } else {
+          wx.showToast({ title: '无效的同步码', icon: 'error' });
+        }
+      },
+      fail: (err) => {
+        console.warn('扫码失败或取消:', err);
       }
     });
   }
