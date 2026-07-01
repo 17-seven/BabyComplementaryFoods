@@ -52,7 +52,7 @@ function setupInteractiveDashboard() {
     milk: { current: 360, target: 500, unit: 'ml', id: 'val-milk', step: 50 },
     water: { current: 90, target: 120, unit: 'ml', id: 'val-water', step: 20 },
     bowel: { current: 1, target: 2, unit: '次', id: 'val-bowel', step: 1 },
-    vision: { current: 2.5, target: 4, unit: '小时', id: 'val-vision', step: 0.5 }
+    sleep: { current: 8.5, target: 12, unit: '小时', id: 'val-sleep', step: 1 }
   };
 
   // 获取所有互动点击卡片

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>围兜日记 | 智能宝宝辅食与健康协同管理系统</title>
-  <meta name="description" content="围兜日记是一款专为宝宝设计的智能辅食排餐与健康管理系统，提供红绿灯配餐校验、疫苗补种滚动日程、儿保就诊记录、大事记时间轴及视力矫正遮盖计时等核心护理服务，支持多端增量数据云端同步。">
+  <meta name="description" content="围兜日记是一款专为宝宝设计的智能辅食排餐与健康管理系统，提供红绿灯配餐校验、疫苗补种滚动日程、儿保就诊记录、大事记时间轴及婴儿睡眠规律记录等核心护理服务，支持多端增量数据云端同步。">
   
   <!-- CSS 样式 -->
   <link rel="stylesheet" href="style.css">
@@ -17,7 +17,7 @@
   <!-- 顶部导航栏 -->
   <header>
     <div class="nav-container">
-      <a href="#" class="logo">
+      <a href="https://www.ibiblog.cn/" class="logo" target="_blank">
         <div class="logo-icon">
           <i class="fa-solid fa-child-reaching"></i>
         </div>
@@ -63,10 +63,10 @@
           
           <!-- 悬浮标签2 -->
           <div class="floating-badge badge-2">
-            <i class="fa-solid fa-hourglass-half"></i>
+            <i class="fa-solid fa-moon"></i>
             <div>
-              <div class="badge-text">左眼遮盖计时中</div>
-              <div style="font-size: 0.7rem; color: var(--text-muted);">今日目标 4 小时</div>
+              <div class="badge-text">深度睡眠记录中</div>
+              <div style="font-size: 0.7rem; color: var(--text-muted);">今日目标 12 小时</div>
             </div>
           </div>
         </div>
@@ -113,10 +113,10 @@
       <!-- 特性4 -->
       <div class="feature-card">
         <div class="feature-icon-wrapper">
-          <i class="fa-solid fa-eye-slash"></i>
+          <i class="fa-solid fa-moon"></i>
         </div>
-        <h3>👁️ 视力遮盖与日常记录</h3>
-        <p>遵照眼科医嘱进行每日左眼戴/摘眼罩计时与打卡进度环，同时提供大便干湿度评估和日常饮水量/纽荃星奶粉摄入一键累加计账。</p>
+        <h3>😴 睡眠记录与日常记录</h3>
+        <p>记录宝宝白天的午睡与夜间深度睡眠，自动统计每日总睡眠时长，同时提供大便干湿度评估和日常饮水量/纽荃星奶粉一键累加计账。</p>
       </div>
     </div>
   </section>
@@ -178,12 +178,12 @@
             <div><button class="btn-indicator-action">+ 1 次</button></div>
           </div>
           
-          <!-- 眼罩 -->
-          <div class="indicator-card" id="card-vision">
-            <i class="fa-solid fa-eye-low-vision" style="color: #ba68c8; font-size: 1.4rem;"></i>
-            <div class="indicator-val" id="val-vision">2.5/4小时</div>
-            <span>👁️ 视力遮盖时长</span>
-            <div><button class="btn-indicator-action">+ 0.5h</button></div>
+          <!-- 睡眠 -->
+          <div class="indicator-card" id="card-sleep">
+            <i class="fa-solid fa-moon" style="color: #ba68c8; font-size: 1.4rem;"></i>
+            <div class="indicator-val" id="val-sleep">8.5/12小时</div>
+            <span>😴 累计睡眠时长</span>
+            <div><button class="btn-indicator-action">+ 1h</button></div>
           </div>
         </div>
       </div>
@@ -210,11 +210,11 @@
   <!-- 页脚 -->
   <footer>
     <div class="footer-container">
-      <a href="#" class="footer-logo">
+      <a href="https://www.ibiblog.cn/" class="footer-logo" target="_blank">
         围兜<span>日记</span>
       </a>
       <div>
-        基于 Node.js 架构自建云服务器迁移成功保护
+        官方网站：<a href="https://www.ibiblog.cn/" target="_blank" style="color: white; text-decoration: underline; transition: var(--transition);">www.ibiblog.cn</a>
       </div>
     </div>
     <div class="copyright">
