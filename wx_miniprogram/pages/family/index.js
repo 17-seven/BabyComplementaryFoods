@@ -50,18 +50,20 @@ Page({
         wx.hideLoading();
         if (res.result && res.result.familyRecord) {
           const detail = res.result.familyRecord;
-          let membersList = detail.members_info || [];
-          if (membersList.length === 0 && detail.members) {
-            // 向上兼容历史老数据格式
-            membersList = detail.members.map(m => {
-              const isCreator = (m === detail.creator_openid);
-              return {
-                openid: m,
-                nickName: isCreator ? (detail.creator_nickname || '群主') : '看护人',
-                avatarUrl: isCreator ? (detail.creator_avatar || '/assets/avatar_default.png') : '/assets/avatar_default.png'
-              };
-            });
-          }
+          const membersInfo = detail.members_info || [];
+          const membersOpenids = detail.members || [];
+          
+          // 动态以 members 数组为基准，融合补齐昵称与头像，保证无论何种同步情况下，家庭成员都完整展示且不漏人
+          const membersList = membersOpenids.map(m => {
+            const info = membersInfo.find(infoItem => infoItem.openid === m);
+            const isCreator = (m === detail.creator_openid);
+            return {
+              openid: m,
+              nickName: info ? info.nickName : (isCreator ? (detail.creator_nickname || '群主') : '看护人'),
+              avatarUrl: info ? info.avatarUrl : (isCreator ? (detail.creator_avatar || '/assets/avatar_default.png') : '/assets/avatar_default.png')
+            };
+          });
+
           that.setData({
             familyDetails: detail,
             membersList: membersList
@@ -290,16 +292,43 @@ Page({
       confirmColor: '#e53e3e',
       success: (res) => {
         if (res.confirm) {
-          setStorage('user_family_id', '');
-          that.setData({
-            myFamilyId: '',
-            familyDetails: null,
-            membersList: []
-          });
-          wx.showToast({ title: '已成功退组' });
+          wx.showLoading({ title: '正在解除绑定...', mask: true });
+          const familyId = that.data.myFamilyId;
+          
+          if (wx.cloud && familyId && !familyId.startsWith('fam_loc_')) {
+            wx.cloud.callFunction({
+              name: 'updateFamily',
+              data: {
+                action: 'removeMember',
+                familyId: familyId
+              },
+              success: () => {
+                wx.hideLoading();
+                that.clearLocalFamilyInfo();
+              },
+              fail: (err) => {
+                wx.hideLoading();
+                console.warn('云端退出家庭组失败，进行本地解绑:', err);
+                that.clearLocalFamilyInfo();
+              }
+            });
+          } else {
+            wx.hideLoading();
+            that.clearLocalFamilyInfo();
+          }
         }
       }
     });
+  },
+
+  clearLocalFamilyInfo: function () {
+    setStorage('user_family_id', '');
+    this.setData({
+      myFamilyId: '',
+      familyDetails: null,
+      membersList: []
+    });
+    wx.showToast({ title: '已成功退组', icon: 'success' });
   },
 
   // 6. 二维码弹窗控制

@@ -119,6 +119,18 @@
     *   [pages/sleep/index.json](file:///e:/AAAWork/self/BabyComplementaryFoods/wx_miniprogram/pages/sleep/index.json)
     *   [pages/sleep/index.js](file:///e:/AAAWork/self/BabyComplementaryFoods/wx_miniprogram/pages/sleep/index.js)
 
+### 11. 协同共享家庭组解绑定漏洞与创建者缺失Bug修复
+*   **需求描述**：
+    1.  成员扫码加入旧家庭后，由于老数据缺少 `members_info` 成员明细，导致页面未成功映射出创建者本人，在成员列表中缺失创建者头像及标签。
+    2.  协同看护人端在点击“解绑并退出”后仅清空了本地 `myFamilyId`，未在云数据库家庭组记录中抹除该成员，导致解绑后的用户依然残留在创建者的家庭守护列表中。
+*   **解决方案**：
+    *   在 `pages/family/index.js` 的 `fetchFamilyDetails` 解析中，改以云端 `members` 数组（OpenID 集合）为基准循环，匹配 `members_info` 中的头像与昵称；对于缺失对应信息的旧数据（如老创建者），自动读取 `creator_` 字段或兜底为“群主”，确保创建者一定能显示在列表中。
+    *   在 `updateFamily` 云函数中新增 `action === 'removeMember'` 的解绑动作。当用户在前台确认解绑时，调用该云函数，从云端 `families` 文档的 `members` 和 `members_info` 数组中物理移除其 OpenID 记录，实现云端实时解绑同步。
+*   **关联文件**：
+    *   [pages/family/index.js](file:///e:/AAAWork/self/BabyComplementaryFoods/wx_miniprogram/pages/family/index.js)
+    *   云函数 [cloudfunctions/updateFamily/index.js](file:///e:/AAAWork/self/BabyComplementaryFoods/wx_miniprogram/cloudfunctions/updateFamily/index.js)
+
+
 
 
 

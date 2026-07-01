@@ -109,6 +109,28 @@ exports.main = async (event, context) => {
       });
       return { success: true, familyId };
 
+    } else if (action === 'removeMember') {
+      // 成员解绑：从 members 数组和 members_info 数组中移除当前退出的成员
+      const doc = await db.collection('families').doc(familyId).get();
+      if (!doc.data) {
+        return { success: false, error: '同步码不存在' };
+      }
+      const family = doc.data;
+      let members = family.members || [];
+      let membersInfo = family.members_info || [];
+
+      // 移出当前操作的 openid
+      members = members.filter(m => m !== openid);
+      membersInfo = membersInfo.filter(m => m.openid !== openid);
+
+      await db.collection('families').doc(familyId).update({
+        data: {
+          members,
+          members_info: membersInfo
+        }
+      });
+      return { success: true, familyId };
+
     } else {
       return { success: false, error: '未知 action: ' + action };
     }
