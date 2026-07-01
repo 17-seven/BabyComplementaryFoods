@@ -55,9 +55,11 @@ Page({
           
           // 动态以 members 数组为基准，融合补齐昵称与头像，保证无论何种同步情况下，家庭成员都完整展示且不漏人
           const currentOpenid = getApp().globalData.openid || wx.getStorageSync('user_openid') || '';
+          const creatorOpenid = detail.creator_openid || detail._openid;
+          
           const membersList = membersOpenids.map(m => {
             const info = membersInfo.find(infoItem => infoItem.openid === m);
-            const isCreator = (m === detail.creator_openid);
+            const isCreator = (m === creatorOpenid);
             let nickName = info ? info.nickName : (isCreator ? (detail.creator_nickname || '群主') : '看护人');
             let avatarUrl = info ? info.avatarUrl : (isCreator ? (detail.creator_avatar || '/assets/avatar_default.png') : '/assets/avatar_default.png');
             
@@ -79,14 +81,15 @@ Page({
             return {
               openid: m,
               nickName: nickName || (isCreator ? '创建者' : '看护人'),
-              avatarUrl: avatarUrl || '/assets/avatar_default.png'
+              avatarUrl: avatarUrl || '/assets/avatar_default.png',
+              isCreator: isCreator
             };
           });
 
           // 保证创建者始终排在第一位
           membersList.sort((a, b) => {
-            if (a.openid === detail.creator_openid) return -1;
-            if (b.openid === detail.creator_openid) return 1;
+            if (a.openid === creatorOpenid) return -1;
+            if (b.openid === creatorOpenid) return 1;
             return 0;
           });
 

@@ -63,8 +63,8 @@
             <view class="member-detail-info">
               <view class="member-name-row">
                 <text class="member-nickname">{{ item.nickName || '看护人' }}</text>
-                <view class="role-tag-badge {{ item.openid === familyDetails.creator_openid ? 'tag-creator' : 'tag-helper' }}">
-                  <text wx:if="{{ item.openid === familyDetails.creator_openid }}">👑 创建者</text>
+                <view class="role-tag-badge {{ item.isCreator ? 'tag-creator' : 'tag-helper' }}">
+                  <text wx:if="{{ item.isCreator }}">👑 创建者</text>
                   <text wx:else>🤝 看护人</text>
                 </view>
               </view>
