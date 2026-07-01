@@ -80,12 +80,36 @@ Page({
     }
     wx.setStorageSync('user_openid', openid);
 
-    if (familyRecord && familyRecord.creator_nickname) {
-      // 老用户：云端家庭组有完整记录，直接恢复所有基础数据
-      const userInfo = {
-        nickName: familyRecord.creator_nickname,
-        avatarUrl: familyRecord.creator_avatar || '/assets/avatar_default.png'
-      };
+    // 确定当前登录用户是否为该家庭组的创建者
+    let isCreator = false;
+    let cloudUserInfo = null;
+
+    if (familyRecord) {
+      const creatorOpenid = familyRecord.creator_openid || familyRecord._openid || (familyRecord.members && familyRecord.members[0]);
+      isCreator = (openid === creatorOpenid);
+
+      if (isCreator) {
+        if (familyRecord.creator_nickname) {
+          cloudUserInfo = {
+            nickName: familyRecord.creator_nickname,
+            avatarUrl: familyRecord.creator_avatar || '/assets/avatar_default.png'
+          };
+        }
+      } else if (familyRecord.members_info) {
+        // 如果是普通协同看护人，从 members_info 数组中查找属于自己的信息
+        const myInfo = familyRecord.members_info.find(m => m.openid === openid);
+        if (myInfo && myInfo.nickName) {
+          cloudUserInfo = {
+            nickName: myInfo.nickName,
+            avatarUrl: myInfo.avatarUrl || '/assets/avatar_default.png'
+          };
+        }
+      }
+    }
+
+    if (familyRecord && cloudUserInfo && cloudUserInfo.nickName) {
+      // 成功从云端家庭组记录中恢复属于当前用户的独立个人信息（创建者或看护人）
+      const userInfo = cloudUserInfo;
       setStorage('user_info', userInfo);
       wx.setStorageSync('user_is_logged_in', true);
       wx.setStorageSync('user_family_id', familyRecord._id);
